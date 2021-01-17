@@ -67,6 +67,7 @@
 
 <script>
 import constants from "../constants.js";
+
 export default {
   data() {
     return {
@@ -190,22 +191,27 @@ select {
   border-radius: 8px;
   font-family: "Open Sans";
 }
+
 .form-group {
   display: block;
 }
+
 button {
   margin: 0px;
   margin-bottom: 15px;
   margin-right: 10px
 }
+
 label {
   display: block;
 }
+
 .button-group {
   display: flex;
   justify-content: flex-end;
   z-index: 500;
 }
+
 .btn-primary,
 .btn-primary:active,
 .btn-primary:visited,
@@ -216,15 +222,18 @@ label {
   color: #4b4e52;
   border-radius: 20px;
 }
+
 .btn-primary:hover {
   background-color: #eeeeee;
   color: #4b4e52;
   border-color: #4b4e52;
 }
+
 label {
   margin-top: 3px;
   margin-bottom: 3px;
 }
+
 .search-input {
   width: 95%;
   display: block;
@@ -246,6 +255,8 @@ label {
   width: 12px;
   margin: auto;
 }
+
+
 .bcdrop-content{
   display: none;
 }

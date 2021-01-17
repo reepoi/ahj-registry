@@ -36,24 +36,24 @@ export default {
     catagoryText() {
       switch(this.catagory) {
         case "ahj":
-          return "AHJ ID or name...";
+          return "AHJID or AHJName...";
         case "address":
-          return "AHJ or Contact ID...";
+          return "AHJID or ContactID...";
         case "contact":
-          return "Name, AHJ or Contact ID...";
+          return "Name, AHJID or ContactID...";
         case "location":
-          return "Address ID...";
+          return "AddressID...";
         case "eng-rev-req":
-          return "AHJ ID..."
+          return "AHJID..."
       }
     }
   },
   methods: {
     updateQuery() {
-      let searchString = "?search=";
+      let searchString = "search=";
       if (this.searchKeyword) {
         // Split keywords
-        let queryStrings = searchString.split(" ");
+        let queryStrings = this.searchKeyword.split(" ");
         for(let i = 0; i < queryStrings.length - 1; i++) {
           searchString += queryStrings[i] + ",";
         }
@@ -62,20 +62,18 @@ export default {
         // Don't search if no keywords were provided
         return;
       }
-      this.$store.commit("toggleAPILoading");
-      this.$store.commit("callAPI", searchString);
+      this.$store.commit("setQueryString", searchString);
+      this.$store.commit("setAPILoading", true);
+      this.$store.commit("deleteAPIData");
+      this.$store.commit("callHistoryAPI", searchString);
     },
     clearFilters() {
       // Don't clear if there is no query to clear
       if(this.$store.state.queryString === "") {
         return;
       }
-
-      this.$store.commit("toggleAPILoading");
       this.searchKeyword = "";
-      this.$store.commit("clearQueryString");
-      this.$store.commit("callAPI");
-      this.$store.commit("updateCurrentPage", 1);
+      this.$store.commit("setQueryString", "");
     }
   }
 };

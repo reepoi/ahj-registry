@@ -36,7 +36,7 @@ def find_ahj_location(request):
     ahj_set = filter_ahjs_by_location(longitude, latitude,
                                       ahjs_to_search=request.data.get('ahjs_to_search'))
 
-    return Response(AHJSerializer(ahj_set, many=True, context=set_view_mode(request)).data, status=status.HTTP_200_OK)
+    return Response(AHJSerializer(ahj_set, many=True, context=set_view_mode(request, hide_ui_fields=True, called_by_view=True)).data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -63,4 +63,4 @@ def find_ahj_address(request):
         ahj_set |= filter_ahjs_by_location(longitude, latitude,
                                            ahjs_to_search=request.data.get('ahjs_to_search'))
 
-    return Response(AHJSerializer(ahj_set, many=True, context=set_view_mode(request)).data, status=status.HTTP_200_OK)
+    return Response(AHJSerializer(ahj_set, many=True, context=set_view_mode(request, hide_ui_fields=True, called_by_view=True)).data, status=status.HTTP_200_OK)
