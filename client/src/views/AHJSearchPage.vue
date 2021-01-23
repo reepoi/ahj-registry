@@ -80,7 +80,7 @@ export default {
   grid-row: 1 / 2;
   padding-left: 1em;
   font-family: "Roboto Condensed";
-  z-index: 1;
+  width: 50%;
 }
 
 .ahj-count {
@@ -88,6 +88,7 @@ export default {
   grid-row: 1 / 2;
   padding-left: 1em;
   font-family: "Roboto Condensed";
+  width: 50%;
 }
 
 a {

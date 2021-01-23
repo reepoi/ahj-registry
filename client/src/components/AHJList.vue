@@ -208,6 +208,7 @@ export default {
   position: relative;
   margin-left: auto;
   margin-right: 0;
+  width: 50%;
 }
 
 #bottom-buttons {
