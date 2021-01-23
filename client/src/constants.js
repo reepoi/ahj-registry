@@ -292,28 +292,10 @@ export default {
   },
   MAP_PLYGN_SLCTD_SYTLE: function() {
     return {
-      fillOpacity: 0.03,
+      fillOpacity: 0.07,
       opacity: 1,
       color: "red",
       eight: 2
     };
   }
-};
-
-function deepCopyObject(objectToCopy) {
-  let result = {};
-  Object.keys(objectToCopy).forEach(key => {
-    let field = objectToCopy[key];
-    if (typeof field === "object") {
-      result[key] = this.deepCopyObject(field);
-    } else if (field.constructor === Array) {
-      result[key] = [];
-      field.forEach(item => {
-        result[key].push(this.setAHJFieldsFromResponse(item));
-      });
-    } else {
-      result[key] = field;
-    }
-  });
-  return result;
 }

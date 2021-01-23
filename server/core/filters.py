@@ -74,7 +74,7 @@ class AHJFilter(filters.FilterSet, rf_filters.SearchFilter):
     AHJName = df_filters.CharFilter(field_name='AHJName', lookup_expr='icontains')
     AHJID = df_filters.UUIDFilter(field_name='AHJID')
     AHJCode = df_filters.CharFilter(field_name='AHJCode', lookup_expr='icontains')
-    AHJLevelCode = df_filters.CharFilter(field_name='AHJLevelCode', lookup_expr='in')
+    AHJLevelCode = CharInFilter(field_name='AHJLevelCode', lookup_expr='in')
     BuildingCode = CharInFilter(field_name='BuildingCode', lookup_expr='in')
     ElectricCode = CharInFilter(field_name='ElectricCode', lookup_expr='in')
     FireCode = CharInFilter(field_name='FireCode', lookup_expr='in')
