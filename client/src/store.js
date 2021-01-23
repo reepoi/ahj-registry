@@ -67,7 +67,9 @@ export default new Vuex.Store({
           state.hasPrevious = Boolean(response.data.previous);
           state.cancelAPICallToken = null;
           state.apiLoading = false;
-          state.selectedAHJ = state.apiData.results.ahjlist[0];
+          if (state.apiData.results.ahjlist.length > 0) {
+            state.selectedAHJ = state.apiData.results.ahjlist[0];
+          }
           state.dataReady = true;
         })
         .catch((/*err*/) => {
