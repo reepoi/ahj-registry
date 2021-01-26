@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('ahj/', views.AHJList.as_view(), name="ahj"),
+    path('ahj-private/', views.WebpageAHJList.as_view(), name='private'),
     path('edit/', views.EditList.as_view(), name='edit'),
     path('edit/submit/', views.submit_edit, name='edit'),
     path('edit/<str:pk>/', views.edit_detail, name='edit'),

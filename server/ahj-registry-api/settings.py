@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework.authtoken',
     'rest_framework',
+    'rest_framework_gis',
     'corsheaders',
     'django_filters',
     'rest_framework_filters',

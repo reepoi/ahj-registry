@@ -47,6 +47,13 @@ DOCUMENT_SUBMISSION_METHOD_CHOICES = [
     ('SolarApp', 'SolarAPP')
 ]
 
+PERMIT_ISSUE_METHOD_CHOICES = [
+    ('Epermitting', 'Epermitting'),
+    ('Email', 'Email'),
+    ('InPerson', 'In Person'),
+    ('SolarApp', 'SolarAPP')
+]
+
 ADDRESS_TYPE_CHOICES = [
     ('Mailing', 'Mailing'),
     ('Billing', 'Billing'),
@@ -112,6 +119,19 @@ STAMP_TYPE_CHOICES = [
     ('Digital', 'Digital'),
     ('Notary', 'Notary'),
     ('None', 'None')
+]
+
+FEE_STRUCTURE_TYPE_CHOICES = [
+    ('Flat', 'Flat'),
+    ('SystemSize', 'System Size')
+]
+
+INSPECTION_TYPE_CHOICES = [
+    ('RoughIn', 'Rough In'),
+    ('Final', 'Final'),
+    ('Windstorm', 'Windstorm'),
+    ('Electrical', 'Electrical'),
+    ('Structural', 'Structural')
 ]
 
 FIELD_VALIDATION = {

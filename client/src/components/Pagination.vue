@@ -22,30 +22,22 @@ export default {
   },
   methods: {
     callPageNumber(currentPage) {
-      let query_string_with_pagination = this.constructURLQueryStringWithPagination(
-        currentPage
-      );
+      let query_string_with_pagination = this.constructURLQueryStringWithPagination(currentPage);
+      this.$store.commit("setAPILoading", true);
       return this.$store.commit("callAPI", query_string_with_pagination);
     },
     constructURLQueryStringWithPagination(page_num) {
       let offset_num = 0;
-      if (page_num == 0) {
+      if (page_num === 0) {
         offset_num = 0;
       } else {
         offset_num = (page_num - 1) * this.perPage;
       }
-      let query_filter_string = "?";
-      if (this.$store.state.queryString) {
-        query_filter_string = this.$store.state.queryString + "&";
+      let paginatedQuery = "limit=" + this.perPage + "&offset=" + offset_num;
+      if (this.$store.state.queryString !== "") {
+        paginatedQuery = this.$store.state.queryString + paginatedQuery;
       }
-      let return_query_string =
-        this.$store.state.apiURL + this.$store.state.apiURLAddon +
-        query_filter_string +
-        "limit=" +
-        this.perPage +
-        "&offset=" +
-        offset_num;
-      return return_query_string;
+      return paginatedQuery;
     }
   },
   computed: {

@@ -50,6 +50,9 @@ export default {
   components: {
     "component-ahj-filter": AHJHistoryFilter
   },
+  created() {
+    this.$store.commit("deleteAPIData");
+  },
   computed: {
     dynamicList() {
       switch(this.listCatagory) {

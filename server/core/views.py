@@ -1,3 +1,4 @@
+from ahj_gis.utils import filter_ahjs_by_location
 from django.utils.http import urlsafe_base64_decode
 from rest_framework.decorators import api_view
 from .serializers import *
@@ -102,6 +103,55 @@ def owner_to_ahj(request):
     return Response('success', status=status.HTTP_200_OK)
 
 
+class WebpageAHJList(generics.ListAPIView):
+    queryset = AHJ.objects.all()
+    serializer_class = AHJSerializer
+    permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser)
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    filterset_class = AHJFilter
+    search_fields = ['AHJName', 'address__City', 'address__County', 'address__Country', 'address__StateProvince', 'address__ZipPostalCode']
+
+    def list(self, request, *args, **kwargs):
+        """
+        ListModelMixin: https://www.django-rest-framework.org/api-guide/generic-views/#listmodelmixin
+        sends a response of a paginated list of AHJs with this JSON structure:
+         - count: number of AHJs across all pages
+         - next: the link to get the next page of AHJs (value null if no next page)
+         - prev: the link to get the previous page (value null if no prev page)
+         - results: list (or object containing the list) of serialized AHJ objects
+        Default implementation: https://github.com/encode/django-rest-framework/blob/8351747d98b97907e6bb096914bf287a22c5314b/rest_framework/mixins.py#L33
+
+        Filtering of AHJs by address happens here; other filtering is done in filters.py
+        This method was overridden to include latlng results of the address provided.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        location = get_location(request)
+
+        # filter by latlng if given
+        if location['Latitude']['Value'] is not None and location['Longitude']['Value'] is not None:
+            # mpoly of an AHJ refers to a Polygon object; mpoly of a Polygon refers to a MULTIPOLYGON
+            # mpoly__mpoly__intersects looks for what AHJ's Polygon's MULTIPOLYGONS contain this point
+            queryset = filter_ahjs_by_location(location['Longitude']['Value'], location['Latitude']['Value'],
+                                               ahjs_to_search=queryset.values_list('AHJID', flat=True))
+
+        # construct the paginated response
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+
+            # passing data object including latlng for results
+            return self.get_paginated_response({
+                'Location': location,
+                'ahjlist': serializer.data
+            })
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def get_serializer_context(self):
+        return set_view_mode(self.request, hide_ui_fields=False, called_by_view=True)
+
+
 class AHJList(generics.ListAPIView):
     queryset = AHJ.objects.all()
     serializer_class = AHJSerializer
@@ -110,8 +160,42 @@ class AHJList(generics.ListAPIView):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['AHJName', 'address__City', 'address__County', 'address__Country', 'address__StateProvince', 'address__ZipPostalCode']
 
+    def list(self, request, *args, **kwargs):
+        """
+        ListModelMixin: https://www.django-rest-framework.org/api-guide/generic-views/#listmodelmixin
+        sends a response of a paginated list of AHJs with this JSON structure:
+         - count: number of AHJs across all pages
+         - next: the link to get the next page of AHJs (value null if no next page)
+         - prev: the link to get the previous page (value null if no prev page)
+         - results: list (or object containing the list) of serialized AHJ objects
+        Default implementation: https://github.com/encode/django-rest-framework/blob/8351747d98b97907e6bb096914bf287a22c5314b/rest_framework/mixins.py#L33
+
+        Filtering of AHJs by address happens here; other filtering is done in filters.py
+        This method was overridden to include latlng results of the address provided.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        location = get_location(request)
+
+        # filter by latlng if given
+        if location['Latitude']['Value'] is not None and location['Longitude']['Value'] is not None:
+            # mpoly of an AHJ refers to a Polygon object; mpoly of a Polygon refers to a MULTIPOLYGON
+            # mpoly__mpoly__intersects looks for what AHJ's Polygon's MULTIPOLYGONS contain this point
+            queryset = filter_ahjs_by_location(location['Longitude']['Value'], location['Latitude']['Value'],
+                                               ahjs_to_search=queryset.values_list('AHJID', flat=True))
+
+        # construct the paginated response
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+
+            # passing data object including latlng for results
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def get_serializer_context(self):
-        return set_view_mode(self.request)
+        return set_view_mode(self.request, hide_ui_fields=True, called_by_view=True)
 
 
 class AHJDetail(generics.RetrieveAPIView):
@@ -121,7 +205,7 @@ class AHJDetail(generics.RetrieveAPIView):
     permission_classes = (permissions.IsAuthenticated, IsSuperUserOrReadOnly)
 
     def get_serializer_context(self):
-        return set_view_mode(self.request)
+        return set_view_mode(self.request, hide_ui_fields=False, called_by_view=True)
 
 
 class EditList(generics.ListAPIView):
