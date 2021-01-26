@@ -27,7 +27,7 @@ SECRET_KEY = '6kmodh=predf0tb+busw1*92u^r9o%4c&0!o5%8^!m51zqy3ow'
 DEBUG = True
 
 # Add allowed hosts that can connect to this API. Add the host IP of the web app connecting to this API.
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['public_url', 'localhost', '127.0.0.1']
 
 GEOS_LIBRARY_PATH = '/usr/local/lib/libgeos_c.so'
 
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'core',
     'taggit',
     'simple_history',
+    # 'silk',
     'django.contrib.gis',
     'ahj_gis'
 ]
@@ -61,6 +62,7 @@ AUTH_USER_MODEL = 'core.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # 'silk.middleware.SilkyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -205,3 +207,10 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+X_FRAME_OPTIONS = 'DENY'
