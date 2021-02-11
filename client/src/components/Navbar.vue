@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar navbar-expand-md navbar-light navbar-custom">
+  <nav class="navbar navbar-expand-sm navbar-light navbar-custom">
     <router-link to="ahj-search" class="navbar-brand">
       <img id="oblogo" src="@/assets/ob.png" />
       <h1 class="app-title">AHJ Registry</h1>

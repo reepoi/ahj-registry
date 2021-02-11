@@ -14,7 +14,7 @@ from django.contrib.gis.db import models
 """
 class Polygon(models.Model):
     STATEFP = models.CharField(max_length=2)
-    STATEABBR = models.CharField(max_length=2, default='') # For State, mapped to STUSPS
+    STATEABBR = models.CharField(db_index=True, max_length=2, default='') # For State, mapped to STUSPS
     POLYFP = models.CharField(max_length=5)
     POLYNS = models.CharField(max_length=8)
     GEOID = models.CharField(max_length=7)
@@ -51,7 +51,7 @@ class Polygon(models.Model):
 # Census state shapefile model
 class State(models.Model):
     REGION = models.CharField(max_length=2)
-    STATEABBR = models.CharField(max_length=2, default='')
+    STATEABBR = models.CharField(db_index=True, max_length=2, default='')
     DIVISION = models.CharField(max_length=2)
     STATEFP = models.CharField(max_length=2)
     STATENS = models.CharField(max_length=8)

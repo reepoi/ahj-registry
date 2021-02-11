@@ -44,7 +44,9 @@ class LocationFilter(df_filters.BaseInFilter):
         try:
             longitude = float(value[0])
             latitude = float(value[1])
-            return ahj_gis_utils.filter_ahjs_by_location(longitude, latitude, ahjs_to_search=qs)
+            ahjs_to_search=qs.values_list('AHJID', flat=True)
+            return ahj_gis_utils.filter_ahjs_by_location(longitude, latitude,
+                                                         ahjs_to_search=ahjs_to_search)
         except ValueError:
             return qs
 
@@ -62,20 +64,24 @@ class AddressFilter(df_filters.BaseInFilter):
             coordinates = geocode_result[x]['geometry']['location']
             longitude = coordinates['lng']
             latitude = coordinates['lat']
-            ahj_qs |= ahj_gis_utils.filter_ahjs_by_location(longitude, latitude, ahjs_to_search=qs)
+            ahjs_to_search=qs.values_list('AHJID', flat=True)
+            ahj_qs |= ahj_gis_utils.filter_ahjs_by_location(longitude, latitude,
+                                                            ahjs_to_search=ahjs_to_search)
         return ahj_qs
 
 
 class AHJFilter(filters.FilterSet, rf_filters.SearchFilter):
-    AHJID__in = df_filters.UUIDFilter(field_name='AHJID')
-    AHJCode__in = df_filters.UUIDFilter(field_name='AHJCode', lookup_expr='in')
-    BuildingCode__in = CharInFilter(field_name='BuildingCode', lookup_expr='in')
-    ElectricCode__in = CharInFilter(field_name='ElectricCode', lookup_expr='in')
-    FireCode__in = CharInFilter(field_name='FireCode', lookup_expr='in')
-    ResidentialCode__in = CharInFilter(field_name='ResidentialCode', lookup_expr='in')
-    WindCode__in = CharInFilter(field_name='WindCode', lookup_expr='in')
-    Location__in = LocationFilter()
-    Address__in = AddressFilter()
+    AHJName = df_filters.CharFilter(field_name='AHJName', lookup_expr='icontains')
+    AHJID = df_filters.UUIDFilter(field_name='AHJID')
+    AHJCode = df_filters.CharFilter(field_name='AHJCode', lookup_expr='icontains')
+    AHJLevelCode = CharInFilter(field_name='AHJLevelCode', lookup_expr='in')
+    BuildingCode = CharInFilter(field_name='BuildingCode', lookup_expr='in')
+    ElectricCode = CharInFilter(field_name='ElectricCode', lookup_expr='in')
+    FireCode = CharInFilter(field_name='FireCode', lookup_expr='in')
+    ResidentialCode = CharInFilter(field_name='ResidentialCode', lookup_expr='in')
+    WindCode = CharInFilter(field_name='WindCode', lookup_expr='in')
+    StateProvince = df_filters.CharFilter(field_name='address__StateProvince', lookup_expr='iexact')
+    Location = LocationFilter()
 
     class Meta:
         model = AHJ

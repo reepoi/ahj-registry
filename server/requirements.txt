@@ -21,6 +21,7 @@ sqlparse==0.3.0
 urllib3==1.25.3
 django-simple-history==2.10.0
 googlemaps==4.4.1
+djangorestframework-gis==0.16
 # geos-3.7.0
 # gdal-2.4.0
 # proj-5.2.0

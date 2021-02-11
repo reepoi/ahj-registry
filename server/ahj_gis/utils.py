@@ -8,16 +8,22 @@ def filter_ahjs_by_location(longitude, latitude, **kwargs):
     coordinate = Point(longitude, latitude)
 
     # Filter by intersects
-    if 'ahjs_to_search' in kwargs:
-        intersects_poly_set = Polygon.objects.filter(ahj__in=kwargs['ahjs_to_search']).filter(mpoly__intersects=coordinate)
-    else:
-        intersects_poly_set = Polygon.objects.filter(mpoly__intersects=coordinate)
+    # Filter by state first
+    state_set = State.objects.filter(mpoly__intersects=coordinate)
+
     covers_poly_set = []
-    # Filter intersects results by covers
-    for poly in intersects_poly_set:
-        # Use covers to include coordinates on borders
-        if poly.mpoly.covers(coordinate):
-            covers_poly_set.append(poly)
+    for state in state_set:
+        polygon_set = Polygon.objects.filter(STATEABBR=state.STATEABBR)
+        if kwargs.get('ahjs_to_search', None) is not None:
+            intersects_poly_set = polygon_set.filter(ahj__AHJID__in=kwargs['ahjs_to_search']).filter(mpoly__intersects=coordinate)
+        else:
+            intersects_poly_set = polygon_set.filter(mpoly__intersects=coordinate)
+
+        # Filter intersects results by covers
+        for poly in intersects_poly_set:
+            # Use covers to include coordinates on borders
+            if poly.mpoly.covers(coordinate):
+                covers_poly_set.append(poly)
 
     # Combine all of the AHJ's with the found names into one QuerySet
     return AHJ.objects.filter(mpoly__in=covers_poly_set).order_by('-AHJLevelCode')

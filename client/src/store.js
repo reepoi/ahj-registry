@@ -3,6 +3,7 @@ import Vuex from "vuex";
 import axios from "axios";
 import constants from "./constants.js";
 import FileSaver from "file-saver";
+import * as utils from "./utils";
 
 Vue.use(Vuex);
 
@@ -13,12 +14,11 @@ export default new Vuex.Store({
     apiData: [],
     apiURL: constants.API_ENDPOINT,
     apiURLAddon: "",
-    apiLoading: false,
+    apiLoading: true,
+    cancelAPICallToken: null,
     hasNext: false,
     hasPrevious: false,
     currentPage: 1,
-    nextPage: "",
-    previousPage: "",
     ahjCount: "",
     dataReady: false,
     perPage: 20,
@@ -29,115 +29,101 @@ export default new Vuex.Store({
       isStaff: false,
       authToken: ""
     },
-    showLoginModal: false
+    showLoginModal: false,
+    selectedAHJ: null,
+    resultsDownloading: false,
+    downloadCompletion: 0,
+    showTable: false
   },
   getters: {
     apiData: state => state.apiData
   },
   mutations: {
     callAPI(state, payload) {
-      let url = state.apiURL + state.apiURLAddon + '?hide_ui_fields=False';
-      if (payload == null) {
-        axios
-          .get(url, {
-            headers: {
-              Authorization: constants.TOKEN_AUTH
-            }
-          })
-          .then(response => {
-            state.apiLoading = false;
-            state.apiData = response.data;
-            state.ahjCount = response.data.count;
-
-            if (response.data.next == null) {
-              state.hasNext = false;
-            } else {
-              state.hasNext = true;
-              state.nextPage = response.data.next;
-            }
-            if (response.data.previous == null) {
-              state.hasPrevious = false;
-            } else {
-              state.hasPrevious = true;
-              state.previousPage = response.data.previous;
-            }
-            state.dataReady = true;
-          });
-      } else if (payload.charAt(0) == "&") {
-        state.queryString = payload;
-
-        let query_string = url + payload;
-
-        axios
-          .get(query_string, {
-            headers: {
-              Authorization: constants.TOKEN_AUTH
-            }
-          })
-          .then(response => {
-            state.apiData = response.data;
-
-            state.apiLoading = false;
-            state.ahjCount = response.data.count;
-
-            if (response.data.next == null) {
-              state.hasNext = false;
-            } else {
-              state.hasNext = true;
-              state.nextPage = response.data.next;
-            }
-            if (response.data.previous == null) {
-              state.hasPrevious = false;
-            } else {
-              state.hasPrevious = true;
-              state.previousPage = response.data.previous;
-            }
-            state.dataReady = true;
-          });
-      } else {
-        let query_string = payload;
-        axios
-          .get(query_string, {
-            headers: {
-              Authorization: constants.TOKEN_AUTH
-            }
-          })
-          .then(response => {
-            state.apiData = response.data;
-            state.ahjCount = response.data.count;
-            state.apiLoading = false;
-
-            if (response.data.next == null) {
-              state.hasNext = false;
-            } else {
-              state.hasNext = true;
-              state.nextPage = response.data.next;
-            }
-            if (response.data.previous == null) {
-              state.hasPrevious = false;
-            } else {
-              state.hasPrevious = true;
-              state.previousPage = response.data.previous;
-            }
-            state.dataReady = true;
-          });
+      if (!state.showTable) {
+        state.showTable = true;
       }
+      // If another axios request has been made; cancel it
+      if (state.cancelAPICallToken !== null) {
+        state.cancelAPICallToken("previous request cancelled");
+      }
+      let url = state.apiURL + state.apiURLAddon + "?";
+      if (payload) {
+        url += payload;
+      }
+      axios
+        .get(url, {
+          headers: {
+            Authorization: constants.TOKEN_AUTH
+          },
+          cancelToken: new axios.CancelToken(function executor(c) {
+            state.cancelAPICallToken = c;
+          })
+        })
+        .then(response => {
+          state.apiData = response.data;
+          state.ahjCount = response.data.count;
+          state.hasNext = Boolean(response.data.next);
+          state.hasPrevious = Boolean(response.data.previous);
+          state.cancelAPICallToken = null;
+          state.apiLoading = false;
+          if (state.apiData.results.ahjlist.length > 0) {
+            state.selectedAHJ = state.apiData.results.ahjlist[0];
+          }
+          state.dataReady = true;
+        })
+        .catch((/*err*/) => {
+          // request was cancelled or some other error
+        });
+    },
+    callHistoryAPI(state, payload) {
+      // If another axios request has been made; cancel it
+      if (state.cancelAPICallToken !== null) {
+        state.cancelAPICallToken("previous request cancelled");
+      }
+      let url = state.apiURL + state.apiURLAddon + "?";
+      if (payload) {
+        url += payload;
+      }
+      axios
+        .get(url, {
+          headers: {
+            Authorization: constants.TOKEN_AUTH
+          },
+          cancelToken: new axios.CancelToken(function executor(c) {
+            state.cancelAPICallToken = c;
+          })
+        })
+        .then(response => {
+          state.apiData = response.data;
+          state.ahjCount = response.data.count;
+          state.hasNext = Boolean(response.data.next);
+          state.hasPrevious = Boolean(response.data.previous);
+          state.cancelAPICallToken = null;
+          state.apiLoading = false;
+        })
+        .catch((/*err*/) => {
+          // request was cancelled or some other error
+        });
     },
     deleteAPIData(state) {
       state.apiData = [];
       state.ahjCount = "";
     },
+    modifyApiDataAHJList(state, payload) {
+      Vue.set(state.apiData.results.ahjlist, payload.index, payload.newahj);
+    },
     setShowLoginModal(state, payload) {
       state.showLoginModal = payload;
     },
-    toggleAPILoading(state) {
-      state.apiLoading = !state.apiLoading;
+    setAPILoading(state, payload) {
+      state.apiLoading = payload;
     },
     toggleDataReady(state) {
       state.dataReady = false;
     },
-    clearQueryString(state) {
-      state.queryString = "";
+    setQueryString(state, payload) {
+      state.queryString = payload;
     },
     updateCurrentPage(state, value) {
       state.currentPage = value;
@@ -145,37 +131,58 @@ export default new Vuex.Store({
     setApiUrlAddon(state, value) {
       state.apiURLAddon = value;
     },
-    exportResults(state) {
-      let url = state.apiURL + state.apiURLAddon;
-      let queryLimit = "limit=" + state.ahjCount;
-
-      // Check if a query was made
-      if (state.queryString) {
-        url += state.queryString + queryLimit;
-      } else {
-        url += "?" + queryLimit;
+    exportResults(state, fileType) {
+      // Don't try to download if no results yet
+      if (state.ahjCount === 0) {
+        state.resultsDownloading = false;
+        return;
       }
-
-      axios
-          .get(url, {
-            headers: {
-              Authorization: constants.TOKEN_AUTH
-            }
-          })
-          .then(response => {
-            let resultsStringified = "";
-            for(let i = 0; i < response.data.results.length; i++) {
-              resultsStringified += JSON.stringify(response.data.results[i], null, 2) + "\n";
-            }
-            let jsonFileToExport = new Blob(
-              [resultsStringified],
-              { type: "application/json" }
-            );
-            FileSaver.saveAs(jsonFileToExport, "results.json");
-          });
+      state.resultsDownloading = true;
+      let gatherAllObjects = function(url, ahjJSONObjs, offset) {
+        if (url === null) {
+          let filename = "results";
+          let fileToExport = null;
+          if (fileType === "application/json") {
+            fileToExport = JSON.stringify(ahjJSONObjs, null, 2);
+            filename += ".json";
+          } else if (fileType === "text/csv") {
+            fileToExport = utils.jsonToCSV(ahjJSONObjs);
+            filename += ".csv";
+          }
+          state.resultsDownloading = false;
+          state.downloadCompletion = 0;
+          FileSaver.saveAs(new Blob([fileToExport], {
+            type: fileType
+          }), filename);
+        } else {
+          axios
+            .get(url, {
+              headers: {
+                Authorization: constants.TOKEN_AUTH
+              }
+            })
+            .then(response => {
+              ahjJSONObjs = ahjJSONObjs.concat(response.data.results);
+              offset += 20; // the django rest framework pagination configuration
+              state.downloadCompletion = (offset / state.ahjCount * 100).toFixed();
+              gatherAllObjects(response.data.next, ahjJSONObjs, offset);
+            });
+        }
+      };
+      let url = state.apiURL + "ahj/";
+      if (state.queryString) {
+        url += "?" + state.queryString;
+      }
+      gatherAllObjects(url, [], 0);
     },
     changeUserLoginStatus(state, payload) {
       state.loginStatus = payload;
+    },
+    setSelectedAHJ(state, ahj) {
+      state.selectedAHJ = ahj;
+    },
+    setShowTable(state, payload) {
+      state.showTable = payload;
     }
   }
 });

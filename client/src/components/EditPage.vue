@@ -1,5 +1,10 @@
 <template>
   <b-container>
+    <b-row>
+      <b-col>
+        <b-button v-if="editPageViewOnly" size="sm" variant="danger" @click="tryEnterEditPageEditMode">Edit this AHJ</b-button>
+      </b-col>
+    </b-row>
     <b-row v-if="recordLoading">
       <div class="text-center text-primary my-2">
         <b-spinner class="align-middle"></b-spinner>
@@ -8,7 +13,7 @@
     </b-row>
     <b-row v-else>
       <b-col>
-        <b-form @submit="onSubmit" @reset="onReset">
+        <b-form @submit.prevent="onSubmit" @reset.prevent="onReset">
             <b-tabs card>
               <b-tab title="AHJ" active>
                   <b-form-group id="input-group-1" label-for="input-1">
@@ -99,7 +104,7 @@
               <b-tab title="Contacts">
                 <b-form-group id="input-group-1" label-for="input-1">
                   <b-tabs card>
-                    <b-tab v-for="i in tabsContact" :key="'dyn-tab-' + i" :title="'Contact ' + getTabTitle('Contact', i)">
+                    <b-tab v-for="i in tabsContact" :key="'dyn-tab-' + i" :title="'Contact ' + getTabTitle('Contacts[' + i + ']')">
                       <b-button size="sm" variant="danger" class="float-right" :disabled="editPageViewOnly" @click="closeTabContact(i)">Delete</b-button>
                       <b-card-header header-tag="header" class="p-0" role="tab">
                         <b-button block v-b-toggle.accordion-4 variant="info">Contact Information</b-button>
@@ -194,7 +199,7 @@
                       label-for="input-1"
                     >
                   <b-tabs card>
-                    <b-tab v-for="i in tabsEngReqRev" :key="'dyn-tab-' + i" :title="'Engineering Review Requirement ' + getTabTitle('EngineeringReviewRequirement', i)">
+                    <b-tab v-for="i in tabsEngReqRev" :key="'dyn-tab-' + i" :title="'Engineering Review Requirement ' + getTabTitle('EngineeringReviewRequirements[' + i + ']')">
                       <b-row>
                         <b-col>
                           <b-button size="sm" variant="danger" class="float-right" :disabled="editPageViewOnly" @click="closeTabEngReqReq(i)">Delete</b-button>
@@ -222,7 +227,254 @@
                   </b-tabs>
                 </b-form-group>
               </b-tab>
+              <b-tab title="AHJ Inspections">
+                <b-form-group
+                      id="input-group-1"
+                      label-for="input-1"
+                    >
+                  <b-tabs card>
+                    <b-tab v-for="i in tabsAHJInspection" :key="'dyn-tab-' + i" :title="'AHJ Inspection ' + getTabTitle('AHJInspections[' + i + ']')">
+                      <b-row>
+                        <b-col>
+                          <b-button size="sm" variant="danger" class="float-right" :disabled="editPageViewOnly" @click="closeTabAHJInspection(i)">Delete</b-button>
+                        </b-col>
+                      </b-row>
+                      <b-card-header header-tag="header" class="p-0" role="tab">
+                        <b-button block v-b-toggle.accordion-7 variant="info">AHJ Inspection Information</b-button>
+                      </b-card-header>
+                      <b-collapse id="accordion-7" visible accordion="my-accordion" role="tabpanel">
+                        <b-card-body>
+                        <div v-for="(valueAHJInspection, nameAHJInspection) in constants.AHJINSPECTION_FIELDS" :key=nameAHJInspection>
+                          <b-row v-if="!isObject(AHJ.AHJInspections[i][nameAHJInspection]) && (mode === 'create' ? nameAHJInspection !== 'RecordID' : true)">
+                            <b-col cols="4">
+                              <label>{{ nameAHJInspection === "RecordID" ? "AHJ Inspection ID" : formatFieldNames(nameAHJInspection) }}:</label>
+                            </b-col>
+                            <b-col v-if="editPageViewOnly">
+                              <label>{{ AHJ.AHJInspections[i][nameAHJInspection] }}</label>
+                            </b-col>
+                            <b-col cols="8" v-else>
+                              <label v-if="nameAHJInspection === 'RecordID'">{{ AHJ[nameAHJInspection] }}</label>
+                              <b-form-select v-else-if="choiceFields.AHJInspection[nameAHJInspection]" v-model="AHJ.AHJInspections[i][nameAHJInspection]" :options="choiceFields.AHJInspection[nameAHJInspection]" />
+                              <b-form-input v-else v-model="AHJ.AHJInspections[i][nameAHJInspection]" type="text" :placeholder="getBFormInputPlaceholder(nameAHJInspection)" />
+                            </b-col>
+                          </b-row>
+                        </div>
+                        <b-row>
+                          <b-col>
+                            <b-button v-if="!editPageViewOnly && AHJ.Address === null" @click="addAddress(AHJ)">Add Address</b-button>
+                          </b-col>
+                        </b-row>
+                        </b-card-body>
+                      </b-collapse>
+                      <b-card-header header-tag="header" class="p-0" role="tab">
+                        <b-button block v-b-toggle.accordion-8 variant="info">Contacts</b-button>
+                      </b-card-header>
+                      <b-collapse id="accordion-8" accordion="my-accordion" role="tabpanel">
+                        <b-card-body>
+                          <b-form-group id="input-group-1" label-for="input-1">
+                            <b-tabs card>
+                              <b-tab v-for="j in tabsAHJInspectionsContact[i]" :key="'dyn-tab-' + j" :title="'Contact ' + getTabTitle('AHJInspections[' + i + '].Contacts[' + j + ']')">
+                                <b-button size="sm" variant="danger" class="float-right" :disabled="editPageViewOnly" @click="closeTabAHJInspectionContact(i, j)">Delete</b-button>
+                                <b-card-header header-tag="header" class="p-0" role="tab">
+                                  <b-button block v-b-toggle.accordion-9 variant="info">Contact Information</b-button>
+                                </b-card-header>
+                                <b-collapse id="accordion-9" visible accordion="my-accordion-contact" role="tabpanel">
+                                  <b-card-body>
+                                    <div v-for="(valueContact, nameContact) in constants.CONTACT_FIELDS" :key=nameContact>
+                                      <b-row v-if="!isObject(AHJ.AHJInspections[i].Contacts[j][nameContact]) && (mode === 'create' ? nameContact !== 'RecordID' : true)">
+                                        <b-col cols="4">
+                                          <label>{{ nameContact === "RecordID" ? "Contact ID" : formatFieldNames(nameContact)  }}:</label>
+                                        </b-col>
+                                        <b-col v-if="editPageViewOnly">
+                                          <label>{{ AHJ.AHJInspections[i].Contacts[j][nameContact] }}</label>
+                                        </b-col>
+                                        <b-col cols="8" v-else>
+                                          <label v-if="nameContact === 'RecordID'">{{ AHJ.AHJInspections[i].Contacts[j][nameContact] }}</label>
+                                          <b-form-select v-else-if="choiceFields.Contact[nameContact]" v-model="AHJ.AHJInspections[i].Contacts[j][nameContact]" :options="choiceFields.Contact[nameContact]" />
+                                          <b-form-input v-else v-model="AHJ.AHJInspections[i].Contacts[j][nameContact]" type="text" :placeholder="getBFormInputPlaceholder(nameContact)" />
+                                        </b-col>
+                                      </b-row>
+                                    </div>
+                                    <b-row>
+                                      <b-col>
+                                        <b-button v-if="!editPageViewOnly && AHJ.AHJInspections[i].Contacts[j].Address === null" @click="addAddress(AHJ.AHJInspections[i].Contacts[j])">Add Address</b-button>
+                                      </b-col>
+                                    </b-row>
+                                  </b-card-body>
+                                </b-collapse>
+                                <div v-if="AHJ.AHJInspections[i].Contacts[j].Address">
+                                  <b-card-header header-tag="header" class="p-0" role="tab">
+                                    <b-button block v-b-toggle.accordion-10 variant="info">Address</b-button>
+                                  </b-card-header>
+                                  <b-collapse id="accordion-10" accordion="my-accordion-contact" role="tabpanel">
+                                    <b-card-body>
+                                    <div v-for="(valueContactAddress, nameContactAddress) in constants.ADDRESS_FIELDS" :key=nameContactAddress>
+                                      <b-row v-if="!isObject(AHJ.AHJInspections[i].Contacts[j].Address[nameContactAddress]) && (mode === 'create' ? nameContactAddress !== 'RecordID' : true)">
+                                        <b-col cols="4">
+                                          <label>{{ nameContactAddress === "RecordID" ? "Address ID" : formatFieldNames(nameContactAddress) }}:</label>
+                                        </b-col>
+                                        <b-col v-if="editPageViewOnly">
+                                          <label>{{ AHJ.AHJInspections[i].Contacts[j].Address[nameContactAddress] }}</label>
+                                        </b-col>
+                                        <b-col cols="8" v-else>
+                                          <label v-if="nameContactAddress === 'RecordID'">{{ AHJ.AHJInspections[i].Contacts[j].Address[nameContactAddress] }}</label>
+                                          <b-form-select v-else-if="choiceFields.Address[nameContactAddress]" v-model="AHJ.AHJInspections[i].Contacts[j].Address[nameContactAddress]" :options="choiceFields.Address[nameContactAddress]" />
+                                          <b-form-input v-else v-model="AHJ.AHJInspections[i].Contacts[j].Address[nameContactAddress]" type="text" :placeholder="getBFormInputPlaceholder(nameContactAddress)" />
+                                            </b-col>
+                                          </b-row>
+                                        </div>
+                                        <b-row>
+                                          <b-col>
+                                            <b-button v-if="!editPageViewOnly && AHJ.AHJInspections[i].Contacts[j].Address.Location === null" @click="addLocation(AHJ.AHJInspections[i].Contacts[j].Address)">Add Location</b-button>
+                                          </b-col>
+                                        </b-row>
+                                    </b-card-body>
+                                  </b-collapse>
+                                </div>
+                                <div v-if="AHJ.AHJInspections[i].Contacts[j].Address && AHJ.AHJInspections[i].Contacts[j].Address.Location">
+                                  <b-card-header header-tag="header" class="p-0" role="tab">
+                                    <b-button block v-b-toggle.accordion-11 variant="info">Location</b-button>
+                                  </b-card-header>
+                                  <b-collapse id="accordion-11" accordion="my-accordion-contact" role="tabpanel">
+                                    <b-card-body>
+                                      <div v-for="(valueContactAddressLocation, nameContactAddressLocation) in constants.LOCATION_FIELDS" :key=nameContactAddressLocation>
+                                        <b-row v-if="mode === 'create' ? nameContactAddressLocation !== 'RecordID' : true">
+                                          <b-col cols="4">
+                                            <label>{{ nameContactAddressLocation === "RecordID" ? "Location ID" : formatFieldNames(nameContactAddressLocation)  }}:</label>
+                                          </b-col>
+                                          <b-col v-if="editPageViewOnly">
+                                            <label>{{ AHJ.AHJInspections[i].Contacts[j].Address.Location[nameContactAddressLocation] }}</label>
+                                          </b-col>
+                                          <b-col cols="8" v-else>
+                                            <label v-if="nameContactAddressLocation === 'RecordID'">{{ AHJ.AHJInspections[i].Contacts[j].Address.Location[nameContactAddressLocation] }}</label>
+                                            <b-form-select v-else-if="choiceFields.Location[nameContactAddressLocation]" v-model="AHJ.AHJInspections[i].Contacts[j].Address.Location[nameContactAddressLocation]" :options="choiceFields.Location[nameContactAddressLocation]" />
+                                            <b-form-input v-else v-model="AHJ.AHJInspections[i].Contacts[j].Address.Location[nameContactAddressLocation]" type="text" :placeholder="getBFormInputPlaceholder(nameContactAddressLocation)" />
+                                          </b-col>
+                                        </b-row>
+                                      </div>
+                                    </b-card-body>
+                                  </b-collapse>
+                                </div>
+                              </b-tab>
+                              <template v-slot:tabs-end>
+                                <b-nav-item role="presentation" :disabled="editPageViewOnly" @click.prevent="newTabAHJInspectionContact(i)" href="#"><b>+</b></b-nav-item>
+                              </template>
+                            </b-tabs>
+                          </b-form-group>
+                        </b-card-body>
+                      </b-collapse>
+                    </b-tab>
+                    <template v-slot:tabs-end>
+                      <b-nav-item role="presentation" :disabled="editPageViewOnly" @click.prevent="newTabAHJInspection" href="#"><b>+</b></b-nav-item>
+                    </template>
+                  </b-tabs>
+                </b-form-group>
+              </b-tab>
+              <b-tab title="Fee Structures">
+                <b-form-group
+                      id="input-group-1"
+                      label-for="input-1"
+                    >
+                  <b-tabs card>
+                    <b-tab v-for="i in tabsFeeStructure" :key="'dyn-tab-' + i" :title="'Fee Structure ' + getTabTitle('FeeStructures[' + i + ']')">
+                      <b-row>
+                        <b-col>
+                          <b-button size="sm" variant="danger" class="float-right" :disabled="editPageViewOnly" @click="closeTabFeeStructure(i)">Delete</b-button>
+                        </b-col>
+                      </b-row>
+                      <div v-for="(valueFeeStructure, nameFeeStructure) in constants.FEESTRUCTURE_FIELDS" :key=nameFeeStructure>
+                        <b-row v-if="mode === 'create' ? nameFeeStructure !== 'RecordID' : true">
+                          <b-col cols="4">
+                            <label>{{ nameFeeStructure === "RecordID" ? "Fee Structure ID" : formatFieldNames(nameFeeStructure) }}:</label>
+                          </b-col>
+                          <b-col v-if="editPageViewOnly">
+                            <label>{{ AHJ.FeeStructures[i][nameFeeStructure] }}</label>
+                          </b-col>
+                          <b-col cols="8" v-else>
+                            <b-form-input v-if="nameFeeStructure === 'RecordID' && (beforeEditAHJRecord.FeeStructures[i] ? !checkEditMade(beforeEditAHJRecord.FeeStructures[i], AHJ.FeeStructures[i], nameFeeStructure) : true)" v-model="AHJ.FeeStructures[i][nameFeeStructure]" type="text" placeholder="Enter a UUID (leave blank to generate one)..." />
+                            <label v-else-if="nameFeeStructure === 'RecordID'">{{ AHJ.FeeStructures[i][nameFeeStructure] }}</label>
+                            <b-form-select v-else-if="choiceFields.FeeStructure[nameFeeStructure]" v-model="AHJ.FeeStructures[i][nameFeeStructure]" :options="choiceFields.FeeStructure[nameFeeStructure]" />
+                            <b-form-input v-else v-model="AHJ.FeeStructures[i][nameFeeStructure]" type="text" :placeholder="getBFormInputPlaceholder(nameFeeStructure)" />
+                          </b-col>
+                        </b-row>
+                      </div>
+                    </b-tab>
+                    <template v-slot:tabs-end>
+                      <b-nav-item role="presentation" :disabled="editPageViewOnly" @click.prevent="newTabFeeStructure" href="#"><b>+</b></b-nav-item>
+                    </template>
+                  </b-tabs>
+                </b-form-group>
+              </b-tab>
+              <b-tab title="Document Submission Methods">
+                <b-form-group
+                      id="input-group-1"
+                      label-for="input-1"
+                    >
+                  <b-tabs card>
+                    <b-tab v-for="i in tabsDocSubMethod" :key="'dyn-tab-' + i" :title="'Document Submission Method ' + getTabTitle('DocumentSubmissionMethods[' + i + ']')">
+                      <b-row>
+                        <b-col>
+                          <b-button size="sm" variant="danger" class="float-right" :disabled="editPageViewOnly" @click="closeTabDocSubMethod(i)">Delete</b-button>
+                        </b-col>
+                      </b-row>
+                      <div v-for="(valueDocSubMethod, nameDocSubMethod) in constants.DOCUMENTSUBMISSIONMETHOD_FIELDS" :key=nameDocSubMethod>
+                        <b-row v-if="mode === 'create' ? nameDocSubMethod !== 'RecordID' : true">
+                          <b-col cols="4">
+                            <label>{{ nameDocSubMethod === "RecordID" ? "Document Submission Method ID" : formatFieldNames(nameDocSubMethod) }}:</label>
+                          </b-col>
+                          <b-col v-if="editPageViewOnly">
+                            <label>{{ AHJ.DocumentSubmissionMethods[i][nameDocSubMethod] }}</label>
+                          </b-col>
+                          <b-col cols="8" v-else>
+                            <label v-if="nameDocSubMethod === 'RecordID'">{{ AHJ.DocumentSubmissionMethods[i][nameDocSubMethod] }}</label>
+                            <b-form-select v-else-if="choiceFields.DocumentSubmissionMethod[nameDocSubMethod]" v-model="AHJ.DocumentSubmissionMethods[i][nameDocSubMethod]" :options="choiceFields.DocumentSubmissionMethod[nameDocSubMethod]" />
+                            <b-form-input v-else v-model="AHJ.DocumentSubmissionMethods[i][nameDocSubMethod]" type="text" :placeholder="getBFormInputPlaceholder(nameDocSubMethod)" />
+                          </b-col>
+                        </b-row>
+                      </div>
+                    </b-tab>
+                    <template v-slot:tabs-end>
+                      <b-nav-item role="presentation" :disabled="editPageViewOnly" @click.prevent="newTabDocSubMethod" href="#"><b>+</b></b-nav-item>
+                    </template>
+                  </b-tabs>
+                </b-form-group>
+              </b-tab>
+              <b-tab title="Permit Issue Methods">
+                <b-form-group
+                      id="input-group-1"
+                      label-for="input-1"
+                    >
+                  <b-tabs card>
+                    <b-tab v-for="i in tabsPerIssMethod" :key="'dyn-tab-' + i" :title="'Permit Issue Method ' + getTabTitle('PermitIssueMethods[' + i + ']')">
+                      <b-row>
+                        <b-col>
+                          <b-button size="sm" variant="danger" class="float-right" :disabled="editPageViewOnly" @click="closeTabPerIssMethod(i)">Delete</b-button>
+                        </b-col>
+                      </b-row>
+                      <div v-for="(valuePerIssMethod, namePerIssMethod) in constants.PERMITSUBMISSIONMETHOD_FIELDS" :key=namePerIssMethod>
+                        <b-row v-if="mode === 'create' ? namePerIssMethod !== 'RecordID' : true">
+                          <b-col cols="4">
+                            <label>{{ namePerIssMethod === "RecordID" ? "Permit Issue Method ID" : formatFieldNames(namePerIssMethod) }}:</label>
+                          </b-col>
+                          <b-col v-if="editPageViewOnly">
+                            <label>{{ AHJ.PermitIssueMethods[i][namePerIssMethod] }}</label>
+                          </b-col>
+                          <b-col cols="8" v-else>
+                            <label v-if="namePerIssMethod === 'RecordID'">{{ AHJ.PermitIssueMethods[i][namePerIssMethod] }}</label>
+                            <b-form-select v-else-if="choiceFields.PermitIssueMethod[namePerIssMethod]" v-model="AHJ.PermitIssueMethods[i][namePerIssMethod]" :options="choiceFields.PermitIssueMethod[namePerIssMethod]" />
+                            <b-form-input v-else v-model="AHJ.PermitIssueMethods[i][namePerIssMethod]" type="text" :placeholder="getBFormInputPlaceholder(namePerIssMethod)" />
+                          </b-col>
+                        </b-row>
+                      </div>
+                    </b-tab>
+                    <template v-slot:tabs-end>
+                      <b-nav-item role="presentation" :disabled="editPageViewOnly" @click.prevent="newTabPerIssMethod" href="#"><b>+</b></b-nav-item>
+                    </template>
+                  </b-tabs>
+                </b-form-group>
+              </b-tab>
             </b-tabs>
+          <b-button v-if="!editPageViewOnly" class="form-buttons" type="submit" variant="primary">Submit</b-button>
         </b-form>
       </b-col>
     </b-row>
@@ -235,14 +487,13 @@ import constants from "../constants.js";
 export default {
   props: [
     'mode',
-    'editPageViewOnly',
     'selectedAHJ'
   ],
   data() {
     return {
       constants: constants,
       recordLoading: true,
-      editMode: false,
+      editPageViewOnly: true,
       beforeEditAHJRecord: {},
       EditTypeAndRecordTypeAndRecordID: "",
       requestType: "post",
@@ -250,6 +501,16 @@ export default {
       tabCounterContact: 0,
       tabsEngReqRev: [],
       tabCounterEngReqRev: 0,
+      tabsFeeStructure: [],
+      tabCounterFeeStructure: 0,
+      tabsAHJInspection: [],
+      tabCounterAHJInspection: 0,
+      tabsAHJInspectionsContact: [],
+      tabsCounterAHJInspectionsContact: [],
+      tabsDocSubMethod: [],
+      tabCounterDocSubMethod: 0,
+      tabsPerIssMethod: [],
+      tabCounterPerIssMethod: 0,
       AHJ: {},
       unconfirmedRecordEdits: [],
       choiceFields: constants.CHOICE_FIELDS
@@ -271,7 +532,16 @@ export default {
         this.recordLoading = false;
       }
     },
+    tryEnterEditPageEditMode() {
+      if (this.$store.state.loginStatus.status !== "success") {
+        this.$store.commit("setShowLoginModal", true);
+        return;
+      }
+      this.getConfirmedAHJRecord();
+      this.editPageViewOnly = false;
+    },
     onSubmit() {
+      this.editPageViewOnly = true;
       if (this.mode === "create") {
         this.postCreate("AHJ", this.AHJ);
       } else if (this.mode === "update") {
@@ -315,37 +585,83 @@ export default {
       for (let i = 0; i < this.tabCounterEngReqRev; i++) {
         this.tabsEngReqRev.push(i);
       }
-    },
-    setAHJFieldsFromResponse(record) {
-      let result = {};
-      Object.keys(record).forEach(key => {
-        let field = record[key];
-        if (field) {
-          if (field.hasOwnProperty("Value")) {
-            let value = field["Value"];
-            if (value && field["RecordID"] === value) {
-              key = "RecordID";
-            }
-            result[key] = value;
-          } else if (this.isArray(field)) {
-            result[key] = [];
-            field.forEach(item => {
-              result[key].push(this.setAHJFieldsFromResponse(item));
-            });
-          } else {
-            result[key] = this.setAHJFieldsFromResponse(record[key]);
-          }
-        } else {
-          result[key] = field;
+      this.tabsDocSubMethod = [];
+      this.tabCounterDocSubMethod = this.AHJ.DocumentSubmissionMethods.length;
+      for (let i = 0; i < this.tabCounterDocSubMethod; i++) {
+        this.tabsDocSubMethod.push(i);
+      }
+      this.tabsPerIssMethod = [];
+      this.tabCounterPerIssMethod = this.AHJ.PermitIssueMethods.length;
+      for (let i = 0; i < this.tabCounterPerIssMethod; i++) {
+        this.tabsPerIssMethod.push(i);
+      }
+      this.tabCounterAHJInspection = this.AHJ.AHJInspections.length;
+      this.tabsAHJInspection = [];
+      for (let i = 0; i < this.tabCounterAHJInspection; i++) {
+        this.tabsAHJInspection.push(i);
+      }
+      this.tabsAHJInspectionsContact = [];
+      this.tabsCounterAHJInspectionsContact = [];
+      for (let ahjInspection of this.AHJ.AHJInspections) {
+        this.tabsCounterAHJInspectionsContact.push(ahjInspection.Contacts.length);
+        let tabsAHJInspectionContact = [];
+        for (let i = 0; i < ahjInspection.Contacts.length; i++) {
+          tabsAHJInspectionContact.push(i);
         }
-      });
-      return result;
+        this.tabsAHJInspectionsContact.push(tabsAHJInspectionContact);
+      }
+      this.tabCounterFeeStructure = this.AHJ.FeeStructures.length;
+      this.tabsFeeStructure = [];
+      for (let i = 0; i < this.tabCounterFeeStructure; i++) {
+        this.tabsFeeStructure.push(i);
+      }
     },
-    postCreate(RecordType, fields, ParentID, ParentRecordType) {
+    setAHJFieldsFromResponse(record, parentKey) {
+      let result = {};
+      let hasSetRecordID = false;
+      let recordIDFromEdit = "";
+      if (record.hasOwnProperty("EditID")) {
+        result["RecordID"] = record["RecordID"];
+        result[parentKey] = record["Value"];
+        return result;
+      } else {
+        Object.keys(record).filter(key => key !== "mpoly").forEach(key => { // do not include mpoly for now
+          let field = record[key];
+          if (field) {
+            if (field.hasOwnProperty("Value")) {
+              let value = field["Value"];
+              if (value && field["RecordID"] === value) {
+                hasSetRecordID = true;
+                key = "RecordID";
+              }
+              recordIDFromEdit = field["RecordID"];
+              result[key] = value;
+            } else if (this.isArray(field)) {
+              result[key] = [];
+              field.forEach(item => {
+                result[key].push(this.setAHJFieldsFromResponse(item, this.getSingularRecordType(key)));
+              });
+            } else {
+              result[key] = this.setAHJFieldsFromResponse(record[key]);
+            }
+          } else {
+            result[key] = field;
+          }
+        });
+        if (!hasSetRecordID && this.isObject(record)) {
+          result["RecordID"] = recordIDFromEdit;
+        }
+        return result;
+      }
+    },
+    postCreate(RecordType, fields, ParentID, ParentRecordType, subRecordID) {
       let createEditObject = {EditType: "create", RecordType: RecordType}
       if (ParentID && ParentRecordType) {
         createEditObject["ParentID"] = ParentID;
         createEditObject["ParentRecordType"] = ParentRecordType;
+      }
+      if (RecordType === "FeeStructure" && subRecordID) {
+        createEditObject["RecordID"] = subRecordID;
       }
       axios.post(this.$store.state.apiURL + "edit/submit/", createEditObject,
         {
@@ -370,10 +686,10 @@ export default {
             }
             for (let i = 0; i < field.length; i++) {
               let subRecordID = field[i]["RecordID"];
-              if (subRecordID) {
+              if (subRecordID && (beforeEditFields[key][i] ? subRecordID === beforeEditFields[key][i]["RecordID"] : false)) {
                 this.postUpdate(this.getSingularRecordType(key), field[i], subRecordID, beforeEditFields[key][i]);
               } else {
-                this.postCreate(this.getSingularRecordType(key), field[i], RecordID, RecordType);
+                this.postCreate(this.getSingularRecordType(key), field[i], RecordID, RecordType, subRecordID);
               }
             }
           } else if (this.isObject(field)) {
@@ -383,7 +699,7 @@ export default {
             } else {
               this.postCreate(key, field, RecordID, RecordType);
             }
-          } else if(key === "RecordID" || (this.mode === "create" ? field === "" : false)
+          } else if(key === "RecordID" || ((this.mode === "create" || !beforeEditFields) ? field === "" : false)
             || (this.mode === "update" && beforeEditFields ? this.checkEditMade(fields, beforeEditFields, key) : false)) {
             return;
           } else {
@@ -401,7 +717,6 @@ export default {
             Authorization: this.$store.state.loginStatus.authToken
           }
         }).then(response => {
-          
         }).catch(error => {
         });
       }
@@ -426,19 +741,15 @@ export default {
           Authorization: this.$store.state.loginStatus.authToken
         }
       }).then(response => {
-        
+
       }).catch(error => {
       });
     },
     getSingularRecordType(name) {
-      if (name === "Contacts") {
-        return "Contact";
-      } else if (name === "EngineeringReviewRequirements") {
-        return "EngineeringReviewRequirement";
-      }
+      return name.slice(0, -1);
     },
-    addContact() {
-      this.AHJ.Contacts.push(this.deepCopyObject(constants.CONTACT_FIELDS));
+    addContact(parent) {
+      parent["Contacts"].push(this.deepCopyObject(constants.CONTACT_FIELDS));
     },
     addAddress(parent) {
       parent["Address"] = this.deepCopyObject(constants.ADDRESS_FIELDS);
@@ -449,13 +760,47 @@ export default {
     addEngRevReq() {
       this.AHJ.EngineeringReviewRequirements.push(this.deepCopyObject(constants.ENGINEERINGREVIEWREQUIREMENTS_FIELDS));
     },
+    addDocSubMethod() {
+      this.AHJ.DocumentSubmissionMethods.push(this.deepCopyObject(constants.DOCUMENTSUBMISSIONMETHOD_FIELDS));
+    },
+    addPerIssMethod() {
+      this.AHJ.PermitIssueMethods.push(this.deepCopyObject(constants.PERMITSUBMISSIONMETHOD_FIELDS));
+    },
+    addFeeStructure() {
+      this.AHJ.FeeStructures.push(this.deepCopyObject(constants.FEESTRUCTURE_FIELDS));
+    },
+    addAHJInspection() {
+      this.AHJ.AHJInspections.push(this.deepCopyObject(constants.AHJINSPECTION_FIELDS));
+    },
     newTabContact() {
-      this.addContact();
+      this.addContact(this.AHJ);
       this.tabsContact.push(this.tabCounterContact++);
+    },
+    newTabAHJInspectionContact(index) {
+      this.addContact(this.AHJ.AHJInspections[index]);
+      this.tabsAHJInspectionsContact[index].push(this.tabsCounterAHJInspectionsContact[index]++);
     },
     newTabEngRevReq() {
       this.addEngRevReq();
       this.tabsEngReqRev.push(this.tabCounterEngReqRev++);
+    },
+    newTabDocSubMethod() {
+      this.addDocSubMethod();
+      this.tabsDocSubMethod.push(this.tabCounterDocSubMethod++);
+    },
+    newTabPerIssMethod() {
+      this.addPerIssMethod();
+      this.tabsPerIssMethod.push(this.tabCounterPerIssMethod++);
+    },
+    newTabFeeStructure() {
+      this.addFeeStructure();
+      this.tabsFeeStructure.push(this.tabCounterFeeStructure++);
+    },
+    newTabAHJInspection() {
+      this.addAHJInspection();
+      this.tabsAHJInspection.push(this.tabCounterAHJInspection++);
+      this.tabsAHJInspectionsContact.push([]);
+      this.tabsCounterAHJInspectionsContact.push(0);
     },
     closeTabContact(x) {
       for (let i = 0; i < this.tabsContact.length; i++) {
@@ -481,6 +826,68 @@ export default {
         this.tabCounterEngReqRev = this.tabsEngReqRev.length;
       }
     },
+    closeTabDocSubMethod(x) {
+      for (let i = 0; i < this.tabsDocSubMethod.length; i++) {
+        if (this.tabsDocSubMethod[i] === x) {
+          this.AHJ.DocumentSubmissionMethods.splice(i, 1);
+          this.tabsDocSubMethod.splice(i, 1);
+        }
+        for (let i = 0; i < this.tabsDocSubMethod.length; i++) {
+          this.tabsDocSubMethod[i] = i;
+        }
+        this.tabCounterDocSubMethod = this.tabsDocSubMethod.length;
+      }
+    },
+    closeTabPerIssMethod(x) {
+      for (let i = 0; i < this.tabsPerIssMethod.length; i++) {
+        if (this.tabsPerIssMethod[i] === x) {
+          this.AHJ.PermitIssueMethods.splice(i, 1);
+          this.tabsPerIssMethod.splice(i, 1);
+        }
+        for (let i = 0; i < this.tabsPerIssMethod.length; i++) {
+          this.tabsPerIssMethod[i] = i;
+        }
+        this.tabCounterPerIssMethod = this.tabsPerIssMethod.length;
+      }
+    },
+    closeTabFeeStructure(x) {
+      for (let i = 0; i < this.tabsFeeStructure.length; i++) {
+        if (this.tabsFeeStructure[i] === x) {
+          this.AHJ.FeeStructures.splice(i, 1);
+          this.tabsFeeStructure.splice(i, 1);
+        }
+        for (let i = 0; i < this.tabsFeeStructure.length; i++) {
+          this.tabsFeeStructure[i] = i;
+        }
+        this.tabCounterFeeStructure = this.tabsFeeStructure.length;
+      }
+    },
+    closeTabAHJInspection(x) {
+      for (let i = 0; i < this.tabsAHJInspection.length; i++) {
+        if (this.tabsAHJInspection[i] === x) {
+          this.AHJ.AHJInspections.splice(i, 1);
+          this.tabsAHJInspection.splice(i, 1);
+          this.tabsCounterAHJInspectionsContact.splice(i, 1);
+          this.tabsAHJInspectionsContact.splice(i, 1);
+        }
+        for (let i = 0; i < this.tabsAHJInspection.length; i++) {
+          this.tabsAHJInspection[i] = i;
+        }
+        this.tabCounterAHJInspection = this.tabsAHJInspection.length;
+      }
+    },
+    closeTabAHJInspectionContact(index, x) {
+      for (let i = 0; i < this.tabsAHJInspectionsContact[index].length; i++) {
+        if (this.tabsAHJInspectionsContact[index][i] === x) {
+          this.AHJ.AHJInspections[index].Contacts.splice(i, 1);
+          this.tabsAHJInspectionsContact[index].splice(i, 1);
+        }
+        for (let i = 0; i < this.tabsAHJInspectionsContact[index].length; i++) {
+          this.tabsAHJInspectionsContact[index][i] = i;
+        }
+        this.tabsCounterAHJInspectionsContact[index] = this.tabsAHJInspectionsContact[index].length;
+      }
+    },
     deepCopyObject(objectToCopy) {
       let result = {};
       Object.keys(objectToCopy).forEach(key => {
@@ -503,38 +910,35 @@ export default {
       return result;
     },
     checkEditMade(before, after, field) {
-      return before[field] === after[field]
+      return before[field] === after[field];
     },
     isArray(item) {
       return item.constructor === Array;
     },
     isObject(item) {
-      return typeof item === "object";
+      return typeof item === "object" && item !== null;
     },
     getBFormInputPlaceholder(fieldName) {
       return "Enter a " + this.formatFieldNames(fieldName) + "...";
     },
-    getTabTitle(type, index) {
-      if (type === "Contact") {
-        let RecordID = this.AHJ.Contacts[index].RecordID;
-        if (RecordID) {
-          return RecordID;
+    getTabTitle(type) {
+      type += ".RecordID";
+      let RecordID = type.split(/[\[\].]/).filter(i => i !== "").reduce((o, i) => {
+        if (!o || !o[i]) {
+          return undefined;
         } else {
-          return "(new)";
+          return o[i];
         }
-      } else if (type === "EngineeringReviewRequirement") {
-        let RecordID = this.AHJ.EngineeringReviewRequirements[index].RecordID;
-        if (RecordID) {
-          return RecordID;
-        } else {
-          return "(new)"
-        }
+      }, this.AHJ);
+      if (RecordID) {
+        return RecordID;
       }
+      return "(new)";
     },
     formatFieldNames(name) {
       let result = "";
       let index = 0;
-      while (name[index] >= 'A' && name[index] <= 'Z') {
+      while (name[index] >= 65 && name[index] <= 90) {
         index++;
       }
       index--;
@@ -557,12 +961,12 @@ export default {
     modes() {
       if(this.$store.state.loginStatus["isSuper"]) {
         return [
-          { value: "update", text: "Edit an existing AHJ..."},
-          { value: "create", text: "Submit a new AHJ..."}
+          { value: "update", text: "Edit an existing AHJ..." },
+          { value: "create", text: "Submit a new AHJ..." }
         ];
       } else {
         return [
-          { value: "update", text: "Edit an existing AHJ..."}
+          { value: "update", text: "Edit an existing AHJ..." }
         ];
       }
     }
@@ -572,9 +976,8 @@ export default {
 
 <style scoped>
 
-.nav-tabs, .nav-link, .nav-link.active {
-  padding-left: 10px;
-  padding-right: 10px;
+.form-buttons {
+  float: right;
 }
 
 </style>

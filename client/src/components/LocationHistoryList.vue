@@ -72,7 +72,8 @@ export default {
   },
   beforeCreate() {
     this.$store.commit("setApiUrlAddon", "history/location/");
-    this.$store.commit("callAPI");
+    this.$store.commit("setAPILoading", true);
+    this.$store.commit("callHistoryAPI");
   },
   beforeDestroy() {
     this.$store.commit("deleteAPIData");
@@ -107,15 +108,6 @@ export default {
         case "~":
           return "Modified";
       }
-    },
-    nextPage() {
-      this.$store.commit("toggleAPILoading");
-      return this.$store.commit("callAPI", this.$store.state.nextPage);
-    },
-    previousPage() {
-      this.$store.commit("toggleAPILoading");
-
-      return this.$store.commit("callAPI", this.$store.state.previousPage);
     }
   },
   components: {
@@ -124,7 +116,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .btn {
   margin: 5px;
 }
@@ -134,7 +126,6 @@ export default {
   grid-template-columns: auto;
   height: 100%;
   padding-top: 5px;
-  width: 1163px;
 }
 
 li {
