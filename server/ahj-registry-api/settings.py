@@ -182,9 +182,11 @@ LOGGING = {
     'handlers': {
         'file': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/apilogs.txt'),
-            'formatter': 'verbose'
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/apilogs.logs'),
+            'when': 'midnight',
+            'backupCount': 14,
+            'formatter': 'verbose',
         }
     },
     'loggers': {
@@ -208,6 +210,7 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_LINK_DOMAIN = 'localhost:8000' # Public domain name for including links to the AHJ Registry in an email
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True

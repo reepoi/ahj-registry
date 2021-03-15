@@ -401,7 +401,7 @@ def send_user_confirmation_email(user):
     subject = 'AHJ Registry - Activate your account'
     message = render_to_string('acc_active_email.html', {
         'user': user,
-        'domain': 'localhost:8000',
+        'domain': settings.EMAIL_LINK_DOMAIN,
         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': user.email_confirmation_token.make_token(user)
     })
@@ -414,7 +414,7 @@ def send_edit_confirmation_email(user, edit):
     subject = 'AHJ Registry - An edit was submitted.'
     message = render_to_string('confirm_reject_edit_email.html', {
         'user': user,
-        'domain': 'localhost:8000',
+        'domain': settings.EMAIL_LINK_DOMAIN,
         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': user.email_confirmation_token.make_token(user),
         'edit': edit,
