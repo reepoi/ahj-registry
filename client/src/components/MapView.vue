@@ -1,52 +1,78 @@
 <template>
   <div id="mapdiv">
-    <ahj-search-filter></ahj-search-filter>
   </div>
 </template>
 
 <script>
 import L from "leaflet";
+import "leaflet-draw";
 import constants from "../constants.js";
-import AHJSearchPageFilter from "./AHJFilter.vue";
 
 export default {
-  components: {
-    "ahj-search-filter": AHJSearchPageFilter
-  },
   name: "Map",
   data() {
     return {
       leafletMap: null,
       polygonLayer: null,
       currSearchMarker: null,
-      markerLayerGroup: null
+      markerLayerGroup: null,
+      searchPolygonFeatureGroup: null,
+      previousPolygonAPIPage: "", // empty string so that it is different on the first page where previous === null
     };
   },
   methods: {
-    countDownChanged(dismissCountDown) {
-      this.dismissCountDown = dismissCountDown;
-    },
-    showAlert() {
-      this.dismissCountDown = this.dismissSecs;
-    },
     /*
      * Initialize the leaflet map and set it as the store's leaflet map
      */
     setupLeafletMap() {
       this.leafletMap = L.map("mapdiv").setView(
-        constants.MAP_INIT_CENTER,
-        constants.MAP_INIT_ZOOM
+          constants.MAP_INIT_CENTER,
+          constants.MAP_INIT_ZOOM
       );
       L.tileLayer(constants.MAP_TILE_API_URL, {
         attribution: constants.MAP_TILE_API_ATTR
       }).addTo(this.leafletMap);
+      this.leafletMap.zoomControl.setPosition('bottomright');
       this.markerLayerGroup = L.layerGroup().addTo(this.leafletMap);
+      this.searchPolygonFeatureGroup = new L.FeatureGroup();
+      this.leafletMap.addLayer(this.searchPolygonFeatureGroup);
+      new L.Control.Draw({
+        draw: {
+          polyline: false,
+          rectangle: false,
+          circle: false,
+          circlemarker: false
+        },
+        edit: {
+          featureGroup: this.searchPolygonFeatureGroup
+        }
+      }).addTo(this.leafletMap);
+      this.registerLeafletDrawHandlers();
+    },
+    registerLeafletDrawHandlers() {
+      let that = this;
+      this.leafletMap.on('draw:created', function (e) {
+        let layer = e.layer;
+        that.searchPolygonFeatureGroup.addLayer(layer);
+        that.$store.commit('setSearchGeoJSON', that.searchPolygonFeatureGroup.toGeoJSON());
+      });
+      this.leafletMap.on('draw:editstop', function() {
+        that.$store.commit('setSearchGeoJSON', that.searchPolygonFeatureGroup.toGeoJSON());
+      });
+      this.leafletMap.on('draw:deletestop', function() {
+        let geojson = that.searchPolygonFeatureGroup.toGeoJSON();
+        console.log(geojson.features.length);
+        if (geojson.features.length === 0) {
+          geojson = null;
+        }
+        that.$store.commit('setSearchGeoJSON', geojson);
+      });
     },
     // Replace map's existing polygons and markers with ones from the new search
     updateMap(ahjlist) {
       let missingPolygon = false;
       ahjlist = ahjlist.filter(ahj => {
-        if (ahj.mpoly === null) {
+        if (ahj.Polygon === null) {
           missingPolygon = true;
           return false;
         } else {
@@ -61,7 +87,7 @@ export default {
       this.updateMapMarkers(ahjlist);
     },
     addPolygonLayer(ahjlist) {
-      let polygons = ahjlist.map(ahj => ahj.mpoly);
+      let polygons = ahjlist.map(ahj => ahj.Polygon);
       if (polygons.length === 0) {
         return;
       }
@@ -104,7 +130,7 @@ export default {
           .addTo(this.leafletMap);
       }
       for (let ahj of ahjlist) {
-        let polygon = ahj.mpoly;
+        let polygon = ahj.Polygon;
         let ahjMarker = L.AwesomeMarkers.icon({
           icon: "building",
           prefix: "fa",
@@ -120,8 +146,8 @@ export default {
           ahjOfficeMarkerTooltipMsg += "<br>" + this.getAHJOfficeAddress(ahj);
         } else {
           ahjOfficeLocation = [
-            polygon.properties.INTPTLAT,
-            polygon.properties.INTPTLON
+            polygon.properties["InternalPLatitude"],
+            polygon.properties["InternalPLongitude"]
           ];
           ahjOfficeMarkerTooltipMsg += "The AHJ Registry does not have an Address for this AHJ";
         }
@@ -191,20 +217,22 @@ export default {
   },
   watch: {
     "$store.state.selectedAHJ": function(newVal) {
-      if (newVal === null) {
-        // the search filter was cleared, and selectedAHJ reset to null
-        this.locationSearched = false;
+      if (newVal === null) { // selectedAHJ === null is flush-out value
+        // new search was made, and selectedAHJ reset to null
         this.resetLeafletMapLayers();
         this.resetMapView();
-      } else {
-        if (this.$store.state.apiData.results.Location["Latitude"]["Value"] !== null) { // check if a location/address was searched
-          if (this.polygonLayer === null) {
+        this.previousPolygonAPIPage = "";
+      } else { // search is completed
+        if (this.$store.state.apiData.results.Location["Latitude"]["Value"] !== null) { // check if a location/address/region was searched
+          if (this.polygonLayer === null || this.$store.state.apiData['previous'] !== this.previousPolygonAPIPage) { // if first page or different page
+            this.previousPolygonAPIPage = this.$store.state.apiData['previous']; // track current page
+            this.resetLeafletMapLayers();
             this.updateMap(this.$store.state.apiData.results.ahjlist);
           } else {
             // there are multiple polygons on the map at once to select
             this.selectPolygon(newVal.AHJID.Value);
           }
-        } else {
+        } else { // no location/address/region was search
           // there is one polygon at a time on the map
           this.resetLeafletMapLayers();
           this.updateMap([newVal]);
@@ -213,6 +241,11 @@ export default {
     },
     "$store.state.showTable": function() {
       this.leafletMap.invalidateSize(true);
+    },
+    "$store.state.searchedGeoJSON": function(newVal) {
+      if (newVal === null) {
+        this.searchPolygonFeatureGroup.clearLayers();
+      }
     }
   }
 };
@@ -222,5 +255,17 @@ export default {
 #mapdiv {
   height: 92vh;
   width: 100%;
+}
+
+::v-deep .leaflet-left .leaflet-control {
+  margin-left: 292px;
+  margin-top: 75px;
+}
+
+@media (max-width: 1000px){
+#mapdiv {
+  height: 60vh;
+  width: 100%;
+}
 }
 </style>

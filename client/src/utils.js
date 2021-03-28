@@ -35,7 +35,7 @@ export function jsonToCSV(json) {
       keys
         .map(key =>
           key
-            .split(/[\[\].]/)
+            .split(/[[\].]/)
             .filter(i => i !== "")
             .reduce((o, i) => {
               try {

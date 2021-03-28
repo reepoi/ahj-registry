@@ -1,0 +1,4 @@
+INFO	AnonymousUser	2021-03-28 22:26:01,572	[36mGET /api/v1/data-vis/data-map/[0m
+INFO	AnonymousUser	2021-03-28 22:26:03,457	[36mGET /api/v1/data-vis/data-map/ - 200[0m
+INFO	AnonymousUser	2021-03-28 22:26:06,654	[36mPOST /api/v1/ahj-private/[0m
+INFO	ahjregistry@gmail.com	2021-03-28 22:26:17,800	[36mPOST /api/v1/ahj-private/ - 200[0m

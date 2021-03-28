@@ -1,188 +1,191 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
-import constants from "./constants.js";
 import FileSaver from "file-saver";
-import * as utils from "./utils";
+import createPersistedState from 'vuex-persistedstate';
+import constants from "./constants";
+import * as utils from "./utils.js"
+
+/*
+ * A Vuex store is a global state for the web application.
+ * It has variables and methods that can be accessed from
+ * all components and views.
+ * 
+ * Mutations, the methods of the store, are similar to creating Promises.
+ * 
+ * To modify a variable in the store, be sure to call the relevant mutation
+ * or create a new one. New mutation methods take up to two arguments: state; custom arg
+ * 
+ * Access these store variables in elsewhere using 'this.$store.state.<variable_name>'
+ * Call mutations with:
+ *  - 'this.$store.commit("<mutation_name>");
+ *  - 'this.$store.commit("<mutation_name>", <custom_arg>);'
+ */
 
 Vue.use(Vuex);
 
-// TODO: Refactor API calls so hasNext and hasPrevious are set via a function to reduce repeated code. will need to move some mutations to actions
-// Add query string to set offsets against for pagination
 export default new Vuex.Store({
-  state: {
-    apiData: [],
-    apiURL: constants.API_ENDPOINT,
-    apiURLAddon: "",
-    apiLoading: true,
-    cancelAPICallToken: null,
-    hasNext: false,
-    hasPrevious: false,
-    currentPage: 1,
-    ahjCount: "",
-    dataReady: false,
-    perPage: 20,
-    queryString: "",
-    loginStatus: {
-      status: "",
-      isSuper: false,
-      isStaff: false,
-      authToken: ""
+    plugins: [createPersistedState({
+        paths: ['loginStatus'],
+        storage: window.localStorage, // TODO: Use window.sessionStorage.clear(); when user logs out manually.
+    })],
+    state: {
+        apiData: [],
+        currentAHJ: null,
+        cancelAPICallToken: null,
+        apiLoading: true,
+        apiError: false,
+        showTable: false,
+        selectedAHJ: null,
+        editList: null,
+        loginStatus: {
+            Username: "",
+            MaintainedAHJs: [],
+            Photo: "",
+            authToken: ""
+        },
+        currentUserInfo: null,
+        searchedQuery: null,
+        searchedGeoJSON: null,
+        resultsDownloading: false,
+        downloadCompletionPercent: 0
     },
-    showLoginModal: false,
-    selectedAHJ: null,
-    resultsDownloading: false,
-    downloadCompletion: 0,
-    showTable: false
-  },
-  getters: {
-    apiData: state => state.apiData
-  },
-  mutations: {
-    callAPI(state, payload) {
-      if (!state.showTable) {
-        state.showTable = true;
-      }
-      // If another axios request has been made; cancel it
-      if (state.cancelAPICallToken !== null) {
-        state.cancelAPICallToken("previous request cancelled");
-      }
-      let url = state.apiURL + state.apiURLAddon + "?";
-      if (payload) {
-        url += payload;
-      }
-      axios
-        .get(url, {
-          headers: {
-            Authorization: constants.TOKEN_AUTH
-          },
-          cancelToken: new axios.CancelToken(function executor(c) {
-            state.cancelAPICallToken = c;
-          })
-        })
-        .then(response => {
-          state.apiData = response.data;
-          state.ahjCount = response.data.count;
-          state.hasNext = Boolean(response.data.next);
-          state.hasPrevious = Boolean(response.data.previous);
-          state.cancelAPICallToken = null;
-          state.apiLoading = false;
-          if (state.apiData.results.ahjlist.length > 0) {
-            state.selectedAHJ = state.apiData.results.ahjlist[0];
+    getters: {
+        apiData: state => state.apiData,
+        loggedIn: state => state.loginStatus.authToken !== "",
+        authToken: state => state.loginStatus.authToken ? state.loginStatus.authToken : constants.TOKEN_AUTH
+    },
+    mutations: {
+        callAPI(state, queryPayload) {
+            state.apiLoading = true;
+            if (!state.showTable) {
+                state.showTable = true;
+            }
+            // If another axios request has been made; cancel it
+            if (state.cancelAPICallToken !== null) {
+                state.cancelAPICallToken("previous request cancelled");
+            }
+            let url = constants.API_ENDPOINT + "ahj-private/?";
+            if (queryPayload) {
+                state.searchedQuery = queryPayload;
+            }
+            if (queryPayload['Pagination']) {
+                url += queryPayload['Pagination'];
+            }
+            if (queryPayload['callerID'] === 'searchpagefilter' && state.searchedGeoJSON) {
+                queryPayload['FeatureCollection'] = state.searchedGeoJSON;
+            }
+            axios
+                .post(url, queryPayload, {
+                    headers: {
+                      Authorization: `${this.getters.authToken}`,
+                    },
+                    cancelToken: new axios.CancelToken(function executor(c) {
+                        state.cancelAPICallToken = c;
+                    })
+                })
+                .then(response => {
+                    state.apiData = response.data;
+                    state.cancelAPICallToken = null;
+                    state.apiLoading = false;
+                    if (state.apiData.count > 0) {
+                        state.selectedAHJ = state.apiData.results.ahjlist[0];
+                    }
+                })
+                .catch((err) => {
+                  // request was cancelled or some other error
+                  if(err.message !== 'previous request cancelled'){
+                    this.state.apiError = true;
+                    this.state.apiLoading = false;
+                  }
+                });
+        },
+        setSelectedAHJ(state, ahj) {
+            state.selectedAHJ = ahj;
+        },
+        setSearchGeoJSON(state, geojson) {
+            state.searchedGeoJSON = geojson;
+        },
+        setShowTable(state, payload) {
+            state.showTable = payload;
+        },
+        exportSearchResultsJSONCSV(state, fileType) {
+          // Don't try to download if already downloading or no results yet
+          if (state.resultsDownloading || state.selectedAHJ === null) {
+            return;
           }
-          state.dataReady = true;
-        })
-        .catch((/*err*/) => {
-          // request was cancelled or some other error
-        });
-    },
-    callHistoryAPI(state, payload) {
-      // If another axios request has been made; cancel it
-      if (state.cancelAPICallToken !== null) {
-        state.cancelAPICallToken("previous request cancelled");
-      }
-      let url = state.apiURL + state.apiURLAddon + "?";
-      if (payload) {
-        url += payload;
-      }
-      axios
-        .get(url, {
-          headers: {
-            Authorization: constants.TOKEN_AUTH
-          },
-          cancelToken: new axios.CancelToken(function executor(c) {
-            state.cancelAPICallToken = c;
-          })
-        })
-        .then(response => {
-          state.apiData = response.data;
-          state.ahjCount = response.data.count;
-          state.hasNext = Boolean(response.data.next);
-          state.hasPrevious = Boolean(response.data.previous);
-          state.cancelAPICallToken = null;
-          state.apiLoading = false;
-        })
-        .catch((/*err*/) => {
-          // request was cancelled or some other error
-        });
-    },
-    deleteAPIData(state) {
-      state.apiData = [];
-      state.ahjCount = "";
-    },
-    modifyApiDataAHJList(state, payload) {
-      Vue.set(state.apiData.results.ahjlist, payload.index, payload.newahj);
-    },
-    setShowLoginModal(state, payload) {
-      state.showLoginModal = payload;
-    },
-    setAPILoading(state, payload) {
-      state.apiLoading = payload;
-    },
-    toggleDataReady(state) {
-      state.dataReady = false;
-    },
-    setQueryString(state, payload) {
-      state.queryString = payload;
-    },
-    updateCurrentPage(state, value) {
-      state.currentPage = value;
-    },
-    setApiUrlAddon(state, value) {
-      state.apiURLAddon = value;
-    },
-    exportResults(state, fileType) {
-      // Don't try to download if no results yet
-      if (state.ahjCount === 0) {
-        state.resultsDownloading = false;
-        return;
-      }
-      state.resultsDownloading = true;
-      let gatherAllObjects = function(url, ahjJSONObjs, offset) {
-        if (url === null) {
-          let filename = "results";
-          let fileToExport = null;
-          if (fileType === "application/json") {
-            fileToExport = JSON.stringify(ahjJSONObjs, null, 2);
-            filename += ".json";
-          } else if (fileType === "text/csv") {
-            fileToExport = utils.jsonToCSV(ahjJSONObjs);
-            filename += ".csv";
-          }
-          state.resultsDownloading = false;
-          state.downloadCompletion = 0;
-          FileSaver.saveAs(new Blob([fileToExport], {
-            type: fileType
-          }), filename);
-        } else {
-          axios
-            .get(url, {
-              headers: {
-                Authorization: constants.TOKEN_AUTH
+          state.resultsDownloading = true;
+          let that = this;
+          let gatherAllObjects = function(url, searchPayload, ahjJSONObjs, offset) {
+            if (url === null) {
+              let filename = "results";
+              let fileToExport = null;
+              if (fileType === "application/json") {
+                fileToExport = JSON.stringify(ahjJSONObjs, null, 2);
+                filename += ".json";
+              } else if (fileType === "text/csv") {
+                fileToExport = utils.jsonToCSV(ahjJSONObjs);
+                filename += ".csv";
               }
-            })
-            .then(response => {
-              ahjJSONObjs = ahjJSONObjs.concat(response.data.results);
-              offset += 20; // the django rest framework pagination configuration
-              state.downloadCompletion = (offset / state.ahjCount * 100).toFixed();
-              gatherAllObjects(response.data.next, ahjJSONObjs, offset);
-            });
+              FileSaver.saveAs(new Blob([fileToExport], {
+                type: fileType
+              }), filename);
+              state.resultsDownloading = false;
+              state.downloadCompletionPercent = 0;
+            } else {
+              axios
+                .post(url, searchPayload,{
+                  headers: {
+                    Authorization: `${that.getters.authToken}`
+                  }
+                })
+                .then(response => {
+                  ahjJSONObjs = ahjJSONObjs.concat(response.data.results);
+                  offset += 20; // the django rest framework pagination configuration
+                  state.downloadCompletionPercent = (offset / response.data.count * 100).toFixed();
+                  gatherAllObjects(response.data.next, searchPayload, ahjJSONObjs, offset);
+                });
+            }
+          };
+          let url = constants.API_ENDPOINT + "ahj/";
+          let searchPayload = state.searchedQuery;
+          if (state.searchedGeoJSON) {
+            searchPayload['FeatureCollection'] = state.searchedGeoJSON;
+          }
+          gatherAllObjects(url, searchPayload, [], 0);
+        },
+        changeUserLoginStatus(state, payload) {
+            state.loginStatus = payload;
+            state.currentUserInfo = null;
+        },
+        changeCurrentUserInfo(state, payload) {
+          state.currentUserInfo = payload;
+        },
+        getEdits(state,query){
+          let url = constants.API_ENDPOINT + "edit/?" + query;
+          axios
+              .get(url, {
+                  headers: {
+                      //Authorization: constants.TOKEN_AUTH
+                  },
+                  cancelToken: new axios.CancelToken(function executor(c) {
+                      state.cancelAPICallToken = c;
+                  })
+              })
+              .then(response => {
+                  state.editList = response.data;
+                  state.cancelAPICallToken = null;
+                  state.apiLoading = false;
+              })
+        },
+        clearState(state){
+                state.callData = [];
+                state.leafletMap = null;
+                state.leafletMarker = null;
+                state.polygons = null;
+                state.currPolyInd = null;
+                state.apiLoading = true;
+                state.mapViewCenter = [34.05, -118.24];
         }
-      };
-      let url = state.apiURL + "ahj/";
-      if (state.queryString) {
-        url += "?" + state.queryString;
-      }
-      gatherAllObjects(url, [], 0);
-    },
-    changeUserLoginStatus(state, payload) {
-      state.loginStatus = payload;
-    },
-    setSelectedAHJ(state, ahj) {
-      state.selectedAHJ = ahj;
-    },
-    setShowTable(state, payload) {
-      state.showTable = payload;
     }
-  }
 });
