@@ -81,11 +81,12 @@ export default {
                     }).then(() => {
                         this.SubmitStatus = 'OK';
                     }).catch(error => {
-                        this.SubmitStatus = 'ERROR';
-                        if ("current_password" in error.response.data)
-                            this.ErrorMessage = error.response.data.current_password[0]
-                        else if ("new_password" in error.response.data)
-                            this.ErrorMessage = error.response.data.new_password[0]
+                  this.SubmitStatus = 'ERROR';
+                  if ("current_password" in error.response.data)
+                    this.ErrorMessage = error.response.data.current_password[0]
+                  else if ("new_password" in error.response.data)
+                    this.ErrorMessage = error.response.data.new_password[0]
+                });
             }
         },
     },
