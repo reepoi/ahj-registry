@@ -1,6 +1,6 @@
 <template>
   <b-navbar toggleable="lg">
-    <router-link :to="{ name: 'home' }">
+    <router-link :to="{ name: 'ahj-search' }">
       <b-navbar-brand>
         <img id="oblogo" src="@/assets/ob.png" />
         <h1 class="app-title">AHJ Registry</h1>
@@ -11,7 +11,7 @@
 
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav class="mr-auto navbar-background">
-        <!-- <b-nav-item href="#/ahj-search">About</b-nav-item> -->
+        <b-nav-item href="#/about">About</b-nav-item>
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
         <!-- <b-nav-item href="#/ahj-search">API</b-nav-item> -->
         <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
@@ -59,8 +59,6 @@ export default {
   },
   watch: {
     "$store.state.loginStatus": function() {
-      //console.log(this.$store.state.loginStatus.Photo);
-      //console.log(newVal);
     }
   }
 }

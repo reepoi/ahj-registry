@@ -307,4 +307,5 @@ export default {
   VALID_EMAIL: (email) => /[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*[.][a-zA-Z]+/g.test(email),
   NUM_OR_SPECIAL_CHAR: (password) => /[0-9!@#$%^&*()_+\-=[\]{};':"\\,.<>/?]+/g.test(password),
   CONTAINS_LETTER: (password) => /[A-Za-z]+/g.test(password),
+  VALID_PHONE: (phone) => /\(?\d{3}\)?[\s.-]?\d{3}[\s.-]\d{4}|\d{10}/g.test(phone),
 };

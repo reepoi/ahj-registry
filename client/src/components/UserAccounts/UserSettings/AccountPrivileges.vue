@@ -45,8 +45,7 @@ export default {
                     .then( (response) => {
                         this.ahjNames.push(response.data[0].AHJName.Value);
                     })
-                    .catch((error) => {
-                        console.log(error);
+                    .catch(() => {
                     });
             }
         }

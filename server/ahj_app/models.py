@@ -79,6 +79,7 @@ class AHJ(models.Model):
     def get_uncon_fs(self):
         return [fs for fs in FeeStructure.objects.filter(AHJPK=self.AHJPK) if fs.FeeStructureStatus == 0]
 
+    SERIALIZER_EXCLUDED_FIELDS = ['Polygon', 'AHJPK', 'Comments', 'UnconfirmedContacts', 'UnconfirmedEngineeringReviewRequirements', 'UnconfirmedDocumentSubmissionMethods', 'UnconfirmedPermitIssueMethods', 'UnconfirmedInspections', 'UnconfirmedFeeStructures']
 
 class Comment(models.Model):
     CommentID = models.AutoField(db_column='CommentID', primary_key=True)
@@ -113,6 +114,8 @@ class Address(models.Model):
         managed = True
         db_table = 'Address'
 
+    SERIALIZER_EXCLUDED_FIELDS = ['AddressID']
+
 class Contact(models.Model):
     ContactID = models.AutoField(db_column='ContactID', primary_key=True)
     AddressID = models.ForeignKey(Address, models.DO_NOTHING, db_column='AddressID', null=True)
@@ -134,6 +137,8 @@ class Contact(models.Model):
         managed = True
         db_table = 'Contact'
 
+    SERIALIZER_EXCLUDED_FIELDS = ['ContactID']
+
 class AHJContactRepresentative(models.Model):
     RepresentativeID = models.AutoField(db_column='RepresentativeID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -153,7 +158,7 @@ class AHJInspection(models.Model):
     AHJInspectionNotes = models.CharField(db_column='AHJInspectionNotes', max_length=255, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     FileFolderURL = models.CharField(db_column='FileFolderURL', max_length=255, blank=True)
-    TechnicianRequired = models.IntegerField(db_column='TechnicianRequired', null=True)
+    TechnicianRequired = models.BooleanField(db_column='TechnicianRequired', null=True)
     InspectionStatus = models.IntegerField(db_column='InspectionStatus')
 
     def get_contacts(self):
@@ -166,6 +171,8 @@ class AHJInspection(models.Model):
         managed = True
         db_table = 'AHJInspection'
         unique_together = (('AHJPK', 'AHJInspectionName'),)
+
+    SERIALIZER_EXCLUDED_FIELDS = ['InspectionID', 'UnconfirmedContacts', 'InspectionStatus']
 
 class AHJInspectionContact(models.Model):
     RepresentativeID = models.AutoField(db_column='RepresentativeID', primary_key=True)
@@ -192,6 +199,8 @@ class FeeStructure(models.Model):
         db_table = 'FeeStructure'
         unique_together = (('FeeStructureID', 'AHJPK'),)
 
+    SERIALIZER_EXCLUDED_FIELDS = ['FeeStructurePK', 'FeeStructureStatus']
+
 class Edit(models.Model):
     EditID = models.AutoField(db_column='EditID', primary_key=True)
     ChangedBy = models.ForeignKey('User', models.DO_NOTHING, db_column='ChangedBy', related_name='related_primary_edit')
@@ -201,6 +210,7 @@ class Edit(models.Model):
     SourceTable = models.CharField(db_column='SourceTable', max_length=255)
     SourceColumn = models.CharField(db_column='SourceColumn', max_length=255)
     SourceRow = models.IntegerField(db_column='SourceRow')
+    # status is P = pending, R = rejected, A = approved
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1, default='P')
     Comments = models.CharField(db_column='Comments', max_length=255, blank=True)
     OldValue = models.CharField(db_column='OldValue', max_length=255, blank=True)
@@ -212,39 +222,6 @@ class Edit(models.Model):
     class Meta:
         managed = True
         db_table = 'Edit'
-
-    def get_row(self):
-        model = apps.get_model('ahj_app', self.SourceTable)
-        return model.objects.get(**{model._meta.pk: self.SourceRow})
-
-    def set_reivew_status(self, user, review_status):
-        if self.ReviewStatus != 'P':
-            return False
-        elif review_status == 'A':
-            self.approve_and_apply(user)
-            return True
-        elif review_status == 'R':
-            self.reject(user)
-            return True
-        else:
-            return False
-
-    def approve_and_apply(self, user):
-        # TODO: Make sure the approving user is recorded
-        # TODO: Have way to add new rows?
-
-        # Record will exist because if it was deleted, this would be rejected already
-        row = self.get_row()
-        setattr(row, self.SourceColumn, self.NewValue)
-        row.save()
-        self.ReviewStatus = 'A'
-        self.DateEffective = datetime.date.today()
-        self.save()
-
-    def reject(self, user):
-        self.ReviewStatus = 'R'
-        self.DateEffective = datetime.date.today()
-        self.save()
 
 class Location(models.Model):
     LocationID = models.AutoField(db_column='LocationID', primary_key=True)
@@ -260,6 +237,8 @@ class Location(models.Model):
         managed = True
         db_table = 'Location'
 
+    SERIALIZER_EXCLUDED_FIELDS = ['LocationID']
+
 class EngineeringReviewRequirement(models.Model):
     EngineeringReviewRequirementID = models.AutoField(db_column='EngineeringReviewRequirementID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -273,6 +252,8 @@ class EngineeringReviewRequirement(models.Model):
     class Meta:
         managed = True
         db_table = 'EngineeringReviewRequirement'
+
+    SERIALIZER_EXCLUDED_FIELDS = ['EngineeringReviewRequirementID', 'EngineeringReviewRequirementStatus']
 
 class DocumentSubmissionMethod(models.Model):
     DocumentSubmissionMethodID = models.AutoField(db_column='DocumentSubmissionMethodID', primary_key=True)
@@ -296,7 +277,6 @@ class PermitIssueMethod(models.Model):
     PermitIssueMethodID = models.AutoField(db_column='PermitIssueMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', choices=PERMIT_ISSUE_METHOD_CHOICES, unique=True, max_length=11)
 
-
 class AHJPermitIssueMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -310,7 +290,6 @@ class AHJPermitIssueMethodUse(models.Model):
 
     def get_value(self):
         return self.PermitIssueMethodID.Value
-
 
 class Polygon(models.Model):
     PolygonID = models.AutoField(db_column='PolygonID', primary_key=True)
@@ -437,7 +416,6 @@ class User(AbstractBaseUser):
         db_table = 'User'
         managed = True
 
-
 class AHJUserMaintains(models.Model):
     MaintainerID = models.AutoField(db_column='MaintainerID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -457,12 +435,10 @@ class WebpageToken(rest_framework.authtoken.models.Token):
      def get_user(self):
          return self.user
 
-
 class APIToken(rest_framework.authtoken.models.Token):
      key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
      created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
      user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
-
 
 class StateTemp(models.Model):
     GEOID = models.CharField(max_length=2)
@@ -493,7 +469,6 @@ class CountyTemp(models.Model):
     def __str__(self):
         return self.NAMELSAD
 
-
 # Census cousub shapefile model
 class CousubTemp(models.Model):
     STATEFP = models.CharField(max_length=2)
@@ -509,7 +484,6 @@ class CousubTemp(models.Model):
 
     def __str__(self):
         return self.NAMELSAD
-
 
 # Census place shapefile model
 class CityTemp(models.Model):

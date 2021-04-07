@@ -71,10 +71,16 @@
                                 <b-button v-if="username === this.$store.state.loginStatus.Username" class="button" @click="$router.push({ name: 'settings'})" pill variant="primary">
                                     Edit Profile
                                 </b-button>
-                                <!-- <b-button class="button button-icon" disabled @click="sendToMessaging" pill variant="primary">
+                                <b-button class="button button-icon" disabled @click="sendToMessaging" pill variant="primary">
                                     Message
-                                </b-button> -->
-                                <b-icon class="h3 more-icon" icon="three-dots"></b-icon>
+                                </b-button>
+                                <b-nav-item-dropdown no-caret>
+                                    <template #button-content>
+                                        <b-icon class="h3 more-icon" icon="three-dots"></b-icon>
+                                    </template>
+                                </b-nav-item-dropdown>
+
+                                <!-- <a v-if="canSubmitPermit" v-b-modal.submit-application-modal style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;">Submit Application</a> -->
                             </div>
                         </div>
                     </div>
@@ -136,6 +142,9 @@ import ActivityEntry from "../components/UserAccounts/UserProfile/ActivityEntry.
 
 export default {
     computed: {
+        userID(){
+            return this.ProfileData['UserID']; 
+        },
         photo(){
             return this.ProfileData['Photo']; 
         },
@@ -183,7 +192,10 @@ export default {
         },
         ProfileDataObj(){
             return this.ProfileData;
-        }
+        },
+        canSubmitPermit(){
+            return this.$store.getters.loggedIn && !this.$store.state.loginStatus.MaintainedAHJs.includes(this.$route.params.AHJID);
+        },
     },
     data() {
         return {
@@ -192,6 +204,8 @@ export default {
             activities: [],
             FeedActivity: 'Edit',
             gettingUserActivity: true,
+            uploadedApplication: null,
+            applicationStatus: null,
         }
     },
     methods: {
@@ -209,8 +223,7 @@ export default {
                         this.$store.commit("changeCurrentUserInfo", response.data);
                     }
                 })
-                .catch((error) => {
-                    console.log(error);
+                .catch(() => {
                 });
         },
         GetUserActivity(activityType) {
@@ -232,15 +245,11 @@ export default {
                     this.gettingUserActivity = false;
                     this.activities = response.data;
                 })
-                .catch((error) => {
-                    console.log(error);
+                .catch(() => {
                 });
         },
         sendToMessaging(){
         },
-        sendToEditProfile(){
-            
-        }
     },
     mounted: async function() {
         await this.GetUserInfo();
@@ -262,6 +271,9 @@ export default {
 hr {
     margin-top: 0px;
     margin-bottom: 5px;
+}
+li {
+    list-style-type: none;
 }
 .user-page-container {
     width: 70%;

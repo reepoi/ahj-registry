@@ -109,7 +109,6 @@ export default {
         }
         this.allContacts = [...this.data.UnconfirmedContacts,...this.data.Contacts];
         this.Deleted.InspectionID = this.data.InspectionID.Value;
-        console.log(this.allContacts);
         this.changeStatus();
     },
     components: {
@@ -131,10 +130,8 @@ export default {
             }
         },
         addToContacts(conts){
-            console.log(conts);
             this.AddingConts = false;
             this.AddCont.Value = [...this.AddCont.Value, ...conts];
-            console.log(this.AddCont.Value);
             return;
         },
         addACont(){
@@ -176,19 +173,16 @@ export default {
         },
         delete(){
             let url = constants.API_ENDPOINT + 'edit/delete/';
-            console.log(this.Deleted);
             axios
                 .post(url,this.Deleted, {
                     headers: {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
         },
         clearEdits(){
-            console.log(this.data,this.Edits);
             let k = Object.keys(this.Edits);
             for(let i = 0; i < k.length; i++){
                 if(k[i]==="Contacts" || this.data[k[i]] === null){

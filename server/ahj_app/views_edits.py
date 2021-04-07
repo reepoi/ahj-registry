@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from .models import EngineeringReviewRequirement, AHJPermitIssueMethodUse, \
     AHJDocumentSubmissionMethodUse, FeeStructure, AHJInspection, Contact, AHJContactRepresentative, \
-    AHJInspectionContact, AHJ, Edit
+    AHJInspectionContact, AHJ, Edit, DocumentSubmissionMethod, PermitIssueMethod
 from .serializers import EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
     FeeStructureSerializer, AHJInspectionSerializer
@@ -49,7 +49,7 @@ def add_inspection(insp_dict : dict):
 def add_edit(edit_dict : dict):
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
-    edit.DateRequested = date.today()
+    edit.DateRequested = datetime.date.today()
     edit.AHJPK = edit_dict.get('AHJPK')
     edit.InspectionID = edit_dict.get('InspectionID')
     edit.SourceTable = edit_dict.get('SourceTable')
@@ -250,7 +250,6 @@ def edit_addition(request):
         print('ERROR: EDIT ADDITION', e)
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
 def edit_deletion(request):
     """
@@ -401,11 +400,9 @@ def edit_submit(request):
     edit.save()
     return Response(EditSerializer(edit).data, status=status.HTTP_200_OK)
 
-
 @api_view(['GET'])
 def edit_list(request):
     edits = Edit.objects.all()
-
     # Filtering by SourceTable, SourceRow, and SourceColumn
     # source_table = request.query_params.get('SourceTable', None)
     # print(request.query_params)
@@ -415,11 +412,8 @@ def edit_list(request):
     # print(source_row, type(source_row))
     if source_row is not None:
         edits = edits.filter(AHJPK=source_row)
-
-    ret = []
     edits = EditSerializer(edits, many=True).data
     return Response(edits, status=status.HTTP_200_OK)
-
 
 @api_view(['GET'])
 def user_edits(request):
@@ -427,31 +421,17 @@ def user_edits(request):
     edits = Edit.objects.filter(ChangedBy=UserID)
     return Response(EditSerializer(edits, many=True).data, status=status.HTTP_200_OK)
 
-
 @api_view(['GET'])
 def unconfirmed_conts(request):
     source_row = request.query_params.get('SourceRow')
-    conts = AHJContactRepresentative.objects.filter(AHJPK=int(source_row))
-    edited = []
-    for c in conts:
-        if c.ContactStatus == 0:
-            ret = Contact.objects.filter(ContactID=int(c.RepresentativeID))
-            edited.append(ret[0])
-
-    return ContactSerializer(edited, many=True).data
-
+    conts = AHJContactRepresentative.objects.filter(AHJPK=int(source_row), ContactStatus=0)
+    return ContactSerializer(conts, many=True).data
 
 @api_view(['GET'])
 def unconfirmed_insps(request):
     source_row = request.query_params.get('SourceRow')
-    insps = AHJInspection.objects.filter(AHJPK=int(source_row))
-    edited = []
-    for i in insps:
-        if i.InspectionStatus == 0:
-            edited.append(i)
-
-    return AHJInspectionSerializer(edited, many=True).data
-
+    insps = AHJInspection.objects.filter(AHJPK=int(source_row), InspectionStatus=0)
+    return AHJInspectionSerializer(insps, many=True).data
 
 @api_view(['GET'])
 def unconfirmed_err(request):

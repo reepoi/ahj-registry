@@ -1,30 +1,15 @@
-import datetime
 from collections import OrderedDict
-from typing import Tuple, Dict, Any, Optional
+from typing import Dict
 
-from django.apps import apps
 from django.db import connection
-from django.utils import timezone
 from rest_framework import serializers
-from rest_framework.fields import CurrentUserDefault
 from rest_framework_gis import serializers as geo_serializers
-from djoser.serializers import UserCreateSerializer#, UserSerializer
+from djoser.serializers import UserCreateSerializer
 from .models import *
 
 
-class FindPolygonAHJID(serializers.UUIDField):
-    def to_representation(self, value: Polygon) -> Optional[str]:
-        # Some polygons have multiple AHJ paired with them
-        # This is because there are duplicate AHJ (data issue)
-        ahj = AHJ.objects.filter(PolygonID=value).first()
-        if ahj is None:
-            return None
-        else:
-            return ahj.AHJID
-
-
 class PolygonSerializer(geo_serializers.GeoFeatureModelSerializer):
-    AHJID = FindPolygonAHJID(source='*')
+    AHJID = serializers.SerializerMethodField()
 
     class Meta:
         model = Polygon
@@ -32,28 +17,23 @@ class PolygonSerializer(geo_serializers.GeoFeatureModelSerializer):
         id_field = False
         fields = ['AHJID', 'LandArea', 'GEOID', 'InternalPLatitude', 'InternalPLongitude']
 
+    def get_AHJID(self, instance):
+        return self.context.get('AHJID', '')
 
 class OrangeButtonSerializer(serializers.Field):
-    def to_representation(self, value: str) -> Dict[str, str]:
+    def get_attribute(self, instance):
+        attribute = super().get_attribute(instance)
+        if attribute is None:
+            return {'Value': None}
+        else:
+            return attribute
+
+    def to_representation(self, value):
+        if type(value) is dict and 'Value' in value:
+            return value
         ob_obj = {}
-        if value is None:
-            value = ''
         ob_obj['Value'] = value
-        # if self.field_name == 'PermitIssueMethodNotes':
-            # print('Value: ', value)
         return ob_obj
-
-class ContactSerializer(serializers.ModelSerializer):
-    ContactID = serializers.IntegerField(read_only=True)
-    FirstName = serializers.CharField()
-    LastName = serializers.CharField()
-    MobilePhone = serializers.CharField()
-    URL = serializers.CharField()
-    PreferredContactMethod =  serializers.CharField()
-
-    class Meta:
-        model = Contact
-        fields = ['ContactID', 'FirstName', 'LastName', 'MobilePhone', 'URL', 'PreferredContactMethod']
 
 class FeeStructureSerializer(serializers.Serializer):
     FeeStructurePK = OrangeButtonSerializer()
@@ -63,16 +43,11 @@ class FeeStructureSerializer(serializers.Serializer):
     Description = OrangeButtonSerializer()
     FeeStructureStatus = OrangeButtonSerializer()
 
-    class Meta:
-        model = FeeStructure
-        fields = ['FeeStructurePK',
-                  'AHJPK',
-                  'FeeStructureID',
-                  'FeeStructureName',
-                  'FeeStructureType',
-                  'Description',
-                  'FeeStructureStatus']
-
+    def to_representation(self, feestructure):
+        if self.context.get('is_public_view', False):
+            for field in FeeStructure.SERIALIZER_EXCLUDED_FIELDS:
+                self.fields.pop(field)
+        return super().to_representation(feestructure)
 
 class LocationSerializer(serializers.Serializer):
     LocationID = OrangeButtonSerializer()
@@ -84,6 +59,11 @@ class LocationSerializer(serializers.Serializer):
     LocationDeterminationMethod = OrangeButtonSerializer()
     LocationType = OrangeButtonSerializer()
 
+    def to_representation(self, location):
+        if self.context.get('is_public_view', False):
+            for field in Location.SERIALIZER_EXCLUDED_FIELDS:
+                self.fields.pop(field)
+        return super().to_representation(location)
 
 class AddressSerializer(serializers.Serializer):
     AddressID = OrangeButtonSerializer()
@@ -99,6 +79,11 @@ class AddressSerializer(serializers.Serializer):
     AddressType = OrangeButtonSerializer()
     Location = LocationSerializer(source='LocationID')
 
+    def to_representation(self, address):
+        if self.context.get('is_public_view', False):
+            for field in Address.SERIALIZER_EXCLUDED_FIELDS:
+                self.fields.pop(field)
+        return super().to_representation(address)
 
 class ContactSerializer(serializers.Serializer):
     ContactID = OrangeButtonSerializer()
@@ -117,12 +102,16 @@ class ContactSerializer(serializers.Serializer):
     PreferredContactMethod = OrangeButtonSerializer()
     Address = AddressSerializer(source='AddressID')
 
+    def to_representation(self, contact):
+        if self.context.get('is_public_view', False):
+            for field in Contact.SERIALIZER_EXCLUDED_FIELDS:
+                self.fields.pop(field)
+        return super().to_representation(contact)
 
 class RecursiveField(serializers.Serializer):
     def to_representation(self, value):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
-
 
 class UserSerializer(serializers.Serializer):
     UserID = serializers.IntegerField(read_only=True)
@@ -146,32 +135,20 @@ class UserCreateSerializer(UserCreateSerializer):
         model = User
         fields = ('UserID', 'ContactID', 'Username', 'password', 'Email', 'is_staff', 'is_active', 'SignUpDate', 'PersonalBio', 'URL', 'CompanyAffiliation', 'Photo', 'IsPeerReviewer', 'NumReviewsDone', 'CommunityScore', 'SecurityLevel')
 
-
 class CommentSerializer(serializers.Serializer):
     CommentID = OrangeButtonSerializer()
     User = UserSerializer(source='UserID')
     CommentText = OrangeButtonSerializer()
     Date = OrangeButtonSerializer()
-    Replies = RecursiveField(source='get_replies',many=True)
+    Replies = RecursiveField(source='get_replies', many=True)
 
 class DocumentSubmissionMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
 
-
 class PermitIssueMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
-
-class EngineeringReviewRequirementSerializer(serializers.Serializer):
-    EngineeringReviewRequirementID = OrangeButtonSerializer()
-    EngineeringReviewRequirementID = OrangeButtonSerializer()
-    Description = OrangeButtonSerializer()
-    EngineeringReviewType = OrangeButtonSerializer()
-    RequirementLevel = OrangeButtonSerializer()
-    RequirementNotes = OrangeButtonSerializer()
-    StampType = OrangeButtonSerializer()
-
 
 class AHJInspectionSerializer(serializers.Serializer):
     InspectionID = OrangeButtonSerializer()
@@ -182,21 +159,14 @@ class AHJInspectionSerializer(serializers.Serializer):
     FileFolderURL = OrangeButtonSerializer()
     TechnicianRequired = OrangeButtonSerializer()
     InspectionStatus = OrangeButtonSerializer()
-    Contacts = ContactSerializer(source='get_contacts',many=True)
-    UnconfirmedContacts = ContactSerializer(source='get_uncon_con',many=True)
+    Contacts = ContactSerializer(source='get_contacts', many=True)
+    UnconfirmedContacts = ContactSerializer(source='get_uncon_con', many=True)
 
-    class Meta:
-        model = AHJInspection
-        fields = ['InspectionID',
-                  'AHJPK',
-                  'InspectionType',
-                  'AHJInspectionName',
-                  'AHJInspectionNotes',
-                  'Description',
-                  'FileFolderUrl',
-                  'TechnicianRequired',
-                  'InspectionStatus',
-                  'Contacts']
+    def to_representation(self, inspection):
+        if self.context.get('is_public_view', False):
+            for field in AHJInspection.SERIALIZER_EXCLUDED_FIELDS:
+                self.fields.pop(field)
+        return super().to_representation(inspection)
 
 class EngineeringReviewRequirementSerializer(serializers.Serializer):
     EngineeringReviewRequirementID = OrangeButtonSerializer()
@@ -206,6 +176,12 @@ class EngineeringReviewRequirementSerializer(serializers.Serializer):
     RequirementNotes = OrangeButtonSerializer()
     StampType = OrangeButtonSerializer()
     EngineeringReviewRequirementStatus = OrangeButtonSerializer()
+
+    def to_representation(self, err):
+        if self.context.get('is_public_view', False):
+            for field in EngineeringReviewRequirement.SERIALIZER_EXCLUDED_FIELDS:
+                self.fields.pop(field)
+        return super().to_representation(err)
 
 class AHJSerializer(serializers.Serializer):
     AHJPK = OrangeButtonSerializer()
@@ -231,38 +207,34 @@ class AHJSerializer(serializers.Serializer):
     WindCodeNotes = OrangeButtonSerializer()
     Address = AddressSerializer(source='AddressID')
     Contacts = ContactSerializer(source='get_contacts', many=True)
-    UnconfirmedContacts = ContactSerializer(source='get_unconfirmed',many=True)
+    UnconfirmedContacts = ContactSerializer(source='get_unconfirmed', many=True)
     UnconfirmedInspections = AHJInspectionSerializer(source='get_unconfirmed_inspections', many=True)
-    Polygon = PolygonSerializer(source='PolygonID')
+    Polygon = serializers.SerializerMethodField()
     Comments = CommentSerializer(source='get_comments', many=True)
     AHJInspections = AHJInspectionSerializer(source='get_inspections', many=True)
     DocumentSubmissionMethods = DocumentSubmissionMethodUseSerializer(source='get_document_submission_methods', many=True)
-    UnconfirmedDocumentSubmissionMethods = DocumentSubmissionMethodUseSerializer(source='get_uncon_dsm',many=True)
+    UnconfirmedDocumentSubmissionMethods = DocumentSubmissionMethodUseSerializer(source='get_uncon_dsm', many=True)
     PermitIssueMethods = PermitIssueMethodUseSerializer(source='get_permit_submission_methods', many=True)
-    UnconfirmedPermitIssueMethods = PermitIssueMethodUseSerializer(source='get_uncon_pim',many=True)
-    EngineeringReviewRequirements = EngineeringReviewRequirementSerializer(source='get_err',many=True)
-    UnconfirmedEngineeringReviewRequirements = EngineeringReviewRequirementSerializer(source='get_uncon_err',many=True)
+    UnconfirmedPermitIssueMethods = PermitIssueMethodUseSerializer(source='get_uncon_pim', many=True)
+    EngineeringReviewRequirements = EngineeringReviewRequirementSerializer(source='get_err', many=True)
+    UnconfirmedEngineeringReviewRequirements = EngineeringReviewRequirementSerializer(source='get_uncon_err', many=True)
     FeeStructures = FeeStructureSerializer(source='get_fee_structures', many=True)
-    UnconfirmedFeeStructures = FeeStructureSerializer(source='get_uncon_fs',many=True)
+    UnconfirmedFeeStructures = FeeStructureSerializer(source='get_uncon_fs', many=True)
 
+    def to_representation(self, ahj):
+        if self.context.get('is_public_view', False):
+            for field in AHJ.SERIALIZER_EXCLUDED_FIELDS:
+                self.fields.pop(field)
+        return super().to_representation(ahj)
 
-    def __init__(self, *args: Any, **kwargs: Any):
-        fields_to_drop = []
-
-        # Including extra context: https://www.django-rest-framework.org/api-guide/serializers/#including-extra-context
-        # check if was provided to serializer context
-        # not all views will provide the same context
-        if 'fields_to_drop' in kwargs['context']:
-            fields_to_drop = kwargs['context'].pop('fields_to_drop')
-        super(AHJSerializer, self).__init__(*args, **kwargs)
-        for field in fields_to_drop:
-            self.fields.pop(field)
+    def get_Polygon(self, instance):
+        return PolygonSerializer(instance.PolygonID, context={'AHJID': instance.AHJID}).data
 
 class EditSerializer(serializers.Serializer):
     EditID = serializers.IntegerField(read_only=True)
     ChangedBy = UserSerializer()
     ApprovedBy = UserSerializer()
-    AHJPK = OrangeButtonSerializer()
+    AHJPK = serializers.IntegerField()
     SourceTable = serializers.CharField()
     SourceColumn = serializers.CharField()
     SourceRow = serializers.IntegerField()
@@ -272,18 +244,15 @@ class EditSerializer(serializers.Serializer):
     NewValue = serializers.CharField()
     DateRequested = serializers.DateField(read_only=True)
     DateEffective = serializers.DateField(read_only=True)
-    AHJPK = serializers.IntegerField()
     Inspection = AHJInspectionSerializer(source='InspectionID')
 
     def create(self):
         # TODO: get edited row's old value
         return Edit(**self.validated_data)
 
-
 class WebpageTokenSerializer(serializers.Serializer):
     auth_token = serializers.CharField(source='key')
     User = UserSerializer(source='get_user')
-
 
 def dictfetchone(cursor):
     """Return all rows from a cursor as a dict"""
@@ -292,7 +261,6 @@ def dictfetchone(cursor):
     if row is None:
         return dict(zip(columns, [0] * len(columns)))
     return dict(zip(columns, row))
-
 
 def get_polygons_in_state(statepolygonid):
     query = 'SELECT COUNT(*) as numAHJs,' +\
@@ -312,7 +280,6 @@ def get_polygons_in_state(statepolygonid):
     cursor.execute(query)
     return dictfetchone(cursor)
 
-
 class DataVisAHJPolygonInfoSerializer(serializers.Serializer):
     PolygonID = serializers.IntegerField()
     InternalPLatitude = serializers.DecimalField(max_digits=9, decimal_places=7)
@@ -321,12 +288,7 @@ class DataVisAHJPolygonInfoSerializer(serializers.Serializer):
     AHJPK = serializers.IntegerField()
 
     def to_representation(self, instance):
-        # print(instance)
         r = OrderedDict(instance)
         if self.context.get('is_state', False) is True:
             r.update(get_polygons_in_state(str(r['PolygonID'])))
-            # print(r)
         return r
-
-
-

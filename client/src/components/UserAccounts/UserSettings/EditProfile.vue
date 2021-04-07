@@ -25,6 +25,20 @@
                     <div class="error" v-if="!$v.formFirstNameCapital.required || !$v.formLastNameCapital.required">First and Last name are required.</div>
                 </div>
                 <div class="form-spacing">
+                    <label>Work Phone</label>
+                    <b-form-input size="lg" class="form__input" type="text" placeholder="Work Phone" :state="$v.WorkPhone.$dirty ? !$v.WorkPhone.$error : null" v-model="WorkPhone" alt="Work Phone"></b-form-input>
+                </div>
+                <div v-if="$v.$dirty">
+                    <div class="error" v-if="!$v.WorkPhone.PhoneFormat">Incorrect Phone Format. Recommended format: 123-456-7890</div>
+                </div>
+                <div v-else>
+                    <b-form-text id="phone-help-text">Recommended phone format: 123-456-7890</b-form-text>
+                </div>
+                <div class="form-spacing">
+                    <label>Preferred Contact Method</label>
+                    <b-form-select v-model="userInfo.PreferredContactMethod" class="search-input" :options="['Email', 'Phone']" />
+                </div>
+                <div class="form-spacing">
                     <label>Bio</label>
                     <b-form-textarea id="textarea-default" size="sm" rows="3" placeholder="Bio" v-model="userInfo.PersonalBio" alt="Bio"></b-form-textarea>
                 </div>
@@ -33,12 +47,16 @@
                     <b-form-input size="lg" class="form__input" type="text" placeholder="URL" required v-model="userInfo.URL" alt="URL"></b-form-input>
                 </div>
                 <div class="form-spacing">
+                    <label>Job Title</label>
+                    <b-form-input size="lg" class="form__input" type="text" placeholder="Job Title" required v-model="userInfo.Title" alt="Job Title"></b-form-input>
+                </div>
+                <div class="form-spacing">
                     <label>Company Affiliation</label>
                     <b-form-input size="lg" class="form__input" type="text" placeholder="Company Affiliation" required v-model="userInfo.CompanyAffiliation" alt="CompanyAffiliation"></b-form-input>
                 </div>
-                <b-form-checkbox class="form-spacing" v-model="userInfo.IsPeerReviewer" name="peerreview-checkbox" value="1" unchecked-value="0">
+                <!--<b-form-checkbox class="form-spacing" v-model="userInfo.IsPeerReviewer" name="peerreview-checkbox" value="1" unchecked-value="0">
                     Open to review other AHJ Registry User permit applications
-                </b-form-checkbox>
+                </b-form-checkbox>-->
                 <b-button id="edit-profile-button" @click="UpdateDatabase" :disabled="this.SubmitStatus === 'PENDING'" block pill variant="primary">
                     Update Profile
                 </b-button>
@@ -57,6 +75,8 @@
 import axios from "axios";
 import constants from "../../../constants.js";
 import { required } from 'vuelidate/lib/validators';
+
+let PhoneFormat = constants.VALID_PHONE;
 export default {
     computed: {
         formFirstNameCapital: {
@@ -76,6 +96,14 @@ export default {
                 if(newLastName.length < 1) {this.userInfo.LastName = ''; return}
                 this.userInfo.LastName = this.CapitalizeFirstLetter(newLastName);
             }
+        },
+        WorkPhone: {
+            get: function() {
+                return this.userInfo.WorkPhone;
+            },
+            set: function (newWorkPhone) {
+                this.userInfo.WorkPhone = newWorkPhone;
+            }
         }
     },
     data() {
@@ -85,8 +113,11 @@ export default {
                     LastName: null,
                     PersonalBio: null,
                     URL: null,
+                    Title: null,
                     CompanyAffiliation: null,
                     IsPeerReviewer: 0,
+                    WorkPhone: null,
+                    PreferredContactMethod: null
                 },
                 Username: null,
                 Photo: null,
@@ -94,14 +125,6 @@ export default {
                 profileInfoLoaded: false
             }
         },
-    validations: {
-        formFirstNameCapital: {
-            required
-        },
-        formLastNameCapital: {
-            required
-        },
-  },
   methods: {
       GetUserInfo(){
         let query = constants.API_ENDPOINT + "user-one/" + this.$store.state.loginStatus.Username;
@@ -116,8 +139,7 @@ export default {
               this.UpdateLocalProfileData(profileInfo);
               this.profileInfoLoaded = true;
             })
-            .catch((error) => {
-                console.log(error);
+            .catch(() => {
             });
       },
       UpdateLocalProfileData(StoreProfileData) {
@@ -130,6 +152,10 @@ export default {
                 });
             this.userInfo.FirstName = StoreProfileData.ContactID['FirstName'].Value;
             this.userInfo.LastName = StoreProfileData.ContactID['LastName'].Value;
+            this.userInfo.URL = StoreProfileData.ContactID['URL'].Value;
+            this.userInfo.Title = StoreProfileData.ContactID['Title'].Value;
+            this.userInfo.WorkPhone = StoreProfileData.ContactID['WorkPhone'].Value;
+            this.userInfo.PreferredContactMethod = StoreProfileData.ContactID['PreferredContactMethod'].Value;
             this.Photo = StoreProfileData['Photo'];
             this.Username = StoreProfileData['Username'];
         }
@@ -138,6 +164,7 @@ export default {
         this.$v.$touch();
         if (!this.$v.$invalid) {
             this.SubmitStatus = "PENDING";
+            this.WorkPhone = this.FormatPhone(this.WorkPhone);
             // Create deep copy of user info and delete userInfo attributes that are empty
             let userInfo = JSON.parse(JSON.stringify(this.userInfo));
             for (let userAttr in userInfo){
@@ -145,8 +172,7 @@ export default {
                     delete userInfo[userAttr];
                 }
             }
-            console.log(userInfo);
-            axios.post(constants.API_ENDPOINT + "user/update/" + this.Username + "/", 
+            axios.post(constants.API_ENDPOINT + "user/update/" + this.Username + "/",
                 userInfo,
                 {
                     headers: {
@@ -164,21 +190,34 @@ export default {
       },
       CapitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
-        }   
+        },
+    FormatPhone(phone){
+        phone = phone.replaceAll('-',"");
+        phone = phone.replaceAll('(',"");
+        phone = phone.replaceAll(')',"");
+        return `(${phone.slice(0,3)})${phone.slice(3,6)}-${phone.slice(6,10)}`
+    }   
   },
   mounted() {
     this.GetUserInfo();
-    /*if (this.$store.state.currentUserInfo !== null){
-        this.UpdateLocalProfileData(this.$store.state.currentUserInfo);
-        this.profileInfoLoaded = true;
-    }*/
   },
   watch: {
     "$store.state.currentUserInfo": function(newVal) {
         this.UpdateLocalProfileData(newVal);
         this.profileInfoLoaded = true;
     }
-  }
+  },
+  validations: {
+        formFirstNameCapital: {
+            required
+        },
+        formLastNameCapital: {
+            required
+        },
+        WorkPhone: {
+            PhoneFormat
+        }
+  },
 }
 </script>
 
@@ -259,6 +298,10 @@ label {
 
 .success {
     color: green;
+}
+
+#phone-help-text {
+    font-size: 1rem;
 }
 
 @media (max-width: 650px){

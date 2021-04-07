@@ -38,11 +38,7 @@
         <template #row-details="row">
           <b-row class="mb-2">
             <b-col sm="3" class="text-sm-right"><b>Address:</b></b-col>
-            <b-col>Address info here</b-col>
-          </b-row>
-          <b-row class="mb-2">
-            <b-col sm="3" class="text-sm-right"><b>Contact:</b></b-col>
-            <b-col>Contact info here</b-col>
+            <b-col v-html="rowGetAHJAddress(row)"></b-col>
           </b-row>
           <b-row class="mb-2">
             <b-col sm="4" class="text-sm-right"><b>Visit this AHJ's Page:</b></b-col>
@@ -141,6 +137,27 @@ export default {
       this.$store.state.currentAHJ = ahj;
       this.$router.push('view-ahj');
     },
+    rowGetAHJAddress(row) {
+      let address = row.item.Address;
+      let result = '';
+      result += address.AddrLine1.Value;
+      result += ' ';
+      result += address.AddrLine2.Value;
+      result += ' ';
+      result += address.AddrLine3.Value;
+      if (result !== '  ') {
+        result += '<br>';
+      }
+      result += address.City.Value;
+      result += ' ';
+      result += address.County.Value;
+      result += ',';
+      result += ' ';
+      result += address.StateProvince.Value;
+      result += ' ';
+      result += address.ZipPostalCode.Value;
+      return result;
+    },
     onRowClicked(rowItem) {
       this.$store.commit("setSelectedAHJ", rowItem);
     },
@@ -170,10 +187,7 @@ export default {
         this.selectRow(newVal);
       }
     },
-    "$store.state.apiData": function(newData) {
-      if (newData.count === 0){
-        console.log("zero");
-      }
+    "$store.state.apiData": function() {
     }
   }
 };

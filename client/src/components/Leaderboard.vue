@@ -141,10 +141,7 @@ export default {
     methods: {
       getLeaderboardData(){
         this.Loading = true;
-        console.log(this.StateProvince);
-        console.log(this.Country);
         let query = constants.API_ENDPOINT + "leaderboard/";
-            console.log(query);
             axios.get(query,
                 {
                   params: {
@@ -156,18 +153,14 @@ export default {
                 .then( (response) => {
                     this.apiData = response.data;
                     this.Loading = false;
-                    console.log(this.apiData);
                 })
-                .catch((error) => {
-                    console.log(error);
+                .catch(() => {
                 });
       },
       checkNotEmpty(data){
-        console.log(data !== '');
         return data !== '';
       },
       onRowClicked(rowItem){
-        console.log(rowItem.Username);
         this.$router.push({ name: 'view-profile', params: { username: rowItem.Username }})
       }
     },

@@ -1,10 +1,9 @@
 import Vue from "vue";
 import store from "@/store"
 import Router from "vue-router";
-import Home from "./views/LandingPage.vue"
+import About from "./views/LandingPage.vue"
 import AHJSearchPage from "./views/AHJSearchPage.vue";
 import DataVis from "./views/DataVis.vue";
-import AHJPDFMarkupPage from "./views/AHJPDFMarkupPage.vue";
 import LeaderboardPage from "./views/LeaderboardPage.vue";
 import UserProfile from "./views/UserProfile";
 import UserSettings from "./views/UserAccounts/UserSettings";
@@ -20,22 +19,16 @@ Vue.use(Router);
 
 let router = new Router({
   routes: [
-    { path: "/", redirect: "/home",  meta: { notAuth: true}},
+    { path: "/", redirect: "/ahj-search"},
     {
-      path: "/home",
-      name: "home",
-      component: Home,
-      meta: { notAuth: true}
+      path: "/about",
+      name: "about",
+      component: About
     },
     {
       path: "/ahj-search",
       name: "ahj-search",
       component: AHJSearchPage
-    },
-    {
-      path: "/ahj-pdf-markup",
-      name: "ahj-pdf-markup",
-      component: AHJPDFMarkupPage
     },
     {
       path: "/user",

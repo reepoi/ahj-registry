@@ -112,7 +112,6 @@ export default {
         if(this.data.Address){
             this.formatAddress(this.data.Address);
         }
-        console.log(this.data);
         // this.ID = this.data.ContactID.Value;
         this.clearEdits();
         });
@@ -199,7 +198,6 @@ export default {
     },
     watch: {
         '$parent.isEditing': function() {
-            console.log("Hello!")
             this.isEditing = this.$parent.isEditing;
         }
     }

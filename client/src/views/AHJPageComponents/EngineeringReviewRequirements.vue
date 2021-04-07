@@ -74,7 +74,6 @@ export default {
         }
     },
     created: function(){
-        console.log(this.data);
         let k = Object.keys(this.Edits);
         for(let i = 0; i < k.length; i++){
             this.Edits[k[i]] = this.data[k[i]].Value;

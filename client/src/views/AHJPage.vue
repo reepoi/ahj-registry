@@ -1109,7 +1109,7 @@ export default {
             allFS: [],
             allDSM: [],
             allPIM: [],
-            isManaged: false
+            isManaged: false,
         }
     },
     components: {
@@ -1134,7 +1134,7 @@ export default {
 
     },
     methods: {
-        setupLeaflet() {
+       setupLeaflet() {
             let leafletMap = L.map('mapDiv', {            
                 dragging: false,
                 zoomControl: false,
@@ -1169,18 +1169,6 @@ export default {
                 return value.substring(0, 4) + " " + value.substring(4);
             }
             return value;
-        },
-        createDocumentSubmissionMethod(method){
-            console.log(method);
-        },
-        createERRequirement(type,level,notes,stamp,desc){
-            console.log(type,level,notes,stamp,desc);
-        },
-        createFeeStructure(desc,name,type){
-            console.log(desc,name,type);
-        },
-        createPermitIssueMethod(method){
-            console.log(method);
         },
         formatAddress(Address){
             if(Address.AddrLine1.Value === "" && Address.AddrLine2.Value === "" && Address.AddrLine3.Value === ""){
@@ -1302,7 +1290,6 @@ export default {
                 })
                 .then(response => {
                     this.AHJInfo.Comments = [response.data, ...this.AHJInfo.Comments];
-                    console.log(response.data);
                     response.data = "";
                     this.commentInput = "";
                 })
@@ -1353,7 +1340,6 @@ export default {
                     this.$children[i].getDeletions();
                 }
                 if(this.$children[i].isDeleted){
-                    console.log(this.$children[i].Type);
                     if(this.$children[i].Type === "Contact"){
                         this.contactDeletions.Value.push(this.$children[i].data.ContactID.Value);
                     }
@@ -1377,7 +1363,6 @@ export default {
         },
         deleteEdit(index){
             let e = this.editObjects[index];
-                            console.log(e);
             if(e.SourceTable === "Inspection"){
                 for(let i = 0; i < this.$children.length; i++){
                     if(this.$children[i].ID == e.SourceRow && this.$children[i].Type === "Inspection"){
@@ -1395,7 +1380,6 @@ export default {
             else if(e.SourceTable === "Contact" && e.InspectionID !== null){
                 for(let i = 0; i < this.$children.length; i++){
                     if(this.$children[i].ID == e.InspectionID && this.$children[i].Type === "Inspection" && this.$children[i].eID < 0){
-                        console.log(this.$children[i]);
                         for(let j = 0; j < this.$children[i].$children.length;j++){
                             if(this.$children[i].$children[j].ID == e.SourceRow){
                                 this.$children[i].$children[j].Edits[e.SourceColumn] = e.OldValue;
@@ -1462,7 +1446,6 @@ export default {
             this.FSDeletions.Value.splice(index,1);
         },
         submitEdits(){
-            console.log(this.editObjects,this.contactAddition,this.contactDeletions);
             let url = constants.API_ENDPOINT + 'edit/update/';
             axios
                 .post(url,this.editObjects, {
@@ -1470,8 +1453,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             this.editObjects = [];
             for(let i = 0; i < this.$children.length; i++){
@@ -1486,8 +1468,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             axios
                 .post(url,this.inspectionAddition, {
@@ -1495,8 +1476,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
 
             axios
@@ -1505,8 +1485,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             axios
                 .post(url,this.AddDSM, {
@@ -1514,28 +1493,23 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log("DSM: ",response.data);
+                .then(() => {
                 })
-            console.log(this.ERRAddition);
             axios
                 .post(url,this.ERRAddition, {
                     headers: {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
-                console.log(this.FSAddition);
             axios
                 .post(url,this.FSAddition, {
                     headers: {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
 
             for(let i = 0; i < this.$children.length; i++){
@@ -1545,7 +1519,7 @@ export default {
                         headers: {
                             Authorization: this.$store.state.loginStatus.authToken
                         }})
-                    .then(response => {console.log(response.data)});
+                    .then(() => {});
                 }
             }
             url = constants.API_ENDPOINT + 'edit/delete/';
@@ -1555,8 +1529,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             axios
                 .post(url,this.inspectionDeletions, {
@@ -1564,8 +1537,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             axios
                 .post(url,this.ERRDeletions, {
@@ -1573,8 +1545,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             axios
                 .post(url,this.FSDeletions, {
@@ -1582,8 +1553,7 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             axios
                 .post(url,this.PIMDeletion, {
@@ -1591,18 +1561,15 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
-            console.log(this.DSMDeletion);
             axios
                 .post(url,this.DSMDeletion, {
                     headers: {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
             this.editObjects = [];
             this.contactAddition.Value = [];
@@ -1871,7 +1838,6 @@ export default {
         },
         assertIsManaged(){
             let MA =  this.$store.state.loginStatus.MaintainedAHJs;
-            console.log(MA);
             for(let i = 0; i < MA.length;i++){
                 if(MA[i]==this.AHJInfo.AHJPK.Value){
                     this.isManaged = true;
@@ -1880,7 +1846,6 @@ export default {
             }
         },
         handleOfficial(event){
-            console.log(event.Type,event.eID);
             let o = {};
             o['EditID'] = event.eID;
             if(event.Type === 'Accept'){
@@ -1896,12 +1861,10 @@ export default {
                         Authorization: this.$store.state.loginStatus.authToken
                     }
                 })
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                 })
         },
         changeStatus(ref,type){
-            console.log(this.$refs[ref],ref);
             if(type==="A"){
                 this.$refs[ref][0].style.backgroundColor = 'green';
             }
@@ -1942,13 +1905,11 @@ export default {
             this.allFS = [...this.AHJInfo.FeeStructures,...this.AHJInfo.UnconfirmedFeeStructures];
             this.allDSM = [...this.AHJInfo.DocumentSubmissionMethods,...this.AHJInfo.UnconfirmedDocumentSubmissionMethods];
             this.allPIM = [...this.AHJInfo.PermitIssueMethods,...this.AHJInfo.UnconfirmedPermitIssueMethods];
-            console.log(this.AHJInfo);
             this.assertIsManaged();
         },
         '$store.state.editList': function(){
             var list = this.$store.state.editList;
             this.editList = [...list];
-            console.log(this.editList);
         }
     }
 }

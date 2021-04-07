@@ -67,8 +67,7 @@ export default {
                 .then( (response) => {
                     this.ahjName = response.data[0].AHJName.Value;
                 })
-                .catch((error) => {
-                    console.log(error);
+                .catch(() => {
                 });
         }
     },

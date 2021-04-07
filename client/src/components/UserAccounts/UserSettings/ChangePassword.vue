@@ -86,7 +86,6 @@ export default {
                             this.ErrorMessage = error.response.data.current_password[0]
                         else if ("new_password" in error.response.data)
                             this.ErrorMessage = error.response.data.new_password[0]
-                        console.log(error)});
             }
         },
     },

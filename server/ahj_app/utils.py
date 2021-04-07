@@ -279,6 +279,8 @@ def filter_users(request):
         request.GET.get('StateProvince', None))
     
     search_option += request.GET.get('SearchOption', None)
+    where_clauses = simple_sanitize(where_clauses)
+    search_option = simple_sanitize(search_option)
 
     full_query_string = ''' SELECT User.UserID, User.Username, 
                                    User.Photo, User.SignupDate, 
@@ -294,8 +296,6 @@ def filter_users(request):
                                 )
                                 ORDER BY '''+ search_option +  ''' DESC;'''
 
-    print('QUERY: ', full_query_string)
-
     return User.objects.raw(full_query_string)
 
 
@@ -306,7 +306,7 @@ def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
 
 
 def get_public_api_serializer_context():
-    context = {'fields_to_drop': ['Polygon', 'AHJPK', 'Comments', 'UnconfirmedContacts', 'UnconfirmedEngineeringReviewRequirements', 'UnconfirmedDocumentSubmissionMethods', 'UnconfirmedPermitIssueMethods', 'UnconfirmedInspections', 'UnconfirmedFeeStructures']}
+    context = {'is_public_view': True}
     return context
 
 

@@ -11,19 +11,27 @@ export default {
     created() {
         axios.post(constants.API_ENDPOINT + "auth/token/logout/", {},{
                 headers: {
-                Authorization: `${this.$store.getters.authToken}`,
+                Authorization: `${this.$store.state.loginStatus.authToken}`,
                 }
             }).then(() => {
                 localStorage.removeItem('loginStatus');
                 localStorage.removeItem('vuex');
                 this.$store.commit("changeUserLoginStatus", {
-                            status: "",
-                            isSuper: false,
-                            isStaff: false,
+                            Username: "",
+                            MaintainedAHJs: [],
+                            Photo: "",
                             authToken: ""
                         });
-                this.$router.push({name: 'home'})
-            }).catch(error => {console.log(error.message)});
+                this.$router.push({name: 'ahj-search'})
+            }).catch(() => {
+                this.$router.push({name: 'ahj-search'})
+                this.$store.commit("changeUserLoginStatus", {
+                            Username: "",
+                            MaintainedAHJs: [],
+                            Photo: "",
+                            authToken: ""
+                        });
+            });
     }
 }
 </script>

@@ -124,11 +124,10 @@ DATABASES = {
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
-        'PORT': '3306'
+        'PORT': ''
     }
 }
 
-# TODO make sure this will work with our system
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -146,7 +145,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/api-logs.log'),
+            'filename': os.path.join(BASE_DIR, 'logs/api-logs.txt'),
             'when': 'midnight',
             'backupCount': 14,
             'formatter': 'verbose'
@@ -209,7 +208,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/

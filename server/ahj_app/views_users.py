@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .authentication import WebpageTokenAuth
-from .models import AHJUserMaintains, AHJ, User, APIToken
+from .models import AHJUserMaintains, AHJ, User, APIToken, Contact
 from .serializers import UserSerializer
 
 

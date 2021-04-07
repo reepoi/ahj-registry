@@ -72,7 +72,6 @@ export default {
                     this.$refs.reply.classList.toggle('show');
                     this.$refs.reply.classList.toggle('hide');
                     this.Comment.Replies = [response.data, ...this.Comment.Replies];
-                    console.log(response.data);
                     response.data = "";
                     this.commentInput = "";
                     this.$emit('count', 1);

@@ -1,7 +1,7 @@
 <template>
   <div class="landing-page-container">
     <!-- Hero Section -->
-    <div id="hero-section">
+    <!-- <div id="hero-section" v-if="!LoggedIn">
         <div id="hero-text">
             <h1 id="hero-headline">Building permits made easy</h1>
             <h3 id="hero-headline-support-text">The AHJ Registry makes finding AHJs simple 
@@ -18,12 +18,7 @@
                 <div class="error" v-if="!$v.Email.ValidEmail && Email !== ''">Incorrect email format. Ex: example@example.com</div>
             </div>
         </div>
-    </div>
-    
-    <!-- Client Section -->
-    <div id="client-section">
-        <img v-for="client in clientPhotos" :key="client" :src="require('@/assets/' + clientPhotoLocation + client + '')" />
-    </div>
+    </div> -->
 
     <!-- About Section -->
      <div id="about-section">
@@ -39,6 +34,11 @@
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/BrXDBxBssgU?start=325" frameborder="0" allowfullscreen></iframe>
             </div>
         </div> -->
+    </div>
+
+    <!-- Client Section -->
+    <div id="client-section">
+        <img v-for="client in clientPhotos" :key="client" :src="require('@/assets/' + clientPhotoLocation + client + '')" />
     </div>
 
     <!-- Feature Sections -->
@@ -64,7 +64,7 @@
                     ></feature-section>
 
     <!-- Account Description Section -->
-    <div id="account-description-section">
+    <div id="account-description-section" v-if="!LoggedIn">
         <h2>Create an Account</h2>
         <div id="account-feature-list">
             <account-feature-description headerText="API Access" 
@@ -103,11 +103,14 @@ export default {
         return {
             Email: '',
             clientPhotos: ['titan_solar.png', 'aurora.jpg', 'solar_app.png', 'raise_green.png', 
-            'ipsun_solar.jpg', 'solar_power_of_oklahoma.jpg', '17_terawatts.jpg'],
+            'ipsun_solar.jpg', 'solar_power_of_oklahoma.jpg', '17_terawatts.jpg', 'blue_banyan.jpg', 'sunspec_alliance.png'],
             clientPhotoLocation: "images/LandingPage/clients/",
         }
     },
     computed: {
+        LoggedIn(){
+            return this.$store.getters.loggedIn;
+        }
     },
     methods: {
         SendToRegisterPage(){
@@ -199,6 +202,8 @@ h2 {
 
 #client-section {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     padding: 40px 0px;
     width: 92%;
     margin: auto;
@@ -210,6 +215,7 @@ h2 {
     flex: 1;
     object-fit: contain; /* always keep the aspect ratio the same */
     margin-right: 1vw;
+    margin-top: 2em;
     width: 100%;
 }
 

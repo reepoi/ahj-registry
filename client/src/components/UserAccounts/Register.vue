@@ -127,6 +127,7 @@ export default {
     methods: {
          submitRegistration() {
             this.$v.$touch();
+            let that = this;
             if (!this.$v.$invalid) {
                 this.submitStatus = 'PENDING';
                 this.backendErrorOccurred = false;
@@ -137,6 +138,18 @@ export default {
                 }).then(() => {
                     this.submitStatus = 'OK';
                     document.getElementById("registration-form").reset();
+                    // Send user first and last name to backend (ideally we will consolidate all this into one API call). 
+                    axios.post(constants.API_ENDPOINT + "user/update/" + that.Username + "/", 
+                        {
+                            "FirstName" : that.FirstName,
+                            "LastName" : that.LastName
+                        },
+                        {
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    )
                 })
                 .catch(error => {
                     this.submitStatus = 'ERROR';

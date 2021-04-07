@@ -61,7 +61,6 @@ export default {
       });
       this.leafletMap.on('draw:deletestop', function() {
         let geojson = that.searchPolygonFeatureGroup.toGeoJSON();
-        console.log(geojson.features.length);
         if (geojson.features.length === 0) {
           geojson = null;
         }
@@ -70,18 +69,13 @@ export default {
     },
     // Replace map's existing polygons and markers with ones from the new search
     updateMap(ahjlist) {
-      let missingPolygon = false;
       ahjlist = ahjlist.filter(ahj => {
         if (ahj.Polygon === null) {
-          missingPolygon = true;
           return false;
         } else {
           return true;
         }
       });
-      if (missingPolygon) {
-        console.log("polygon is missing");
-      }
       this.markerLayerGroup.clearLayers();
       this.addPolygonLayer(ahjlist);
       this.updateMapMarkers(ahjlist);

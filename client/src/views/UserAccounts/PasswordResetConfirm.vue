@@ -86,7 +86,6 @@ export default {
                 .then(() => {
                     this.Loading = false;
                 }).catch(error => {
-                    console.log(error.response.data.token)
                     if (error.response.data.new_password){
                         this.backendPasswordError = error.response.data.new_password[0];
                     }
