@@ -18,7 +18,6 @@ def webpage_ahj_list(request):
     """
     Functional view for the WebPageAHJList
     """
-    # TODO move authentication to a separate function
     # By default select all the AHJs
     # filter by the latitude, longitude
     json_location = get_location(request=request)

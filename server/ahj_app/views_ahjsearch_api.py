@@ -23,7 +23,6 @@ def ahj_list(request):
     """
     Functional view for the AHJList
     """
-    # TODO move authentication to a separate function
     # By default select all the AHJs
     # filter by the latitude, longitude
     json_location = get_location(request=request)

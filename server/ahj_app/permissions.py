@@ -7,7 +7,6 @@ from rest_framework.response import Response
 
 
 class IsSuperuserElseReadOnly(permissions.BasePermission):
-    # view: ClassBasedView instance, TODO get this typed
     def has_permission(self, request: HttpRequest, view: Any) -> bool:
         if request.user.is_superuser or request.method == 'GET':
             return True

@@ -32,7 +32,6 @@ def user_comments(request):
 
 @api_view(['POST'])
 def comment_submit(request):
-    # TODO: set UserID of comment to request.user
     comment_text = request.data.get('CommentText', None)
     if comment_text is None:
         return Response('Missing comment text', status=status.HTTP_400_BAD_REQUEST)

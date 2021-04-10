@@ -169,7 +169,6 @@ def edit_addition(request):
                                  'OldValue'     : False,
                                  'NewValue'     : True}
                         edit = add_edit(e)
-                        # TODO return inspection
                         response_data.append(AHJInspectionSerializer(inspection).data)
         elif source_table == 'FeeStructure':
             with connection.cursor() as cursor:
@@ -374,7 +373,6 @@ def edit_update(request):
     Private front-end endpoint for passing an edit type=Addition request
     """
     try:
-        # TODO we need to santiize the given fields a little
         response_data, response_status = [], status.HTTP_200_OK
         with transaction.atomic():
             es = request.data
@@ -404,12 +402,7 @@ def edit_submit(request):
 def edit_list(request):
     edits = Edit.objects.all()
     # Filtering by SourceTable, SourceRow, and SourceColumn
-    # source_table = request.query_params.get('SourceTable', None)
-    # print(request.query_params)
-    # if source_table is not None:
-    #     edits = edits.filter(SourceTable=source_table)
     source_row = request.query_params.get('AHJPK', None)
-    # print(source_row, type(source_row))
     if source_row is not None:
         edits = edits.filter(AHJPK=source_row)
     edits = EditSerializer(edits, many=True).data

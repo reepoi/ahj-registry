@@ -247,7 +247,6 @@ class EditSerializer(serializers.Serializer):
     Inspection = AHJInspectionSerializer(source='InspectionID')
 
     def create(self):
-        # TODO: get edited row's old value
         return Edit(**self.validated_data)
 
 class WebpageTokenSerializer(serializers.Serializer):

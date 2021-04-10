@@ -145,7 +145,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/api-logs.txt'),
+            'filename': os.path.join(BASE_DIR, 'logs/apilogs.log'),
             'when': 'midnight',
             'backupCount': 14,
             'formatter': 'verbose'

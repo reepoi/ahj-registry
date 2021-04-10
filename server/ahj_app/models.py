@@ -378,7 +378,7 @@ class UserManager(BaseUserManager):
         return self.create_user(**extra_fields)
 
 class User(AbstractBaseUser):
-    UserID = models.AutoField(db_column='UserID', primary_key=True) # TODO: Discuss - Is adding blanks and default values for everything a decent enough approach?
+    UserID = models.AutoField(db_column='UserID', primary_key=True)
     ContactID = models.ForeignKey(Contact, models.DO_NOTHING, db_column='ContactID', null=True)
     Username = models.CharField(db_column='Username', unique=True, max_length=254)
     password = models.CharField(max_length=128)

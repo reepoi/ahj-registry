@@ -194,7 +194,6 @@ export default {
     },
     addLegend() {
       let legend = L.control({position: 'bottomleft'});
-      // let that = this;
       legend.onAdd = function () {
         let div = L.DomUtil.create('div', 'info legend');
           div.innerHTML +=

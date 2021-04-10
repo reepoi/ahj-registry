@@ -92,27 +92,11 @@ export default {
             editstatus: this.editStatus
         }
     },
-    created: function(){
-        // let k = Object.keys(this.data);
-        // for(let i = 0; i < k.length; i++){
-        //     if(k[i] === "Address"){
-        //         continue;
-        //     }
-        //     if(this.data[k[i]] === null){
-        //         if(k[i] === 'MiddleName'){
-        //             continue;
-        //         }
-        //         this.data[k[i]] = { Value: ""};
-        //         continue;
-        //     }
-        // }
-    },
     mounted: function() {
         this.$nextTick(()=>{
         if(this.data.Address){
             this.formatAddress(this.data.Address);
         }
-        // this.ID = this.data.ContactID.Value;
         this.clearEdits();
         });
         this.changeStatus();

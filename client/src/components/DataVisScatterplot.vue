@@ -5,7 +5,6 @@
 
 <script>
 import * as d3 from "d3";
-// import constants from "../constants.js";
 
 export default {
   data() {

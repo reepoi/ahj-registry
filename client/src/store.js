@@ -27,7 +27,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     plugins: [createPersistedState({
         paths: ['loginStatus'],
-        storage: window.localStorage, // TODO: Use window.sessionStorage.clear(); when user logs out manually.
+        storage: window.localStorage,
     })],
     state: {
         apiData: [],

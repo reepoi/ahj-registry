@@ -4,7 +4,6 @@
 
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
-# TODO why is this unresolved, it works?
 from ScheduledTasks import editTasks
 
 def start():

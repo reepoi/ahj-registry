@@ -922,9 +922,6 @@ import Inspection from './AHJPageComponents/Inspection.vue';
 import EngineeringReviewRequirements from './AHJPageComponents/EngineeringReviewRequirements.vue';
 import FeeStructure from './AHJPageComponents/FeeStructure.vue';
 import axios from "axios";
-// import Vue from 'vue';
-
-// Vue.config.silent = true;
 
 export default {
     data() {
@@ -1665,7 +1662,6 @@ export default {
             for(let i = 0; i < k.length; i++){
                 this.Address[k[i]] = "";
             }
-            // this.showBigDiv('addacontact');
         },
         addInspection(){
             if(this.replacingInsp < 0){
@@ -1689,7 +1685,6 @@ export default {
                     this.AddInsp[k[i]] = "";
                 }
             }
-            // this.showBigDiv('addainspection');
         },
         addInspectionCont(){
             this.AddCont.Address = { ...this.Address };

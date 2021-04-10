@@ -9,7 +9,6 @@
                     <template v-else>
                         <img class='user__image' src="../assets/images/profile-image-default.jpeg" /> 
                     </template>
-                    <!-- <img class='user__image' src='../assets/images/profile-image-default.jpeg'/> --> 
                     <div class="header__content">
                         <div class="header__content__left">
                             <div class="multi__info__line">
@@ -21,22 +20,9 @@
                                 <template v-else>
                                     <h2><b>{{username}}</b></h2>
                                 </template>
-                                <!-- <div class="badges">
-                                    <img class='badgeIcon' src='../assets/images/exampleBadge1.png' title="100 Contributions Badge"/>
-                                    <img class='badgeIconRibbon' src='../assets/images/exampleBadge2.png' title="Top 100 Contributor"/>
-                                </div> -->
                             </div>
                             <hr>
                             <h4 v-if="companyAffiliation !== null">{{companyAffiliation}}</h4>
-                            <!--<div class="multi__info__line">
-                                <h6>Location info not given</h6>
-                                <template v-if="location !== null">
-                                    <h6>{{location}}</h6>
-                                </template>
-                                <template v-else>
-                                    <h6 class="alternative-text">Location: Unknown</h6>
-                                </template>
-                                <b-icon class="circle-icon" icon="circle-fill"></b-icon>-->
                                 <b-button v-b-modal.my-modal size="sm" class="contact-info-button" variant="outline-primary" busy="True">Contact Info</b-button>
                                 <b-modal id="my-modal">
                                     <template #modal-title>
@@ -46,26 +32,10 @@
                                     {{`Phone: ${phone}`}} <br>
                                     {{`Preferred Contact Method: ${preferredContact}`}}
                                 </b-modal>
-                            <!-- </div>
-                             <div class="multi__info__line">
-                                <template v-if="isPeerReviewer !== 0">
-                                    <b-icon class="h3 check-icon" icon="check2"></b-icon>
-                                    <h6 class="check-icon-text"> Open to peer review applications</h6>
-                                    <h6>Number of peer reviews done: {{numReviewsDone}}</h6>
-                                </template>
-                                <template v-else>
-                                    <b-icon class="h3 x-icon" icon="x"></b-icon>
-                                    <h6 class="check-icon-text"> Not a peer reviewer</h6>
-                                </template>
-                            </div> -->
                             <h6>Number of submitted edits: {{numSubmittedEdits}}</h6>
                             <h6>Number of accepted edits: {{numAcceptedEdits}}</h6>
                             <h6>Community Score: {{communityScore}}</h6>
                         </div>
-                        <!-- <div class="header__content__center">
-                            <h6>Number of accepted edits: {{numAcceptedEdits}}</h6>
-                            <h6 class="community-score-text">Community Score: {{communityScore}}</h6>
-                        </div> -->
                         <div class="header__content__right">
                             <div class="header__buttons__right">
                                 <b-button v-if="username === this.$store.state.loginStatus.Username" class="button" @click="$router.push({ name: 'settings'})" pill variant="primary">
@@ -79,8 +49,6 @@
                                         <b-icon class="h3 more-icon" icon="three-dots"></b-icon>
                                     </template>
                                 </b-nav-item-dropdown>
-
-                                <!-- <a v-if="canSubmitPermit" v-b-modal.submit-application-modal style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;">Submit Application</a> -->
                             </div>
                         </div>
                     </div>

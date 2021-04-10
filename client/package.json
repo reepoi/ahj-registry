@@ -1,6 +1,6 @@
 {
-  "name": "ahj-registry-web-app",
-  "version": "0.1.0",
+  "name": "ahj-registry-app",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",

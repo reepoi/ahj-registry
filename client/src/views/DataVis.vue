@@ -19,11 +19,9 @@
 
 <script>
 import DataVisMap from "../components/DataVisMap.vue";
-// import DataVisScatterplot from "../components/DataVisScatterplot.vue";
 export default {
   components: {
     'component-data-vis-map': DataVisMap,
-    // 'component-data-vis-scatterplot': DataVisScatterplot
   },
   data() {
     return {
