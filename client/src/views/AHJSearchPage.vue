@@ -1,59 +1,37 @@
 <template>
   <div class="ahj-search-container">
-    <div class="download-search-results" v-show="$store.state.showTable">
-      Download Search Results:
-      <span v-if="$store.state.apiLoading">
-        ...
-      </span>
-      <span v-else-if="!$store.state.resultsDownloading">
-        <a href @click.prevent="exportResults('application/json')">
-          JSON
-        </a>
-        or
-        <a href @click.prevent="exportResults('text/csv')">
-          CSV
-        </a>
-      </span>
-      <span v-else>
-        (<b-spinner small class="text-center" />
-        {{ $store.state.downloadCompletion }}%)
-      </span>
+    <div class="ahj-search-filter">
+      <ahj-search-filter></ahj-search-filter>
     </div>
-    <div class="ahj-count" v-show="$store.state.showTable">
-      <br />
-      <strong>
-        {{ ahjCount ? ahjCount : "..." }} Authorities Having Jurisdiction</strong>
+    <div class="ahj-search-map">
+      <component-mapview></component-mapview>
     </div>
-    <div class="ahj-search-sidebar">
-      <component-ahj-map></component-ahj-map>
-    </div>
-    <div class="ahj-search-body" v-show="$store.state.showTable">
-      <component-ahj-list></component-ahj-list>
+    <div class="ahj-table-sidebar" v-show="$store.state.showTable">
+      <div class="table-info">
+        <component-ahj-table-result-info class="ahj-table-result-info"></component-ahj-table-result-info>
+        <component-ahj-table-pagination class="ahj-table-pagination"></component-ahj-table-pagination>
+      </div>
+      <component-ahj-table-view></component-ahj-table-view>
     </div>
   </div>
 </template>
 
 <script>
-import MapView from "../components/MapView";
-import AHJList from "../components/AHJList.vue";
+import MapView from "../components/MapView.vue";
+import AHJTableView from "../components/AHJTableView.vue";
+import AHJSearchPageFilter from "../components/AHJSearchPageFilter.vue";
+import AHJTablePagination from "../components/AHJTablePagination";
+import AHJTableResultInfo from "../components/AHJTableResultInfo";
 export default {
-  mounted() {
+  created() { // called before 'mounted' is called for child components
     this.$store.commit("setShowTable", false);
-    this.$store.commit("setApiUrlAddon", "ahj-private/");
   },
   components: {
-    "component-ahj-list": AHJList,
-    "component-ahj-map": MapView
-  },
-  computed: {
-    ahjCount() {
-      return this.$store.state.ahjCount;
-    }
-  },
-  methods: {
-    exportResults(fileType) {
-      this.$store.commit("exportResults", fileType);
-    }
+    "ahj-search-filter": AHJSearchPageFilter,
+    "component-mapview": MapView,
+    "component-ahj-table-result-info": AHJTableResultInfo,
+    "component-ahj-table-pagination": AHJTablePagination,
+    "component-ahj-table-view": AHJTableView
   }
 };
 </script>
@@ -64,34 +42,51 @@ export default {
   grid-template-columns: auto fit-content(40%);
 }
 
-.ahj-search-sidebar {
+.ahj-search-filter {
   grid-column: 1;
   grid-row: 1 / 3;
 }
 
-.ahj-search-body {
+.ahj-search-map {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.ahj-table-sidebar {
   grid-column: 2;
   grid-row: 1 / span 2;
   padding-left: 1em;
 }
 
-.download-search-results {
-  grid-column: 2;
-  grid-row: 1 / 2;
-  padding-left: 1em;
-  font-family: "Roboto Condensed";
-  width: 50%;
+.table-info {
+  display: grid;
+  background: white;
 }
 
-.ahj-count {
-  grid-column: 2;
-  grid-row: 1 / 2;
-  padding-left: 1em;
-  font-family: "Roboto Condensed";
-  width: 50%;
+.ahj-table-result-info {
+  grid-column: 1;
 }
 
-a {
-  color: #4285f4;
+.ahj-table-pagination {
+  grid-column: 2;
+  text-align: right;
+}
+@media (max-width: 1000px){
+.ahj-search-container {
+  grid-template-rows: auto fit-content(40%);
+}
+
+.ahj-search-filter {
+  grid-row: 1 / 2;
+}
+
+.ahj-search-map {
+  grid-row: 1 / 2;
+}
+
+.ahj-table-sidebar {
+  grid-column: 1;
+  grid-row: 2 / 3;
+}
 }
 </style>

@@ -1,25 +1,27 @@
 import Vue from "vue";
 import App from "./App.vue";
-import router from "./router";
 import store from "./store";
+import router from "./router";
+import Vuelidate from 'vuelidate'
 
-import BootstrapVue from "bootstrap-vue";
-import AwesomeMarkers from 'drmonty-leaflet-awesome-markers';
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import AwesomeMarkers from "drmonty-leaflet-awesome-markers";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-
-import "vue-awesome/icons";
-import Icon from "vue-awesome/components/Icon";
+import LoadScript from 'vue-plugin-load-script';
 
 require("./assets/MarkerStyles/leaflet.awesome-markers.css");
 require("./assets/MarkerStyles/leaflet.awesome-markers.js");
 
-Vue.component("v-icon", Icon);
+require("./assets/MarkerStyles/MarkerCluster.css");
+require("./assets/MarkerStyles/MarkerCluster.Default.css");
 
 Vue.use(BootstrapVue);
+Vue.use(Vuelidate);
+Vue.use(BootstrapVueIcons);
 Vue.use(AwesomeMarkers);
-Vue.config.productionTip = false;
+Vue.use(LoadScript);
 
 new Vue({
   router,
