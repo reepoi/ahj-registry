@@ -1,12 +1,9 @@
-import L from "leaflet";
-const API_ENDPOINT = "http://127.0.0.1:8000/api/v1/";
-
-//Enter your token authorization for your account to access api
-const TOKEN_AUTH = "";
+const API_ENDPOINT = "http://localhost:8000/api/v1/";
+const AUTH_TOKEN = "Token ";
 
 export default {
   API_ENDPOINT: API_ENDPOINT,
-  TOKEN_AUTH: TOKEN_AUTH,
+  TOKEN_AUTH: AUTH_TOKEN,
   AHJ_FIELDS: {
     AHJCode: "",
     AHJName: "",
@@ -284,7 +281,7 @@ export default {
   MAP_TILE_API_ATTR: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
   MAP_PLYGN_SYTLE: function() {
     return {
-      fillOpacity: 0.03,
+      fillOpacity: 0.07,
       opacity: 0.3,
       color: "blue",
       weight: 2
@@ -297,5 +294,18 @@ export default {
       color: "red",
       eight: 2
     };
-  }
-}
+  },
+  MAP_PLYGN_CSTM_COLOR: function(rgba) {
+    return {
+      fillOpacity: 0.07,
+      opacity: 1,
+      color: rgba,
+      eight: 2
+    };
+  },
+  // Validators
+  VALID_EMAIL: (email) => /[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*[.][a-zA-Z]+/g.test(email),
+  NUM_OR_SPECIAL_CHAR: (password) => /[0-9!@#$%^&*()_+\-=[\]{};':"\\,.<>/?]+/g.test(password),
+  CONTAINS_LETTER: (password) => /[A-Za-z]+/g.test(password),
+  VALID_PHONE: (phone) => /\(?\d{3}\)?[\s.-]?\d{3}[\s.-]\d{4}|\d{10}/g.test(phone),
+};
