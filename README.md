@@ -9,6 +9,7 @@ The Orange Button Authorities Having Jurisdiction (AHJ) Registry contains AHJ in
 The client uses Vue v2.6.11. See client/package.json file for more details on additional dependencies.
 
 The server uses Django 3.1.3. See server/requirements.txt for more details on additional dependencies.
+  - This requires Python >= 3.7
 
 ### Installation
 
