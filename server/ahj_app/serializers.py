@@ -46,7 +46,8 @@ class FeeStructureSerializer(serializers.Serializer):
     def to_representation(self, feestructure):
         if self.context.get('is_public_view', False):
             for field in FeeStructure.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(feestructure)
 
 class LocationSerializer(serializers.Serializer):
@@ -62,7 +63,8 @@ class LocationSerializer(serializers.Serializer):
     def to_representation(self, location):
         if self.context.get('is_public_view', False):
             for field in Location.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(location)
 
 class AddressSerializer(serializers.Serializer):
@@ -82,7 +84,8 @@ class AddressSerializer(serializers.Serializer):
     def to_representation(self, address):
         if self.context.get('is_public_view', False):
             for field in Address.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(address)
 
 class ContactSerializer(serializers.Serializer):
@@ -105,7 +108,8 @@ class ContactSerializer(serializers.Serializer):
     def to_representation(self, contact):
         if self.context.get('is_public_view', False):
             for field in Contact.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(contact)
 
 class RecursiveField(serializers.Serializer):
@@ -146,9 +150,23 @@ class DocumentSubmissionMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
 
+    def to_representation(self, dsmu):
+        if self.context.get('is_public_view', False):
+            for field in AHJDocumentSubmissionMethodUse.SERIALIZER_EXCLUDED_FIELDS:
+                if field in self.fields:
+                    self.fields.pop(field)
+        return super().to_representation(dsmu)
+
 class PermitIssueMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
+
+    def to_representation(self, pimu):
+        if self.context.get('is_public_view', False):
+            for field in AHJPermitIssueMethodUse.SERIALIZER_EXCLUDED_FIELDS:
+                if field in self.fields:
+                    self.fields.pop(field)
+        return super().to_representation(pimu)
 
 class AHJInspectionSerializer(serializers.Serializer):
     InspectionID = OrangeButtonSerializer()
@@ -165,7 +183,8 @@ class AHJInspectionSerializer(serializers.Serializer):
     def to_representation(self, inspection):
         if self.context.get('is_public_view', False):
             for field in AHJInspection.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(inspection)
 
 class EngineeringReviewRequirementSerializer(serializers.Serializer):
@@ -180,7 +199,8 @@ class EngineeringReviewRequirementSerializer(serializers.Serializer):
     def to_representation(self, err):
         if self.context.get('is_public_view', False):
             for field in EngineeringReviewRequirement.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(err)
 
 class AHJSerializer(serializers.Serializer):
@@ -224,7 +244,8 @@ class AHJSerializer(serializers.Serializer):
     def to_representation(self, ahj):
         if self.context.get('is_public_view', False):
             for field in AHJ.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(ahj)
 
     def get_Polygon(self, instance):
@@ -234,7 +255,7 @@ class EditSerializer(serializers.Serializer):
     EditID = serializers.IntegerField(read_only=True)
     ChangedBy = UserSerializer()
     ApprovedBy = UserSerializer()
-    AHJPK = serializers.IntegerField()
+    AHJPK = serializers.IntegerField(source='AHJPK.AHJPK')
     SourceTable = serializers.CharField()
     SourceColumn = serializers.CharField()
     SourceRow = serializers.IntegerField()
@@ -244,7 +265,7 @@ class EditSerializer(serializers.Serializer):
     NewValue = serializers.CharField()
     DateRequested = serializers.DateField(read_only=True)
     DateEffective = serializers.DateField(read_only=True)
-    Inspection = AHJInspectionSerializer(source='InspectionID')
+    Inspection = AHJInspectionSerializer(source='InspectionID')  # TODO: should be int?
 
     def create(self):
         return Edit(**self.validated_data)
@@ -262,10 +283,10 @@ def dictfetchone(cursor):
     return dict(zip(columns, row))
 
 def get_polygons_in_state(statepolygonid):
-    query = 'SELECT COUNT(*) as numAHJs,' +\
-            'SUM(BuildingCode!="") as numBuildingCodes,' +\
-            'SUM(ElectricCode!="") as numElectricCodes,' +\
-            'SUM(FireCode!="") as numFireCodes,' +\
+    query = 'SELECT COUNT(*) as numAHJs,' + \
+            'SUM(BuildingCode!="") as numBuildingCodes,' + \
+            'SUM(ElectricCode!="") as numElectricCodes,' + \
+            'SUM(FireCode!="") as numFireCodes,' + \
             'SUM(ResidentialCode!="") as numResidentialCodes,' + \
             'SUM(WindCode!="") as numWindCodes' + \
             ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
