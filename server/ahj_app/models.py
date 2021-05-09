@@ -270,6 +270,8 @@ class AHJDocumentSubmissionMethodUse(models.Model):
         db_table = 'AHJDocumentSubmissionMethodUse'
         unique_together = (('AHJPK', 'DocumentSubmissionMethodID'),)
 
+    SERIALIZER_EXCLUDED_FIELDS = ['UseID']
+
     def get_value(self):
         return self.DocumentSubmissionMethodID.Value
 
@@ -287,6 +289,8 @@ class AHJPermitIssueMethodUse(models.Model):
         managed = True
         db_table = 'AHJPermitIssueMethodUse'
         unique_together = (('AHJPK', 'PermitIssueMethodID'),)
+
+    SERIALIZER_EXCLUDED_FIELDS = ['UseID']
 
     def get_value(self):
         return self.PermitIssueMethodID.Value
