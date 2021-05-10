@@ -175,6 +175,9 @@ class AHJContactRepresentative(models.Model):
     ContactID = models.ForeignKey('Contact', models.DO_NOTHING, db_column='ContactID')
     ContactStatus = models.BooleanField(db_column='ContactStatus', null=True)
 
+    def get_relation_status_field(self):
+        return 'ContactStatus'
+
     class Meta:
         managed = True
         db_table = 'AHJContactRepresentative'
@@ -226,6 +229,9 @@ class AHJInspectionContact(models.Model):
     ContactID = models.ForeignKey('Contact', models.DO_NOTHING, db_column='ContactID')
     ContactStatus = models.BooleanField(db_column='ContactStatus', null=True)
 
+    def get_relation_status_field(self):
+        return 'ContactStatus'
+
     class Meta:
         managed = True
         db_table = 'AHJInspectionContact'
@@ -259,7 +265,6 @@ class FeeStructure(models.Model):
             return self
         else:
             raise ValueError('\'FeeStructure\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
-
 
     def get_relation_status_field(self):
         return 'FeeStructureStatus'
@@ -378,6 +383,9 @@ class AHJDocumentSubmissionMethodUse(models.Model):
     def get_value(self):
         return self.DocumentSubmissionMethodID.Value
 
+    def get_relation_status_field(self):
+        return 'MethodStatus'
+
 class PermitIssueMethod(models.Model):
     PermitIssueMethodID = models.AutoField(db_column='PermitIssueMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', choices=PERMIT_ISSUE_METHOD_CHOICES, unique=True, max_length=11)
@@ -421,6 +429,9 @@ class AHJPermitIssueMethodUse(models.Model):
 
     def get_value(self):
         return self.PermitIssueMethodID.Value
+
+    def get_relation_status_field(self):
+        return 'MethodStatus'
 
 class Polygon(models.Model):
     PolygonID = models.AutoField(db_column='PolygonID', primary_key=True)
