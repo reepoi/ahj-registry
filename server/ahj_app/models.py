@@ -40,44 +40,44 @@ class AHJ(models.Model):
 
 
     def get_contacts(self):
-        return [contact.ContactID for contact in AHJContactRepresentative.objects.filter(AHJPK=self.AHJPK) if contact.ContactStatus == 1]
+        return [contact.ContactID for contact in AHJContactRepresentative.objects.filter(AHJPK=self.AHJPK) if contact.ContactStatus is True]
 
     def get_unconfirmed(self):
-        return [contact.ContactID for contact in AHJContactRepresentative.objects.filter(AHJPK=self.AHJPK) if contact.ContactStatus == 0]
+        return [contact.ContactID for contact in AHJContactRepresentative.objects.filter(AHJPK=self.AHJPK) if contact.ContactStatus is None]
 
     def get_comments(self):
         return [comment for comment in Comment.objects.filter(AHJPK=self.AHJPK).order_by('-Date')]
 
     def get_inspections(self):
-        return [ins for ins in AHJInspection.objects.filter(AHJPK=self.AHJPK) if ins.InspectionStatus == 1]
+        return [ins for ins in AHJInspection.objects.filter(AHJPK=self.AHJPK) if ins.InspectionStatus is True]
 
     def get_unconfirmed_inspections(self):
-        return [ins for ins in AHJInspection.objects.filter(AHJPK=self.AHJPK) if ins.InspectionStatus == 0]
+        return [ins for ins in AHJInspection.objects.filter(AHJPK=self.AHJPK) if ins.InspectionStatus is None]
 
 
     def get_document_submission_methods(self):
-        return [dsm for dsm in AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK) if dsm.MethodStatus == 1]
+        return [dsm for dsm in AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK) if dsm.MethodStatus is True]
 
     def get_uncon_dsm(self):
-        return [dsm for dsm in AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK) if dsm.MethodStatus == 0]
+        return [dsm for dsm in AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK) if dsm.MethodStatus is None]
 
     def get_permit_submission_methods(self):
-        return [pim for pim in AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK) if pim.MethodStatus == 1]
+        return [pim for pim in AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK) if pim.MethodStatus is True]
 
     def get_uncon_pim(self):
-        return [pim for pim in AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK) if pim.MethodStatus == 0]
+        return [pim for pim in AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK) if pim.MethodStatus is None]
 
     def get_err(self):
-        return[err for err in EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK) if err.EngineeringReviewRequirementStatus == 1]
+        return[err for err in EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK) if err.EngineeringReviewRequirementStatus is True]
 
     def get_uncon_err(self):
-        return[err for err in EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK) if err.EngineeringReviewRequirementStatus == 0]
+        return[err for err in EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK) if err.EngineeringReviewRequirementStatus is None]
 
     def get_fee_structures(self):
-        return [fs for fs in FeeStructure.objects.filter(AHJPK=self.AHJPK) if fs.FeeStructureStatus == 1]
+        return [fs for fs in FeeStructure.objects.filter(AHJPK=self.AHJPK) if fs.FeeStructureStatus is True]
 
     def get_uncon_fs(self):
-        return [fs for fs in FeeStructure.objects.filter(AHJPK=self.AHJPK) if fs.FeeStructureStatus == 0]
+        return [fs for fs in FeeStructure.objects.filter(AHJPK=self.AHJPK) if fs.FeeStructureStatus is None]
 
     SERIALIZER_EXCLUDED_FIELDS = ['Polygon', 'AHJPK', 'Comments', 'UnconfirmedContacts', 'UnconfirmedEngineeringReviewRequirements', 'UnconfirmedDocumentSubmissionMethods', 'UnconfirmedPermitIssueMethods', 'UnconfirmedInspections', 'UnconfirmedFeeStructures']
 
@@ -139,11 +139,44 @@ class Contact(models.Model):
 
     SERIALIZER_EXCLUDED_FIELDS = ['ContactID']
 
+    def create_relation_to(self, to):
+        status_fields = {
+            'ContactID': self,
+            'ContactStatus': None
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJContactRepresentative.objects.create(**status_fields)
+        elif to.__class__.__name__ == 'AHJInspection':
+            status_fields['InspectionID'] = to
+            return AHJInspectionContact.objects.create(**status_fields)
+        else:
+            raise ValueError('\'Contact\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        status_fields = {
+            'ContactID': self,
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJContactRepresentative.objects.get(**status_fields)
+        elif to.__class__.__name__ == 'AHJInspection':
+            status_fields['InspectionID'] = to
+            return AHJInspectionContact.objects.get(**status_fields)
+        else:
+            raise ValueError('\'Contact\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'ContactStatus'
+
 class AHJContactRepresentative(models.Model):
     RepresentativeID = models.AutoField(db_column='RepresentativeID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     ContactID = models.ForeignKey('Contact', models.DO_NOTHING, db_column='ContactID')
-    ContactStatus = models.IntegerField(db_column='ContactStatus')
+    ContactStatus = models.BooleanField(db_column='ContactStatus', null=True)
+
+    def get_relation_status_field(self):
+        return 'ContactStatus'
 
     class Meta:
         managed = True
@@ -159,13 +192,29 @@ class AHJInspection(models.Model):
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     FileFolderURL = models.CharField(db_column='FileFolderURL', max_length=255, blank=True)
     TechnicianRequired = models.BooleanField(db_column='TechnicianRequired', null=True)
-    InspectionStatus = models.IntegerField(db_column='InspectionStatus')
+    InspectionStatus = models.BooleanField(db_column='InspectionStatus', null=True)
 
     def get_contacts(self):
         return [contact.ContactID for contact in AHJInspectionContact.objects.filter(InspectionID=self.InspectionID) if contact.ContactStatus == 1]
     
     def get_uncon_con(self):
         return [contact.ContactID for contact in AHJInspectionContact.objects.filter(InspectionID=self.InspectionID) if contact.ContactStatus == 0]
+
+    def create_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            self.InspectionStatus = None
+            return self
+        else:
+            raise ValueError('\'AHJInspection\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            return self
+        else:
+            raise ValueError('\'AHJInspection\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'InspectionStatus'
 
     class Meta:
         managed = True
@@ -178,7 +227,10 @@ class AHJInspectionContact(models.Model):
     RepresentativeID = models.AutoField(db_column='RepresentativeID', primary_key=True)
     InspectionID = models.ForeignKey('AHJInspection', models.DO_NOTHING, db_column='InspectionID')
     ContactID = models.ForeignKey('Contact', models.DO_NOTHING, db_column='ContactID')
-    ContactStatus = models.IntegerField(db_column='ContactStatus')
+    ContactStatus = models.BooleanField(db_column='ContactStatus', null=True)
+
+    def get_relation_status_field(self):
+        return 'ContactStatus'
 
     class Meta:
         managed = True
@@ -192,7 +244,7 @@ class FeeStructure(models.Model):
     FeeStructureName = models.CharField(db_column='FeeStructureName', unique=True, max_length=255)
     FeeStructureType = models.CharField(db_column='FeeStructureType', choices=FEE_STRUCTURE_TYPE_CHOICES, max_length=10)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
-    FeeStructureStatus = models.IntegerField(db_column='FeeStructureStatus')
+    FeeStructureStatus = models.BooleanField(db_column='FeeStructureStatus', null=True)
 
     class Meta:
         managed = True
@@ -201,11 +253,27 @@ class FeeStructure(models.Model):
 
     SERIALIZER_EXCLUDED_FIELDS = ['FeeStructurePK', 'FeeStructureStatus']
 
+    def create_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            self.FeeStructureStatus = None
+            return self
+        else:
+            raise ValueError('\'FeeStructure\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            return self
+        else:
+            raise ValueError('\'FeeStructure\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'FeeStructureStatus'
+
 class Edit(models.Model):
     EditID = models.AutoField(db_column='EditID', primary_key=True)
     ChangedBy = models.ForeignKey('User', models.DO_NOTHING, db_column='ChangedBy', related_name='related_primary_edit')
     ApprovedBy = models.ForeignKey('User', models.DO_NOTHING, db_column='ApprovedBy', null=True, related_name='related_secondary_edit')
-    AHJPK = models.IntegerField(db_column='AHJPK')  # Field name made lowercase.
+    AHJPK = models.ForeignKey('AHJ', models.DO_NOTHING, db_column='AHJPK', null=True)
     InspectionID = models.ForeignKey('AHJInspection', models.DO_NOTHING, db_column='InspectionID', null=True)
     SourceTable = models.CharField(db_column='SourceTable', max_length=255)
     SourceColumn = models.CharField(db_column='SourceColumn', max_length=255)
@@ -213,8 +281,8 @@ class Edit(models.Model):
     # status is P = pending, R = rejected, A = approved
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1, default='P')
     Comments = models.CharField(db_column='Comments', max_length=255, blank=True)
-    OldValue = models.CharField(db_column='OldValue', max_length=255, blank=True)
-    NewValue = models.CharField(db_column='NewValue', max_length=255, blank=True)
+    OldValue = models.CharField(db_column='OldValue', max_length=255, blank=True, null=True)
+    NewValue = models.CharField(db_column='NewValue', max_length=255, blank=True, null=True)
     DateRequested = models.DateField(db_column='DateRequested')
     DateEffective = models.DateField(db_column='DateEffective', blank=True, null=True)
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1)
@@ -247,7 +315,7 @@ class EngineeringReviewRequirement(models.Model):
     RequirementLevel = models.CharField(db_column='RequirementLevel', choices=REQUIREMENT_LEVEL_CHOICES, max_length=21)
     RequirementNotes = models.CharField(db_column='RequirementNotes', max_length=255, blank=True)
     StampType = models.CharField(db_column='StampType', choices=STAMP_TYPE_CHOICES, max_length=7)
-    EngineeringReviewRequirementStatus = models.IntegerField(db_column='EngineeringReviewRequirementStatus')
+    EngineeringReviewRequirementStatus = models.BooleanField(db_column='EngineeringReviewRequirementStatus', null=True)
 
     class Meta:
         managed = True
@@ -255,15 +323,55 @@ class EngineeringReviewRequirement(models.Model):
 
     SERIALIZER_EXCLUDED_FIELDS = ['EngineeringReviewRequirementID', 'EngineeringReviewRequirementStatus']
 
+    def create_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            self.EngineeringReviewRequirementStatus = None
+            return self
+        else:
+            raise ValueError('\'EngineeringReviewRequirement\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            return self
+        else:
+            raise ValueError('\'EngineeringReviewRequirement\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'EngineeringReviewRequirementStatus'
+
 class DocumentSubmissionMethod(models.Model):
     DocumentSubmissionMethodID = models.AutoField(db_column='DocumentSubmissionMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', choices=DOCUMENT_SUBMISSION_METHOD_CHOICES, unique=True, max_length=11)
+
+    def create_relation_to(self, to):
+        status_fields = {
+            'DocumentSubmissionMethodID': self,
+            'MethodStatus': None
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJDocumentSubmissionMethodUse.objects.create(**status_fields)
+        else:
+            raise ValueError('\'DocumentSubmissionMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        status_fields = {
+            'DocumentSubmissionMethodID': self,
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJDocumentSubmissionMethodUse.objects.get(**status_fields)
+        else:
+            raise ValueError('\'DocumentSubmissionMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'MethodStatus'
 
 class AHJDocumentSubmissionMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     DocumentSubmissionMethodID = models.ForeignKey('DocumentSubmissionMethod', models.DO_NOTHING, db_column='DocumentSubmissionMethodID')
-    MethodStatus = models.IntegerField(db_column='MethodStatus')
+    MethodStatus = models.BooleanField(db_column='MethodStatus', null=True)
 
     class Meta:
         managed = True
@@ -275,15 +383,42 @@ class AHJDocumentSubmissionMethodUse(models.Model):
     def get_value(self):
         return self.DocumentSubmissionMethodID.Value
 
+    def get_relation_status_field(self):
+        return 'MethodStatus'
+
 class PermitIssueMethod(models.Model):
     PermitIssueMethodID = models.AutoField(db_column='PermitIssueMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', choices=PERMIT_ISSUE_METHOD_CHOICES, unique=True, max_length=11)
+
+    def create_relation_to(self, to):
+        status_fields = {
+            'PermitIssueMethodID': self,
+            'MethodStatus': None
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJPermitIssueMethodUse.objects.create(**status_fields)
+        else:
+            raise ValueError('\'PermitIssueMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        status_fields = {
+            'PermitIssueMethodID': self,
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJPermitIssueMethodUse.objects.get(**status_fields)
+        else:
+            raise ValueError('\'PermitIssueMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'MethodStatus'
 
 class AHJPermitIssueMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     PermitIssueMethodID = models.ForeignKey('PermitIssueMethod', models.DO_NOTHING, db_column='PermitIssueMethodID')
-    MethodStatus = models.IntegerField(db_column='MethodStatus')
+    MethodStatus = models.BooleanField(db_column='MethodStatus', null=True)
 
     class Meta:
         managed = True
@@ -294,6 +429,9 @@ class AHJPermitIssueMethodUse(models.Model):
 
     def get_value(self):
         return self.PermitIssueMethodID.Value
+
+    def get_relation_status_field(self):
+        return 'MethodStatus'
 
 class Polygon(models.Model):
     PolygonID = models.AutoField(db_column='PolygonID', primary_key=True)
@@ -424,7 +562,7 @@ class AHJUserMaintains(models.Model):
     MaintainerID = models.AutoField(db_column='MaintainerID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     UserID = models.ForeignKey(User, models.DO_NOTHING, db_column='UserID')
-    MaintainerStatus = models.IntegerField(db_column='MaintainerStatus')
+    MaintainerStatus = models.BooleanField(db_column='MaintainerStatus')
 
     class Meta:
         managed = True
