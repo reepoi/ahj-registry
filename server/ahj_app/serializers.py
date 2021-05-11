@@ -35,11 +35,28 @@ class OrangeButtonSerializer(serializers.Field):
         ob_obj['Value'] = value
         return ob_obj
 
+class EnumModelSerializer(serializers.Serializer):
+    ID = serializers.IntegerField(source='pk')
+    Value = serializers.CharField()
+
+    def get_attribute(self, instance):
+        attribute = super().get_attribute(instance)
+        if attribute is None:
+            return {'Value': ''}
+        else:
+            return attribute
+
+    def to_representation(self, err):
+        if self.context.get('is_public_view', False):
+            if 'ID' in self.fields:
+                self.fields.pop('ID')
+        return super().to_representation(err)
+
 class FeeStructureSerializer(serializers.Serializer):
     FeeStructurePK = OrangeButtonSerializer()
     FeeStructureID = OrangeButtonSerializer()
     FeeStructureName = OrangeButtonSerializer()
-    FeeStructureType = OrangeButtonSerializer()
+    FeeStructureType = EnumModelSerializer()
     Description = OrangeButtonSerializer()
     FeeStructureStatus = OrangeButtonSerializer()
 
@@ -57,8 +74,8 @@ class LocationSerializer(serializers.Serializer):
     Latitude = OrangeButtonSerializer()
     Longitude = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    LocationDeterminationMethod = OrangeButtonSerializer()
-    LocationType = OrangeButtonSerializer()
+    LocationDeterminationMethod = EnumModelSerializer()
+    LocationType = EnumModelSerializer()
 
     def to_representation(self, location):
         if self.context.get('is_public_view', False):
@@ -78,7 +95,7 @@ class AddressSerializer(serializers.Serializer):
     StateProvince = OrangeButtonSerializer()
     ZipPostalCode = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    AddressType = OrangeButtonSerializer()
+    AddressType = EnumModelSerializer()
     Location = LocationSerializer(source='LocationID')
 
     def to_representation(self, address):
@@ -96,13 +113,13 @@ class ContactSerializer(serializers.Serializer):
     HomePhone = OrangeButtonSerializer()
     MobilePhone = OrangeButtonSerializer()
     WorkPhone = OrangeButtonSerializer()
-    ContactType = OrangeButtonSerializer()
+    ContactType = EnumModelSerializer()
     ContactTimezone = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
     Email = OrangeButtonSerializer()
     Title = OrangeButtonSerializer()
     URL = OrangeButtonSerializer()
-    PreferredContactMethod = OrangeButtonSerializer()
+    PreferredContactMethod = EnumModelSerializer()
     Address = AddressSerializer(source='AddressID')
 
     def to_representation(self, contact):
@@ -170,7 +187,7 @@ class PermitIssueMethodUseSerializer(serializers.Serializer):
 
 class AHJInspectionSerializer(serializers.Serializer):
     InspectionID = OrangeButtonSerializer()
-    InspectionType = OrangeButtonSerializer()
+    InspectionType = EnumModelSerializer()
     AHJInspectionName = OrangeButtonSerializer()
     AHJInspectionNotes = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
@@ -190,10 +207,10 @@ class AHJInspectionSerializer(serializers.Serializer):
 class EngineeringReviewRequirementSerializer(serializers.Serializer):
     EngineeringReviewRequirementID = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    EngineeringReviewType = OrangeButtonSerializer()
-    RequirementLevel = OrangeButtonSerializer()
+    EngineeringReviewType = EnumModelSerializer()
+    RequirementLevel = EnumModelSerializer()
     RequirementNotes = OrangeButtonSerializer()
-    StampType = OrangeButtonSerializer()
+    StampType = EnumModelSerializer()
     EngineeringReviewRequirementStatus = OrangeButtonSerializer()
 
     def to_representation(self, err):
@@ -207,7 +224,7 @@ class AHJSerializer(serializers.Serializer):
     AHJPK = OrangeButtonSerializer()
     AHJID = OrangeButtonSerializer()
     AHJCode = OrangeButtonSerializer()
-    AHJLevelCode = OrangeButtonSerializer()
+    AHJLevelCode = EnumModelSerializer()
     AHJName = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
     DocumentSubmissionMethodNotes = OrangeButtonSerializer()
@@ -215,15 +232,15 @@ class AHJSerializer(serializers.Serializer):
     EstimatedTurnaroundDays = OrangeButtonSerializer()
     FileFolderURL = OrangeButtonSerializer()
     URL = OrangeButtonSerializer()
-    BuildingCode = OrangeButtonSerializer()
+    BuildingCode = EnumModelSerializer()
     BuildingCodeNotes = OrangeButtonSerializer()
-    ElectricCode = OrangeButtonSerializer()
+    ElectricCode = EnumModelSerializer()
     ElectricCodeNotes = OrangeButtonSerializer()
-    FireCode = OrangeButtonSerializer()
+    FireCode = EnumModelSerializer()
     FireCodeNotes = OrangeButtonSerializer()
-    ResidentialCode = OrangeButtonSerializer()
+    ResidentialCode = EnumModelSerializer()
     ResidentialCodeNotes = OrangeButtonSerializer()
-    WindCode = OrangeButtonSerializer()
+    WindCode = EnumModelSerializer()
     WindCodeNotes = OrangeButtonSerializer()
     Address = AddressSerializer(source='AddressID')
     Contacts = ContactSerializer(source='get_contacts', many=True)

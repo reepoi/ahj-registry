@@ -1,7 +1,11 @@
 import csv
 import os
+from functools import lru_cache
+
+from django.apps import apps
 from django.contrib.gis.utils import LayerMapping
 from .models import *
+from .models_field_enums import *
 
 BASE_DIR_SHP = os.path.expanduser('~/Downloads/2020CensusShapefiles/')
 
@@ -177,6 +181,39 @@ def translate_countysubdivisions():
         i += 1
 
 
+ENUM_FIELDS = (
+    'BuildingCode',
+    'ElectricCode',
+    'FireCode',
+    'ResidentialCode',
+    'WindCode',
+    'AHJLevelCode',
+    'DocumentSubmissionMethod',
+    'PermitIssueMethod',
+    'AddressType',
+    'LocationDeterminationMethod',
+    'LocationType',
+    'ContactType',
+    'PreferredContactMethod',
+    'EngineeringReviewType',
+    'RequirementLevel',
+    'StampType',
+    'FeeStructureType',
+    'InspectionType'
+)
+
+
+def add_enum_values():
+    """
+    Adds all enum values to their enum tables.
+    """
+    for field in ENUM_FIELDS:
+        model = apps.get_model('ahj_app', field)
+        model.objects.all().delete()
+        model.objects.bulk_create(list(map(lambda choice: model(Value=choice[0]),
+                                           model._meta.get_field('Value').choices)))
+
+
 def is_zero_depth_field(name):
     if name.find('.') != -1 and name.find('.') == name.rfind('.'):
         return True
@@ -231,12 +268,38 @@ def create_contact(contact_dict):
     return Contact.objects.create(**contact_dict)
 
 
+@lru_cache(maxsize=None)
+def get_enum_value_row(enum_field, enum_value):
+    """
+    Finds the row of the enum table given the field name and its enum value.
+    """
+    return apps.get_model('ahj_app', enum_field).objects.get(Value=enum_value)
+
+
+def enum_values_to_primary_key(ahj_dict):
+    """
+    Replace enum values in a dict with the row of the value in its enum model.
+    For example, '2021IBC' => BuildingCode.objects.get(Value='2021IBC')
+    """
+    for field in ahj_dict:
+        if type(ahj_dict[field]) is dict:
+            ahj_dict[field] = enum_values_to_primary_key(ahj_dict[field])
+        elif type(ahj_dict[field]) is list:
+            for i in range(len(ahj_dict[field])):
+                ahj_dict[field][i] = enum_values_to_primary_key(ahj_dict[field][i])
+        else:
+            if field in ENUM_FIELDS:
+                ahj_dict[field] = get_enum_value_row(field, ahj_dict[field])
+    return ahj_dict
+
+
 def load_ahj_data_csv():
     with open(BASE_DIR_SHP + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         i = 1
         for row in reader:
             ahj_dict = build_field_val_dict(row)
+            enum_values_to_primary_key(ahj_dict)
             contacts_dict = ahj_dict.pop('Contacts', [])
             contacts = []
             for contact_dict in contacts_dict:
