@@ -265,6 +265,7 @@ class EditSerializer(serializers.Serializer):
     NewValue = serializers.CharField()
     DateRequested = serializers.DateField(read_only=True)
     DateEffective = serializers.DateField(read_only=True)
+    EditType = serializers.CharField()
     Inspection = AHJInspectionSerializer(source='InspectionID')  # TODO: should be int?
 
     def create(self):

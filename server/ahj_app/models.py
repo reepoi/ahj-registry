@@ -286,6 +286,8 @@ class Edit(models.Model):
     DateRequested = models.DateField(db_column='DateRequested')
     DateEffective = models.DateField(db_column='DateEffective', blank=True, null=True)
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1)
+    #Edit type: A = addition, D = deletion, U = update
+    EditType = models.CharField(db_column='EditType',max_length=1,default='U')
 
     class Meta:
         managed = True

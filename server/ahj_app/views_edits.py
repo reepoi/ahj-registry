@@ -26,6 +26,7 @@ def add_edit(edit_dict : dict):
     edit.OldValue = edit_dict.get('OldValue')
     edit.NewValue = edit_dict.get('NewValue')
     edit.ReviewStatus = 'P'
+    edit.EditType = edit_dict.get('EditType')
     edit.save()
     return edit
 
@@ -146,7 +147,8 @@ def edit_addition(request):  # TODO: prevent adding Address/Location directly? I
                           'SourceColumn' : row.get_relation_status_field(),
                           'SourceRow'    : edit_info_row.pk,
                           'OldValue'     : False,
-                          'NewValue'     : None }
+                          'NewValue'     : None,
+                          'EditType'     : 'A' }
                     edit = add_edit(e)
 
                     # For Contact, Contact should be returned, not its many-to-many relation table row
@@ -184,7 +186,8 @@ def edit_deletion(request):  # TODO: Make this called for rejecting additions to
                           'SourceColumn' : row.get_relation_status_field(),
                           'SourceRow'    : edit_info_row.pk,
                           'OldValue'     : getattr(edit_info_row, row.get_relation_status_field()),  # None or True
-                          'NewValue'     : False }
+                          'NewValue'     : False,
+                          'EditType'     : 'D' }
                     edit = add_edit(e)
 
                     if source_table == 'Contact':
@@ -212,6 +215,7 @@ def edit_update(request):
                 e['OldValue'] = getattr(row, e['SourceColumn'])
                 e['User'] = request.user
                 e['InspectionID'] = None if e['InspectionID'] is None else AHJInspection.objects.get(InspectionID=e['InspectionID'])
+                e['EditType'] = 'U'
                 edit = add_edit(e)
                 response_data.append(EditSerializer(edit).data)
         return Response(response_data, status=response_status)
