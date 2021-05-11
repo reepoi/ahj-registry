@@ -288,6 +288,7 @@ class Edit(models.Model):
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1)
     #Edit type: A = addition, D = deletion, U = update
     EditType = models.CharField(db_column='EditType',max_length=1,default='U')
+    DataSourceComment = models.CharField(db_column='DataSourceComment',max_length=255)
 
     class Meta:
         managed = True
