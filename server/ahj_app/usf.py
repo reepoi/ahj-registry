@@ -1,7 +1,7 @@
 import csv
 import os
 from functools import lru_cache
-
+import datetime
 from django.apps import apps
 from django.contrib.gis.utils import LayerMapping
 from .models import *
@@ -58,7 +58,6 @@ city_mapping = {
     'INTPTLON': 'INTPTLON',
     'mpoly': 'MULTIPOLYGON'
 }
-
 
 def upload_all_shapefile_types():
     upload_state_shapefiles()
@@ -292,8 +291,43 @@ def enum_values_to_primary_key(ahj_dict):
                 ahj_dict[field] = get_enum_value_row(field, ahj_dict[field])
     return ahj_dict
 
+def create_admin_user():
+    user = {}
+    user['Username'] = 'admin'
+    user['password'] = 'zyuNcylzH3Z3uPJGh4ei'
+    user['Email'] = ''
+    user['IsStaff'] = 0
+    user['IsActive'] = 0
+    user['SignUpDate'] = datetime.date.today()
+    user['PersonalBio'] = ''
+    user['CompanyAffiliation'] = 'sunspec'
+    user['NumReviewsDone'] = 0
+    user['NumAcceptedEdits'] = 0
+    user['CommunityScore'] = 0
+    user['SecurityLevel'] = 0
+    return User.objects.create(**user)
+
+def create_edit_objects(ahj_obj,field_string,userID,DSC,newVal):
+    if not ahj_obj[field_string] is None:
+        edit_dict = {}
+        edit_dict['AHJPK'] = ahj_obj.AHJPK
+        edit_dict['SourceTable'] = 'AHJ'
+        edit_dict['SourceColumn'] = field_string
+        edit_dict['SourceRow'] = ahj_obj.AHJPK
+        edit_dict['Comments'] = ''
+        edit_dict['OldValue'] = ''
+        edit_dict['NewValue'] = newVal
+        edit_dict['DateRequested'] = datetime.date.today()
+        edit_dict['DateEffective'] = datetime.date.today()
+        edit_dict['ReviewStatus'] = 'A'
+        edit_dict['ChangedBy'] = userID
+        edit_dict['DataSourceComment'] = DSC
+        edit_dict['EditType'] = 'U'
+        return Edit.objects.create(**edit_dict)
+
 
 def load_ahj_data_csv():
+    user = create_admin_user()
     with open(BASE_DIR_SHP + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         i = 1
@@ -309,11 +343,27 @@ def load_ahj_data_csv():
                 ahj_dict['AddressID'] = create_address(address_dict)
             else:
                 ahj_dict['AddressID'] = Address.objects.create()
+            dsc = ahj_dict.pop('DataSourceComment')
             ahj = AHJ.objects.create(**ahj_dict)
             for contact in contacts:
                 AHJContactRepresentative.objects.create(AHJPK=ahj, ContactID=contact, ContactStatus=1)
             print('AHJ {0}: {1}'.format(ahj.AHJID, i))
             i += 1
+            if not ahj.BuildingCodeID is None:
+                bcVal = ahj_app_buildingcode.objects.get(BuildingCodeID=ahj.BuildingCodeID).Value
+                create_edit_objects(ahj,'BuildingCodeID',user.UserID,dsc,bcVal)
+            if not ahj.FireCodeID is None:
+                fcVal = ahj_app_firecode.objects.get(FireCodeID=ahj.FireCodeID).Value
+                create_edit_objects(ahj,'FireCodeID',user.UserID,dsc,fcVal)
+            if not ahj.ResidentialCodeID is None:
+                rcVal = ahj_app_residentialcode.objects.get(ResidentialCodeID=ahj.ResidentialCodeID).Value
+                create_edit_objects(ahj,'ResidentialCodeID',user.UserID,dsc,rcVal)
+            if not ahj.ElectricCodeID is None:
+                ecVal = ahj_app_electriccode.objects.get(ElectricCodeID=ahj.ElectricCodeID).Value
+                create_edit_objects(ahj,'ElectricCodeID',user.UserID,dsc,ecVal)
+            if not ahj.WindCodeID is None:
+                wcVal = ahj_app_windcode.objects.get(WindCodeID=ahj.WindCodeID).Value
+                create_edit_objects(ahj,'WindCodeID',user.UserID,dsc,wcVal)
 
 
 state_fips_to_abbr = {
