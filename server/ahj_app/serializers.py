@@ -29,7 +29,7 @@ class OrangeButtonSerializer(serializers.Field):
             return attribute
 
     def to_representation(self, value):
-        if type(value) is dict and 'Value' in value:
+        if type(value) is dict and 'Value' in value and value['Value'] is None:
             return value
         ob_obj = {}
         ob_obj['Value'] = value
@@ -46,11 +46,13 @@ class EnumModelSerializer(serializers.Serializer):
         else:
             return attribute
 
-    def to_representation(self, err):
+    def to_representation(self, value):
+        if type(value) is dict and 'Value' in value and value['Value'] == '':
+            return value
         if self.context.get('is_public_view', False):
             if 'ID' in self.fields:
                 self.fields.pop('ID')
-        return super().to_representation(err)
+        return super().to_representation(value)
 
 class FeeStructureSerializer(serializers.Serializer):
     FeeStructurePK = OrangeButtonSerializer()
