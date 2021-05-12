@@ -201,6 +201,11 @@ ENUM_FIELDS = (
     'InspectionType'
 )
 
+ENUM_PLURALS_TRANSLATE = {
+    'DocumentSubmissionMethods': 'DocumentSubmissionMethod',
+    'PermitIssueMethods': 'PermitIssueMethod'
+}
+
 
 def add_enum_values():
     """
@@ -214,36 +219,53 @@ def add_enum_values():
 
 
 def is_zero_depth_field(name):
+    """
+    Checks if a field name has one dot in it.
+    For example, BuildingCode.Value
+    """
     if name.find('.') != -1 and name.find('.') == name.rfind('.'):
         return True
     return False
 
 
+def dict_filter_keys_start_with(start, row):
+    """
+    Given a dict, returns a new dict with key-value pairs
+    where the key of each pair starts with start.
+    """
+    return {k[len(start)+1:]: v for k, v in row.items() if k.startswith(start)}
+
+
 def build_field_val_dict(row):
+    """
+    Builds an Orange Button AuthorityHavingJurisdiction JSON object from a flattened object.
+    """
     result = {}
-    last_sub_obj = ''
-    for i, (k, v) in enumerate(row.items()):
+    done_keys = set()
+    for k, v in row.items():
         field = k[:k.find('.')]
-        if v == '' or last_sub_obj == field:
+        if k == '' or v == '' or field in done_keys:  # no value or already gathered to create a dict
             continue
-        elif is_zero_depth_field(k):
-            result[field] = v
-        elif k != '':
-            subrow = {}
-            for i, (k, v) in enumerate(row.items()):
-                if v == '':
-                    continue
-                if k.startswith(field):
-                    subrow[k[len(field) + 1:]] = v
-            last_sub_obj = field
-            if field.find('[') >= 0:
-                array_field = field[:field.find('[')]
+        elif is_zero_depth_field(k):  # (key, value or array of values) pair
+            square_loc = field.find('[')
+            if square_loc >= 0:
+                array_field = field[:square_loc]
+                if array_field not in result:
+                    result[array_field] = []
+                result[array_field].append(v)
+            else:
+                result[field] = v
+        else:  # (key, object or array of objects) pair
+            subrow = dict_filter_keys_start_with(field, row)
+            done_keys.add(field)
+            square_loc = field.find('[')
+            if square_loc >= 0:
+                array_field = field[:square_loc]
                 if array_field not in result:
                     result[array_field] = []
                 result[array_field].append(build_field_val_dict(subrow))
             else:
                 result[field] = build_field_val_dict(subrow)
-
     return result
 
 
@@ -272,6 +294,8 @@ def get_enum_value_row(enum_field, enum_value):
     """
     Finds the row of the enum table given the field name and its enum value.
     """
+    # Translate plural, if given
+    enum_field = ENUM_PLURALS_TRANSLATE[enum_field] if enum_field in ENUM_PLURALS_TRANSLATE else enum_field
     return apps.get_model('ahj_app', enum_field).objects.get(Value=enum_value)
 
 
@@ -285,11 +309,15 @@ def enum_values_to_primary_key(ahj_dict):
             ahj_dict[field] = enum_values_to_primary_key(ahj_dict[field])
         elif type(ahj_dict[field]) is list:
             for i in range(len(ahj_dict[field])):
-                ahj_dict[field][i] = enum_values_to_primary_key(ahj_dict[field][i])
+                if type(ahj_dict[field][i]) is dict:
+                    ahj_dict[field][i] = enum_values_to_primary_key(ahj_dict[field][i])
+                else:  # Array of enum values
+                    ahj_dict[field][i] = get_enum_value_row(field, ahj_dict[field][i])
         else:
             if field in ENUM_FIELDS:
                 ahj_dict[field] = get_enum_value_row(field, ahj_dict[field])
     return ahj_dict
+
 
 def create_admin_user():
     user = {}
@@ -344,11 +372,20 @@ def load_ahj_data_csv():
             else:
                 ahj_dict['AddressID'] = Address.objects.create()
             dsc = ahj_dict.pop('DataSourceComment')
+            dsms = ahj_dict.pop('DocumentSubmissionMethods', [])
+            pims = ahj_dict.pop('PermitIssueMethods', [])
+            errs = ahj_dict.pop('EngineeringReviewRequirements', [])
             ahj = AHJ.objects.create(**ahj_dict)
             for contact in contacts:
                 AHJContactRepresentative.objects.create(AHJPK=ahj, ContactID=contact, ContactStatus=1)
-            print('AHJ {0}: {1}'.format(ahj.AHJID, i))
-            i += 1
+            for dsm in dsms:
+                AHJDocumentSubmissionMethodUse.objects.create(AHJPK=ahj, DocumentSubmissionMethodID=dsm, MethodStatus=1)
+            for pim in pims:
+                AHJPermitIssueMethodUse.objects.create(AHJPK=ahj, PermitIssueMethodID=pim, MethodStatus=1)
+            for err in errs:
+                err['AHJPK'] = ahj
+                err['EngineeringReviewRequirementStatus'] = 1
+                EngineeringReviewRequirement.objects.create(**err)
             if not ahj.BuildingCodeID is None:
                 bcVal = ahj_app_buildingcode.objects.get(BuildingCodeID=ahj.BuildingCodeID).Value
                 create_edit_objects(ahj,'BuildingCodeID',user.UserID,dsc,bcVal)
@@ -364,6 +401,8 @@ def load_ahj_data_csv():
             if not ahj.WindCodeID is None:
                 wcVal = ahj_app_windcode.objects.get(WindCodeID=ahj.WindCodeID).Value
                 create_edit_objects(ahj,'WindCodeID',user.UserID,dsc,wcVal)
+            print('AHJ {0}: {1}'.format(ahj.AHJID, i))
+            i += 1
 
 
 state_fips_to_abbr = {
@@ -508,3 +547,48 @@ def binary_search(arr, x):
 
             # If we reach here, then the element was not present
     return -1
+
+
+BASE_DIR_USER = os.path.expanduser('~/Downloads/2020CensusShapefiles/UserData')
+def upload_user_data():
+    users = {}
+
+    # Get user information
+    with open(BASE_DIR_USER + 'prod_core_user.csv') as file:
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        i = 1
+        for row in reader:
+            user = {}
+            user['Email'] = row['email_address']
+            user['password'] = row['password']
+            user['Username'] = f'username{i}'
+            user['FirstName'] = row['first_name']
+            user['LastName'] = row['last_name']
+            user['SignUpDate'] = row['date_joined']
+            user['is_active'] = row['is_active']
+
+            users[row['id']] = user
+            i += 1
+
+    with open(BASE_DIR_USER + 'prod_authtoken_token.csv') as file:
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        i = 1
+        for row in reader:
+            users[row['user_id']]['apitoken'] = row['key']
+            print(users[row['user_id']])
+
+    # Create users and api tokens
+    i = 1
+    for user in users.values():
+        apitoken = user.pop('apitoken')
+        firstname = user.pop('FirstName')
+        lastname = user.pop('LastName')
+        user = User.objects.create_user(**user)
+        user.is_active = True
+        user.save()
+        user.ContactID.FirstName = firstname
+        user.ContactID.LastName = lastname
+        user.ContactID.save()
+        APIToken.objects.create(key=apitoken, user=user)
+        print('User {0}: {1}'.format(i, user))
+        i += 1

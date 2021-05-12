@@ -21,6 +21,7 @@ ELECTRIC_CODE_CHOICES = [
     ('2017NEC', '2017 NEC'),
     ('2014NEC', '2014 NEC'),
     ('2011NEC', '2011 NEC'),
+    ('2008NEC', '2008 NEC'),
     ('NoSolarRegulations', 'No Solar Regulations')
 ]
 

@@ -29,7 +29,7 @@ class OrangeButtonSerializer(serializers.Field):
             return attribute
 
     def to_representation(self, value):
-        if type(value) is dict and 'Value' in value:
+        if type(value) is dict and 'Value' in value and value['Value'] is None:
             return value
         ob_obj = {}
         ob_obj['Value'] = value
@@ -46,11 +46,14 @@ class EnumModelSerializer(serializers.Serializer):
         else:
             return attribute
 
-    def to_representation(self, err):
+    def to_representation(self, value):
+        if type(value) is dict and 'Value' in value and value['Value'] == '':
+            return value
         if self.context.get('is_public_view', False):
             if 'ID' in self.fields:
                 self.fields.pop('ID')
-        return super().to_representation(err)
+        return super().to_representation(value)
+
 
 class FeeStructureSerializer(serializers.Serializer):
     FeeStructurePK = OrangeButtonSerializer()
@@ -302,22 +305,24 @@ def dictfetchone(cursor):
     return dict(zip(columns, row))
 
 def get_polygons_in_state(statepolygonid):
-    query = 'SELECT COUNT(*) as numAHJs,' + \
-            'SUM(BuildingCode!="") as numBuildingCodes,' + \
-            'SUM(ElectricCode!="") as numElectricCodes,' + \
-            'SUM(FireCode!="") as numFireCodes,' + \
-            'SUM(ResidentialCode!="") as numResidentialCodes,' + \
-            'SUM(WindCode!="") as numWindCodes' + \
-            ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ' UNION SELECT PolygonID FROM CountySubdivisionPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ') as polygons_of_state ON Polygon.PolygonID=polygons_of_state.PolygonID LEFT JOIN AHJ ON Polygon.PolygonID=AHJ.PolygonID;'
-    cursor = connection.cursor()
-    cursor.execute(query)
-    return dictfetchone(cursor)
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT COUNT(*) as numAHJs,' + \
+                       'SUM(BuildingCode!="") as numBuildingCodes,' + \
+                       'SUM(ElectricCode!="") as numElectricCodes,' + \
+                       'SUM(FireCode!="") as numFireCodes,' + \
+                       'SUM(ResidentialCode!="") as numResidentialCodes,' + \
+                       'SUM(WindCode!="") as numWindCodes' + \
+                       ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ' UNION SELECT PolygonID FROM CountySubdivisionPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ') as polygons_of_state ON Polygon.PolygonID=polygons_of_state.PolygonID LEFT JOIN AHJ ON Polygon.PolygonID=AHJ.PolygonID;', {
+            'statepolygonid': statepolygonid
+        })
+        return dictfetchone(cursor)
+
 
 class DataVisAHJPolygonInfoSerializer(serializers.Serializer):
     PolygonID = serializers.IntegerField()
