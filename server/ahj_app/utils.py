@@ -1,4 +1,7 @@
 import json
+
+from django.apps import apps
+
 from .serializers import *
 import googlemaps
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
@@ -7,14 +10,42 @@ from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_KEY)
 
 
+def get_ob_value_primitive(ob_json, field_name, throw_exception=True, exception_return_value=None):
+    try:
+        if isinstance(ob_json[field_name], list):
+            values = []
+            for o in ob_json[field_name]:
+                values.append(o['Value'])
+            return values
+        return ob_json[field_name]['Value']
+    except (TypeError, KeyError):
+        if throw_exception:
+            raise ValueError(f'Missing \'Value\' key for Orange Button field \'{field_name}\'')
+        return exception_return_value
+
+
 def get_str_location(location):
-    lng, lat = location['Longitude']['Value'], location['Latitude']['Value']
-    if lat is not None and lng is not None:
-        return 'POINT(' + str(lng) + ', ' + str(lat) + ')'
-    return None
+    lng, lat = get_ob_value_primitive(location, 'Longitude'), get_ob_value_primitive(location, 'Latitude')
+    try:
+        if lat is not None and lng is not None:
+            return 'POINT(' + str(float(lng)) + ', ' + str(float(lat)) + ')'
+        return None
+    except ValueError:
+        raise ValueError(f'Invalid Latitude or Longitude, got (Latitude:\'{lat}\', Longitude:\'{lng}\')')
 
 
-def get_location(request):
+def get_str_address(address):
+    return \
+        get_ob_value_primitive(address, 'AddrLine1', throw_exception=False, exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'AddrLine2', throw_exception=False, exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'AddrLine3', throw_exception=False, exception_return_value='') + ', ' + \
+        get_ob_value_primitive(address, 'City', throw_exception=False, exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'County', throw_exception=False, exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'StateProvince', throw_exception=False, exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'ZipPostalCode', throw_exception=False, exception_return_value='')
+
+
+def get_location_gecode_address_str(address):
     """
     Returns the latlng of an address given in the request Address parameter
     The format is an Orange Button Location object: https://obeditor.sunspec.org/#/?views=Location
@@ -27,14 +58,14 @@ def get_location(request):
             'Value': None
         }
     }
-    address = request.data.get('Address', None)
+    geo_res = []
     if address is not None:
         geo_res = gmaps.geocode(address)
-        if len(geo_res) != 0:
-            latitude = geo_res[0]['geometry']['location']['lat']
-            longitude = geo_res[0]['geometry']['location']['lng']
-            location['Latitude']['Value'] = latitude
-            location['Longitude']['Value'] = longitude
+    if len(geo_res) != 0:
+        latitude = geo_res[0]['geometry']['location']['lat']
+        longitude = geo_res[0]['geometry']['location']['lng']
+        location['Latitude']['Value'] = latitude
+        location['Longitude']['Value'] = longitude
     return location
 
 
@@ -140,10 +171,12 @@ def get_multipolygon_wkt(multipolygon):
     return multipolygon.wkt.replace(" ", "", 1)
 
 
-def filter_ahjs(request, location=None, polygon=None):
+def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode=None,
+                BuildingCode=None, ElectricCode=None, FireCode=None, ResidentialCode=None, WindCode=None,
+                StateProvince=None, location=None, polygon=None):
     """
     Main Idea: This functional view uses raw SQL queries to
-    get the information out of the databaes. To make this
+    get the information out of the databases. To make this
     dynamic, we have to check which fields were passed
     in with the request params, and modify the query
     according.
@@ -223,37 +256,25 @@ def filter_ahjs(request, location=None, polygon=None):
     # NOTE: StateProvince is located in the Address table,
     # so the StateProvince query needs to join a table and
     # include a where condition
-    _state = request.data.get('StateProvince', None)
+    _state = StateProvince
     if _state is not None:
         full_query_string += ' JOIN Address ON AHJ.AddressID = Address.AddressID '
         where_clauses += ' Address.StateProvince = \'' + simple_sanitize(_state) + '\' AND '
 
     # Match a partially matching string for name
-    where_clauses += get_name_query_cond('AHJName',
-                                         request.data.get('AHJName', None))
+    where_clauses += get_name_query_cond('AHJName', AHJName)
 
     # Append additional clauses onto condition when NOT NULL, (checked by `basic_query_cond`
-    where_clauses += get_basic_query_cond('AHJPK',
-                                          request.data.get('AHJPK', None))
-    where_clauses += get_basic_query_cond('AHJID',
-                                          request.data.get('AHJID', None))
-    where_clauses += get_basic_query_cond('AHJPK',
-                                          request.data.get('AHJPK', None))
-    where_clauses += get_basic_query_cond('AHJCode',
-                                          request.data.get('AHJCode', None))
-    where_clauses += get_basic_query_cond('AHJLevelCode',
-                                          request.data.get('AHJLevelCode', None))
-
-    where_clauses += get_list_query_cond('BuildingCode',
-                                         request.data.get('BuildingCode', None))
-    where_clauses += get_list_query_cond('ElectricCode',
-                                         request.data.get('ElectricCode', None))
-    where_clauses += get_list_query_cond('FireCode',
-                                         request.data.get('FireCode', None))
-    where_clauses += get_list_query_cond('ResidentialCode',
-                                         request.data.get('ResidentialCode', None))
-    where_clauses += get_list_query_cond('WindCode',
-                                         request.data.get('WindCode', None))
+    where_clauses += get_basic_query_cond('AHJPK', AHJPK)
+    where_clauses += get_basic_query_cond('AHJID', AHJID)
+    where_clauses += get_basic_query_cond('AHJPK', AHJPK)
+    where_clauses += get_basic_query_cond('AHJCode', AHJCode)
+    where_clauses += get_basic_query_cond('AHJLevelCode', AHJLevelCode)
+    where_clauses += get_list_query_cond('BuildingCode', BuildingCode)
+    where_clauses += get_list_query_cond('ElectricCode', ElectricCode)
+    where_clauses += get_list_query_cond('FireCode', FireCode)
+    where_clauses += get_list_query_cond('ResidentialCode', ResidentialCode)
+    where_clauses += get_list_query_cond('WindCode', WindCode)
     # NOTE: we append a 'True' at the end to always make the query valid
     # because the get_x_query_cond appends an `AND` to the condition
     full_query_string += ' WHERE ' + where_clauses + ' True;'
@@ -308,12 +329,6 @@ def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
 def get_public_api_serializer_context():
     context = {'is_public_view': True}
     return context
-
-
-def get_ob_value_primitive(field):
-    if isinstance(field, dict) and 'Value' in field:
-        return field['Value']
-    return ''
 
 
 def dictfetchall(cursor):
