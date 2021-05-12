@@ -29,24 +29,44 @@ class OrangeButtonSerializer(serializers.Field):
             return attribute
 
     def to_representation(self, value):
-        if type(value) is dict and 'Value' in value:
+        if type(value) is dict and 'Value' in value and value['Value'] is None:
             return value
         ob_obj = {}
         ob_obj['Value'] = value
         return ob_obj
 
+class EnumModelSerializer(serializers.Serializer):
+    ID = serializers.IntegerField(source='pk')
+    Value = serializers.CharField()
+
+    def get_attribute(self, instance):
+        attribute = super().get_attribute(instance)
+        if attribute is None:
+            return {'Value': ''}
+        else:
+            return attribute
+
+    def to_representation(self, value):
+        if type(value) is dict and 'Value' in value and value['Value'] == '':
+            return value
+        if self.context.get('is_public_view', False):
+            if 'ID' in self.fields:
+                self.fields.pop('ID')
+        return super().to_representation(value)
+
 class FeeStructureSerializer(serializers.Serializer):
     FeeStructurePK = OrangeButtonSerializer()
     FeeStructureID = OrangeButtonSerializer()
     FeeStructureName = OrangeButtonSerializer()
-    FeeStructureType = OrangeButtonSerializer()
+    FeeStructureType = EnumModelSerializer()
     Description = OrangeButtonSerializer()
     FeeStructureStatus = OrangeButtonSerializer()
 
     def to_representation(self, feestructure):
         if self.context.get('is_public_view', False):
             for field in FeeStructure.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(feestructure)
 
 class LocationSerializer(serializers.Serializer):
@@ -56,13 +76,14 @@ class LocationSerializer(serializers.Serializer):
     Latitude = OrangeButtonSerializer()
     Longitude = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    LocationDeterminationMethod = OrangeButtonSerializer()
-    LocationType = OrangeButtonSerializer()
+    LocationDeterminationMethod = EnumModelSerializer()
+    LocationType = EnumModelSerializer()
 
     def to_representation(self, location):
         if self.context.get('is_public_view', False):
             for field in Location.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(location)
 
 class AddressSerializer(serializers.Serializer):
@@ -76,13 +97,14 @@ class AddressSerializer(serializers.Serializer):
     StateProvince = OrangeButtonSerializer()
     ZipPostalCode = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    AddressType = OrangeButtonSerializer()
+    AddressType = EnumModelSerializer()
     Location = LocationSerializer(source='LocationID')
 
     def to_representation(self, address):
         if self.context.get('is_public_view', False):
             for field in Address.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(address)
 
 class ContactSerializer(serializers.Serializer):
@@ -93,19 +115,20 @@ class ContactSerializer(serializers.Serializer):
     HomePhone = OrangeButtonSerializer()
     MobilePhone = OrangeButtonSerializer()
     WorkPhone = OrangeButtonSerializer()
-    ContactType = OrangeButtonSerializer()
+    ContactType = EnumModelSerializer()
     ContactTimezone = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
     Email = OrangeButtonSerializer()
     Title = OrangeButtonSerializer()
     URL = OrangeButtonSerializer()
-    PreferredContactMethod = OrangeButtonSerializer()
+    PreferredContactMethod = EnumModelSerializer()
     Address = AddressSerializer(source='AddressID')
 
     def to_representation(self, contact):
         if self.context.get('is_public_view', False):
             for field in Contact.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(contact)
 
 class RecursiveField(serializers.Serializer):
@@ -146,13 +169,27 @@ class DocumentSubmissionMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
 
+    def to_representation(self, dsmu):
+        if self.context.get('is_public_view', False):
+            for field in AHJDocumentSubmissionMethodUse.SERIALIZER_EXCLUDED_FIELDS:
+                if field in self.fields:
+                    self.fields.pop(field)
+        return super().to_representation(dsmu)
+
 class PermitIssueMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
 
+    def to_representation(self, pimu):
+        if self.context.get('is_public_view', False):
+            for field in AHJPermitIssueMethodUse.SERIALIZER_EXCLUDED_FIELDS:
+                if field in self.fields:
+                    self.fields.pop(field)
+        return super().to_representation(pimu)
+
 class AHJInspectionSerializer(serializers.Serializer):
     InspectionID = OrangeButtonSerializer()
-    InspectionType = OrangeButtonSerializer()
+    InspectionType = EnumModelSerializer()
     AHJInspectionName = OrangeButtonSerializer()
     AHJInspectionNotes = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
@@ -165,29 +202,31 @@ class AHJInspectionSerializer(serializers.Serializer):
     def to_representation(self, inspection):
         if self.context.get('is_public_view', False):
             for field in AHJInspection.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(inspection)
 
 class EngineeringReviewRequirementSerializer(serializers.Serializer):
     EngineeringReviewRequirementID = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    EngineeringReviewType = OrangeButtonSerializer()
-    RequirementLevel = OrangeButtonSerializer()
+    EngineeringReviewType = EnumModelSerializer()
+    RequirementLevel = EnumModelSerializer()
     RequirementNotes = OrangeButtonSerializer()
-    StampType = OrangeButtonSerializer()
+    StampType = EnumModelSerializer()
     EngineeringReviewRequirementStatus = OrangeButtonSerializer()
 
     def to_representation(self, err):
         if self.context.get('is_public_view', False):
             for field in EngineeringReviewRequirement.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(err)
 
 class AHJSerializer(serializers.Serializer):
     AHJPK = OrangeButtonSerializer()
     AHJID = OrangeButtonSerializer()
     AHJCode = OrangeButtonSerializer()
-    AHJLevelCode = OrangeButtonSerializer()
+    AHJLevelCode = EnumModelSerializer()
     AHJName = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
     DocumentSubmissionMethodNotes = OrangeButtonSerializer()
@@ -195,15 +234,15 @@ class AHJSerializer(serializers.Serializer):
     EstimatedTurnaroundDays = OrangeButtonSerializer()
     FileFolderURL = OrangeButtonSerializer()
     URL = OrangeButtonSerializer()
-    BuildingCode = OrangeButtonSerializer()
+    BuildingCode = EnumModelSerializer()
     BuildingCodeNotes = OrangeButtonSerializer()
-    ElectricCode = OrangeButtonSerializer()
+    ElectricCode = EnumModelSerializer()
     ElectricCodeNotes = OrangeButtonSerializer()
-    FireCode = OrangeButtonSerializer()
+    FireCode = EnumModelSerializer()
     FireCodeNotes = OrangeButtonSerializer()
-    ResidentialCode = OrangeButtonSerializer()
+    ResidentialCode = EnumModelSerializer()
     ResidentialCodeNotes = OrangeButtonSerializer()
-    WindCode = OrangeButtonSerializer()
+    WindCode = EnumModelSerializer()
     WindCodeNotes = OrangeButtonSerializer()
     Address = AddressSerializer(source='AddressID')
     Contacts = ContactSerializer(source='get_contacts', many=True)
@@ -224,7 +263,8 @@ class AHJSerializer(serializers.Serializer):
     def to_representation(self, ahj):
         if self.context.get('is_public_view', False):
             for field in AHJ.SERIALIZER_EXCLUDED_FIELDS:
-                self.fields.pop(field)
+                if field in self.fields:
+                    self.fields.pop(field)
         return super().to_representation(ahj)
 
     def get_Polygon(self, instance):
@@ -279,6 +319,7 @@ def get_polygons_in_state(statepolygonid):
             'statepolygonid': statepolygonid
         })
         return dictfetchone(cursor)
+
 
 class DataVisAHJPolygonInfoSerializer(serializers.Serializer):
     PolygonID = serializers.IntegerField()

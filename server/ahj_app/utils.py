@@ -282,6 +282,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     where_clauses += get_list_query_cond('FireCode', FireCode, query_params)
     where_clauses += get_list_query_cond('ResidentialCode', ResidentialCode, query_params)
     where_clauses += get_list_query_cond('WindCode', WindCode, query_params)
+
     # NOTE: we append a 'True' at the end to always make the query valid
     # because the get_x_query_cond appends an `AND` to the condition
     full_query_string += ' WHERE ' + where_clauses + ' True;'
