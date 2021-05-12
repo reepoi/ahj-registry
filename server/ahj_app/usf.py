@@ -561,7 +561,7 @@ def upload_user_data():
             user['Username'] = f'username{i}'
             user['FirstName'] = row['first_name']
             user['LastName'] = row['last_name']
-            user['SignUpDate'] = row['date_joined']
+            user['SignUpDate'] = row['date_joined'][:10]
             user['is_active'] = row['is_active']
 
             users[row['id']] = user
@@ -580,12 +580,8 @@ def upload_user_data():
         apitoken = user.pop('apitoken')
         firstname = user.pop('FirstName')
         lastname = user.pop('LastName')
-        user = User.objects.create_user(**user)
-        user.is_active = True
-        user.save()
-        user.ContactID.FirstName = firstname
-        user.ContactID.LastName = lastname
-        user.ContactID.save()
+        user['ContactID'] = Contact.objects.create(FirstName=firstname, LastName=lastname)
+        user = User.objects.create(**user)
         APIToken.objects.create(key=apitoken, user=user)
         print('User {0}: {1}'.format(i, user))
         i += 1
