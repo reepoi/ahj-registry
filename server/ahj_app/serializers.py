@@ -36,7 +36,6 @@ class OrangeButtonSerializer(serializers.Field):
         return ob_obj
 
 class EnumModelSerializer(serializers.Serializer):
-    ID = serializers.IntegerField(source='pk')
     Value = serializers.CharField()
 
     def get_attribute(self, instance):
@@ -49,9 +48,6 @@ class EnumModelSerializer(serializers.Serializer):
     def to_representation(self, value):
         if type(value) is dict and 'Value' in value and value['Value'] == '':
             return value
-        if self.context.get('is_public_view', False):
-            if 'ID' in self.fields:
-                self.fields.pop('ID')
         return super().to_representation(value)
 
 
