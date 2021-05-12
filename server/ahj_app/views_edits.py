@@ -1,5 +1,6 @@
 import datetime
 
+from django.apps import apps
 from django.db import transaction, connection
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -8,43 +9,10 @@ from rest_framework.response import Response
 from .models import EngineeringReviewRequirement, AHJPermitIssueMethodUse, \
     AHJDocumentSubmissionMethodUse, FeeStructure, AHJInspection, Contact, AHJContactRepresentative, \
     AHJInspectionContact, AHJ, Edit, DocumentSubmissionMethod, PermitIssueMethod
-from .serializers import EditSerializer, ContactSerializer, \
+from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
     FeeStructureSerializer, AHJInspectionSerializer
 
-
-def add_contact(contact_dict : dict):
-    contact = Contact()
-    contact.ContactID = contact_dict.get('ContactID')
-    contact.AddressID = contact_dict.get('AddressID')
-    contact.FirstName = contact_dict.get('FirstName')
-    contact.MiddleName = contact_dict.get('MiddleName')
-    contact.LastName = contact_dict.get('LastName')
-    contact.HomePhone = contact_dict.get('HomePhone')
-    contact.MobilePhone = contact_dict.get('MobilePhone')
-    contact.WorkPhone = contact_dict.get('WorkPhone')
-    contact.ContactType = contact_dict.get('ContactType', "")
-    contact.ContactTimeZone = contact_dict.get('ContactTimeZone')
-    contact.Description = contact_dict.get('Description')
-    contact.Email = contact_dict.get('Email')
-    contact.Title = contact_dict.get('Title')
-    contact.URL = contact_dict.get('URL')
-    contact.PreferredContactMethod = contact_dict.get('PreferredContactMethod', "")
-    contact.save()
-    return contact
-
-def add_inspection(insp_dict : dict):
-    inspection = AHJInspection()
-    inspection.AHJPK = AHJ.objects.get(AHJPK=int(insp_dict.get('AHJPK')))
-    inspection.InspectionType = insp_dict.get('InspectionType')
-    inspection.AHJInspectionName = insp_dict.get('AHJInspectionName')
-    inspection.AHJInspectionNotes = insp_dict.get('AHJInspectionNotes')
-    inspection.Description = insp_dict.get('Description')
-    inspection.FileFolderUrl = insp_dict.get('FileFolderURL')
-    inspection.TechnicianRequired = insp_dict.get('TechnicianRequired')
-    inspection.InspectionStatus = insp_dict.get('InspectionStatus')
-    inspection.save()
-    return inspection
 
 def add_edit(edit_dict : dict):
     edit = Edit()
@@ -58,31 +26,28 @@ def add_edit(edit_dict : dict):
     edit.OldValue = edit_dict.get('OldValue')
     edit.NewValue = edit_dict.get('NewValue')
     edit.ReviewStatus = 'P'
+    edit.EditType = edit_dict.get('EditType')
     edit.save()
     return edit
 
-def add_feestructure(fs_dict : dict,ahjpk: int):
-    fee_structure = FeeStructure()
-    fee_structure.AHJPK = ahjpk
-    fee_structure.FeeStructureName = fs_dict.get('FeeStructureName')
-    fee_structure.FeeStructureType = fs_dict.get('FeeStructureType')
-    fee_structure.Description = fs_dict.get('Description')
-    fee_structure.FeeStructureStatus = fs_dict.get('FeeStructureStatus')
-    fee_structure.FeeStructureID = fs_dict.get('FeeStructureID')
-    fee_structure.save()
-    return fee_structure
 
-def add_engineeringreviewrequirement(eng_dict : dict, ahjpk: int):
-    eng = EngineeringReviewRequirement()
-    eng.AHJPK = ahjpk
-    eng.Description = eng_dict.get('Description')
-    eng.EngineeringReviewType = eng_dict.get('EngineeringReviewType')
-    eng.RequirementLevel = eng_dict.get('RequirementLevel')
-    eng.RequirementNotes = eng_dict.get('RequirementNotes')
-    eng.StampType = eng_dict.get('StampType')
-    eng.EngineeringReviewRequirementStatus = eng_dict.get('EngineeringReviewRequirementStatus')
-    eng.save()
-    return eng
+def apply_edits():
+    ready_edits = Edit.objects.filter(
+        ReviewStatus='A',
+        DateEffective=datetime.date.today()
+    ).exclude(ApprovedBy=None)
+    for edit in ready_edits:
+        model = apps.get_model('ahj_app', edit.SourceTable)
+        parent_rel = 'AHJPK' if edit.InspectionID is None else 'InspectionID'
+        search_fields = {
+            model._meta.pk.name: edit.SourceRow
+        }
+        if len(model._meta.unique_together) > 0:
+            search_fields[parent_rel] = getattr(edit, parent_rel)
+        row = model.objects.filter(**search_fields)
+        row.update(**{
+            edit.SourceColumn: edit.NewValue
+        })
 
 ####################
 
@@ -91,8 +56,8 @@ def edit_review(request):
     try:
         eid = request.data['EditID'] # required
         stat = request.data['Status'] # requred
-        if not stat is 'A' and not stat is 'R':
-            raise 'Invalid edit status ' + str(status)
+        if stat != 'A' and stat != 'R':
+            raise ValueError('Invalid edit status ' + str(status))
         with transaction.atomic():
             edit = Edit.objects.get(EditID=int(eid))
             edit.ReviewStatus = stat
@@ -106,265 +71,132 @@ def edit_review(request):
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
+
+def create_row(model, obj):  # TODO: Adding DocumentSub/PermitIssue creates a new row
+    field_dict = {}
+    child_rows = []
+    for field, value in obj.items():
+        if type(value) is dict:
+            """
+            NOTE: This assumes the field name matches the name of its model!
+            For example, a 'Contact' has the field 'Address', and Address is a model
+            """
+            child_rows.append(create_row(apps.get_model('ahj_app', field), value))
+        else:
+            field_dict[field] = value
+    model_fields = model._meta.fields
+    for child in child_rows:
+        found_child_relation = False
+        for field in model_fields:
+            if getattr(field, 'remote_field') is not None and field.remote_field.model.__name__ == child.__class__.__name__:
+                found_child_relation = True
+                field_dict[field.name] = child
+        if not found_child_relation:
+            raise ValueError('Model \'{parent_model}\' has no field related to \'{child_model}\''.format(parent_model=model.__name__, child_model=child.__class__.__name__))
+    print(field_dict)
+    # Could possibly generalize this check to being 'is table for enum values'
+    if model.__name__ == 'PermitIssueMethod' or model.__name__ == 'DocumentSubmissionMethod':
+        return model.objects.get(**field_dict)
+    return model.objects.create(**field_dict)
+
+def get_serializer(row):
+    serializers = {
+        'AHJ': AHJSerializer,
+        'AHJInspection': AHJInspectionSerializer,
+        'Contact': ContactSerializer,
+        'DocumentSubmissionMethod': DocumentSubmissionMethodUseSerializer,
+        'EngineeringReviewRequirement': EngineeringReviewRequirementSerializer,
+        'FeeStructure': FeeStructureSerializer,
+        'PermitIssueMethod': PermitIssueMethodUseSerializer
+    }
+    return serializers[row.__class__.__name__]
+
+
 @api_view(['POST'])
-def edit_addition(request):
+def edit_addition(request):  # TODO: prevent adding Address/Location directly? It shouldn't happen
     """
     Private front-end endpoint for passing an edit type=Addition request
     """
     try:
         source_table = request.data.get('SourceTable')
         response_data, response_status = [], status.HTTP_200_OK
-        if source_table == 'Contact' :
-            with connection.cursor() as cursor:
-                with transaction.atomic():
-                    ins_id = request.data.get('InspectionID')
-                    contacts = request.data.get('Value', [])
-                    # First add the contact into the db
-                    for c in contacts:
-                        print(ins_id)
-                        contact = add_contact(c)
-                        cr = None
-                        if ins_id is not None: # add to inspection table
-                            cr = AHJInspectionContact()
-                            cr.InspectionID = AHJInspection.objects.get(InspectionID=ins_id)
-                        else: # add to ahj table
-                            cr = AHJContactRepresentative()
-                            cr.AHJPK = AHJ.objects.get(AHJPK = int(request.data.get('AHJPK')))
-                        cr.ContactID = contact
-                        cr.ContactStatus = False
-                        cr.save()
-                        # Create the dictionary for the edit
-                        e = { 'User'         : request.user,
-                                 'AHJPK'        : request.data.get('AHJPK'),
-                                 'InspectionID' : None if ins_id is None else AHJInspection.objects.get(InspectionID=ins_id),
-                                 'SourceColumn' : 'ContactStatus',
-                                 'SourceRow'    : cr.ContactID.ContactID,
-                                 'OldValue'     : False,
-                                 'NewValue'     : True }
-                        e['SourceTable'] = 'AHJContactRepresentative' \
-                            if ins_id is None else 'AHJInspectionContact'
-                        edit = add_edit(e)
-                        response_data.append(ContactSerializer(contact).data)
-        elif source_table == 'AHJInspection':
-            with connection.cursor() as cursor:
-                with transaction.atomic():
-                    # Add the inspection into the db
-                    inspections = request.data.get('Value', [])
-                    for ins in inspections:
-                        ins['InspectionStatus'] = False
-                        inspection = add_inspection(ins)
-                        for c in ins.get('Contacts', []):
-                            contact = add_contact(c)
-                            cr = AHJInspectionContact()
-                            cr.InspectionID = inspection
-                            cr.ContactID = contact
-                            cr.ContactStatus = False
-                            cr.save()
-                        e = { 'User'         : request.user,
-                                 'AHJPK'        : request.data.get('AHJPK'),
-                                 'InspectionID' : None,
-                                 'SourceTable'  : 'AHJInspection',
-                                 'SourceColumn' : 'InspectionStatus',
-                                 'SourceRow'    : inspection.InspectionID,
-                                 'OldValue'     : False,
-                                 'NewValue'     : True}
-                        edit = add_edit(e)
-                        response_data.append(AHJInspectionSerializer(inspection).data)
-        elif source_table == 'FeeStructure':
-            with connection.cursor() as cursor:
-                with transaction.atomic():
-                    fee_structures = request.data.get('Value', [])
-                    for fs in fee_structures:
-                        fs['FeeStructureStatus'] = False
-                        fees = add_feestructure(fs,AHJ.objects.get(AHJPK=request.data.get('AHJPK')))
-                        e = { 'User'         : request.user,
-                                 'AHJPK'        : request.data.get('AHJPK'),
-                                 'InspectionID' : request.data.get('InspectionID'), # should be NONE
-                                 'SourceTable'  : 'FeeStructure',
-                                 'SourceColumn' : 'FeeStructureStatus',
-                                 'SourceRow'    : fees.FeeStructurePK,
-                                 'OldValue'     : False,
-                                 'NewValue'     : True }
-                        edit = add_edit(e)
-                        response_data.append(FeeStructureSerializer(fees).data)
-        elif source_table == 'DocumentSubmissionMethod':
-            with connection.cursor() as cursor:
-                with transaction.atomic():
-                    dsms = request.data.get('Value', [])
-                    for dsm in dsms:
-                        dsm['MethodStatus'] = False
-                        au = AHJDocumentSubmissionMethodUse(AHJPK=AHJ.objects.get(AHJPK=request.data.get('AHJPK')), DocumentSubmissionMethodID=DocumentSubmissionMethod.objects.get(Value=dsm['Value']), MethodStatus=dsm['MethodStatus'])
-                        au.save()
-                        e = { 'User'         : request.user,
-                                 'AHJPK'        : request.data.get('AHJPK'),
-                                 'InspectionID' : request.data.get('InspectionID'), # should be NONE
-                                 'SourceTable'  : 'DocumentSubmissionMethodUse',
-                                 'SourceColumn' : 'MethodStatus',
-                                 'SourceRow'    : au.UseID,
-                                 'OldValue'     : False,
-                                 'NewValue'     : True }
-                        edit = add_edit(e)
-                        response_data.append(DocumentSubmissionMethodUseSerializer(au).data)
-        elif source_table == 'PermitIssueMethod':
-            with connection.cursor() as cursor:
-                with transaction.atomic():
-                    pims = request.data.get('Value', [])
-                    for pim in pims:
-                        pim['MethodStatus'] = False
-                        au = AHJPermitIssueMethodUse(AHJPK=AHJ.objects.get(AHJPK=request.data.get('AHJPK')), PermitIssueMethodID=PermitIssueMethod.objects.get(Value=pim['Value']),MethodStatus=pim['MethodStatus'])
-                        au.save()
-                        e = { 'User'         : request.user,
-                                 'AHJPK'        : request.data.get('AHJPK'),
-                                 'InspectionID' : request.data.get('InspectionID'), # should be NONE
-                                 'SourceTable'  : 'PermitIssueMethodUse',
-                                 'SourceColumn' : 'MethodStatus',
-                                 'SourceRow'    : au.UseID,
-                                 'OldValue'     : False,
-                                 'NewValue'     : True }
-                        edit = add_edit(e)
-                        response_data.append(PermitIssueMethodUseSerializer(au).data)
-        elif source_table == 'EngineeringReviewRequirement':
-            print(request.data.get('AHJPK'))
-            with connection.cursor() as cursor:
-                with transaction.atomic():
-                    engineeringreviewrequirements = request.data.get('Value', [])
-                    for engineeringreviewrequirement in engineeringreviewrequirements:
-                        engineeringreviewrequirement['EngineeringReviewRequirementStatus'] = False
-                        eng = add_engineeringreviewrequirement(engineeringreviewrequirement,AHJ.objects.get(AHJPK=request.data.get('AHJPK')))
-                        e = { 'User'         : request.user,
-                                 'AHJPK'        : request.data.get('AHJPK'),
-                                 'InspectionID' : request.data.get('InspectionID'), # should be NONE
-                                 'SourceTable'  : 'EngineeringReviewRequirement',
-                                 'SourceColumn' : 'EngineeringReviewRequirementStatus',
-                                 'SourceRow'    : eng.EngineeringReviewRequirementID,
-                                 'OldValue'     : False,
-                                 'NewValue'     : True }
-                        edit = add_edit(e)
-                        response_data.append(EngineeringReviewRequirementSerializer(eng).data)
-        else:
-            print('Received unknown source table', source_table)
-            raise Exception("Source table does not support edit addition")
+        with connection.cursor() as cursor:
+            with transaction.atomic():
+                model = apps.get_model('ahj_app', source_table)
+                new_objs = request.data.get('Value', [])
+                for obj in new_objs:
+                    ahjpk = request.data.get('AHJPK')
+                    ahj = None if ahjpk is None else AHJ.objects.get(AHJPK=ahjpk)
+                    inspectionid = request.data.get('InspectionID')
+                    inspection = None if inspectionid is None else AHJInspection.objects.get(InspectionID=inspectionid)
+
+                    if 'AHJPK' in obj:
+                        """
+                        The addition is a one-to-many relation to AHJ.
+                        For example, FeeStructure and EngineeringReviewRequirement
+                        """
+                        obj['AHJPK'] = ahj
+
+                    row = create_row(model, obj)
+                    parent_row = ahj if inspection is None else inspection
+                    edit_info_row = row.create_relation_to(parent_row)
+                    e = { 'User'         : request.user,
+                          'AHJPK'        : ahj,
+                          'InspectionID' : inspection,
+                          'SourceTable'  : edit_info_row.__class__.__name__,
+                          'SourceColumn' : row.get_relation_status_field(),
+                          'SourceRow'    : edit_info_row.pk,
+                          'OldValue'     : False,
+                          'NewValue'     : None,
+                          'EditType'     : 'A' }
+                    edit = add_edit(e)
+
+                    # For Contact, Contact should be returned, not its many-to-many relation table row
+                    to_serialize = row if source_table == 'Contact' else edit_info_row
+                    response_data.append(get_serializer(row)(to_serialize).data)
         return Response(response_data, status=response_status)
     except Exception as e:
-        print('ERROR: EDIT ADDITION', e)
+        print('ERROR in edit_addition', e)
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
-def edit_deletion(request):
+def edit_deletion(request):  # TODO: Make this called for rejecting additions to set their Status field to false
     """
     Private front-end endpoint for passing an edit type=Deletion request
     """
     try:
         source_table = request.data.get('SourceTable')
-        ahjpk = request.data['AHJPK']
         response_data, response_status = [], status.HTTP_200_OK
-        if source_table == 'Contact' :
+        with connection.cursor() as cursor:
             with transaction.atomic():
-                insp_id = request.data.get('InspectionID')
-                cids = request.data.get('Value', [])
-                for cid in cids:
-                    cr = AHJContactRepresentative.objects.get(AHJPK=ahjpk, ContactID=cid) \
-                        if insp_id is None else \
-                        AHJInspectionContact.objects.get(InspectionID=insp_id, ContactID=cid)
-                    # Create the dictionary for the edit
-                    e = { 'User'       : request.user,
-                        'AHJPK'        : ahjpk,
-                        'InspectionID' : None if request.data.get('InspectionID') is None else AHJInspection.objects.get(InspectionID=request.data.get('InspectionID')),
-                        'SourceColumn' : 'ContactStatus',
-                        'SourceRow'    : cid,
-                        'OldValue'     : True,
-                        'NewValue'     : False }
-                    e['SourceTable'] = 'AHJContactRepresentative' \
-                        if insp_id is None else 'AHJInspectionContact'
-                    print(e['OldValue'])
+                model = apps.get_model('ahj_app', source_table)
+                new_objs = request.data.get('Value', [])
+                for obj in new_objs:
+                    ahjpk = request.data.get('AHJPK')
+                    ahj = None if ahjpk is None else AHJ.objects.get(AHJPK=ahjpk)
+                    inspectionid = request.data.get('InspectionID')
+                    inspection = None if inspectionid is None else AHJInspection.objects.get(InspectionID=inspectionid)
+                    parent_row = ahj if inspection is None else inspection
+                    row = model.objects.get(pk=obj)
+                    edit_info_row = row.get_relation_to(parent_row)
+                    e = { 'User'         : request.user,
+                          'AHJPK'        : ahj,
+                          'InspectionID' : inspection,
+                          'SourceTable'  : edit_info_row.__class__.__name__,
+                          'SourceColumn' : row.get_relation_status_field(),
+                          'SourceRow'    : edit_info_row.pk,
+                          'OldValue'     : getattr(edit_info_row, row.get_relation_status_field()),  # None or True
+                          'NewValue'     : False,
+                          'EditType'     : 'D' }
                     edit = add_edit(e)
-                    cont = Contact.objects.get(ContactID=cid)
-                    response_data.append(ContactSerializer(cont).data)
-        elif source_table == 'AHJInspection':
-            with transaction.atomic():
-                # Add the inspection into the db
-                iids = request.data.get('Value', [])
-                print(iids)
-                for iid in iids:
-                    if iid is None:
-                        continue
-                    inspection = AHJInspection.objects.get(AHJPK=ahjpk, InspectionID=iid)
-                    e = { 'User'       : request.user,
-                        'AHJPK'        : ahjpk,
-                        'InspectionID' : AHJInspection.objects.get(InspectionID=iid),
-                        'SourceTable'  : 'AHJInspection',
-                        'SourceColumn' : 'InspectionStatus',
-                        'SourceRow'    : inspection.InspectionID,
-                        'OldValue'     : True,
-                        'NewValue'     : False }
-                    edit = add_edit(e)
-                    response_data.append(EditSerializer(edit).data)
-        elif source_table == 'FeeStructure':
-            with transaction.atomic():
-                fspks = request.data.get('Value', [])
-                for fspk in fspks:
-                    fees = FeeStructure.objects.get(AHJPK=ahjpk, FeeStructurePK=fspk)
-                    e = { 'User'       : request.user,
-                        'AHJPK'        : ahjpk,
-                        'InspectionID' : request.data.get('InspectionID'),
-                        'SourceTable'  : 'FeeStructure',
-                        'SourceColumn' : 'FeeStructureStatus',
-                        'SourceRow'    : fees.FeeStructurePK,
-                        'OldValue'     : True,
-                        'NewValue'     : False }
-                    edit = add_edit(e)
-                    response_data.append(EditSerializer(edit).data)
-        elif source_table == 'DocumentSubmissionMethod':
-            with transaction.atomic():
-                dsmpks = request.data.get('Value', [])
-                for dsmpk in dsmpks:
-                    dsmpk = AHJDocumentSubmissionMethodUse.objects.get(AHJPK=ahjpk, UseID=dsmpk)
-                    e = { 'User'       : request.user,
-                        'AHJPK'        : ahjpk,
-                        'InspectionID' : request.data.get('InspectionID'),
-                        'SourceTable'  : 'DocumentSubmissionMethodUse',
-                        'SourceColumn' : 'MethodStatus',
-                        'SourceRow'    : dsmpk.UseID,
-                        'OldValue'     : True,
-                        'NewValue'     : False }
-                    edit = add_edit(e)
-                    response_data.append(EditSerializer(edit).data)
-        elif source_table == 'PermitIssueMethod':
-            with transaction.atomic():
-                pimpks = request.data.get('Value', [])
-                for pimpk in pimpks:
-                    pim = AHJPermitIssueMethodUse.objects.get(AHJPK=ahjpk, UseID=pimpk)
-                    e = { 'User'       : request.user,
-                        'AHJPK'        : ahjpk,
-                        'InspectionID' : request.data.get('InspectionID'),
-                        'SourceTable'  : 'PermitIssueMethodUse',
-                        'SourceColumn' : 'MethodStatus',
-                        'SourceRow'    : pim.UseID,
-                        'OldValue'     : True,
-                        'NewValue'     : False }
-                    edit = add_edit(e)
-                    response_data.append(EditSerializer(edit).data)
-        elif source_table == 'EngineeringReviewRequirement':
-            with transaction.atomic():
-                engpks = request.data.get('Value', [])
-                for engpk in engpks:
-                    eng = EngineeringReviewRequirement.objects.get(AHJPK=ahjpk, EngineeringReviewRequirementID=engpk)
-                    e = { 'User'       : request.user,
-                        'AHJPK'        : ahjpk,
-                        'InspectionID' : request.data.get('InspectionID'),
-                        'SourceTable'  : 'EngineeringReviewRequirement',
-                        'SourceColumn' : 'EngineeringReviewRequirementStatus',
-                        'SourceRow'    : eng.EngineeringReviewRequirementID,
-                        'OldValue'     : True,
-                        'NewValue'     : False }
-                    edit = add_edit(e)
-                    response_data.append(EditSerializer(edit).data)
-        else:
-            print('Received unknown source table', source_table)
-            raise Exception("Source table does not support edit addition")
+
+                    if source_table == 'Contact':
+                        response_data.append(ContactSerializer(row).data)  # TODO: Why need contact?
+                    else:
+                        response_data.append(EditSerializer(edit).data)
         return Response(response_data, status=response_status)
     except Exception as e:
-        print('ERROR in edit_deletion', str(e))
+        print('error in edit_deletion', str(e))
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -376,15 +208,19 @@ def edit_update(request):
         response_data, response_status = [], status.HTTP_200_OK
         with transaction.atomic():
             es = request.data
-            print(es)
             for e in es:
+                e['AHJPK'] = AHJ.objects.get(AHJPK=e['AHJPK'])
+                model = apps.get_model('ahj_app', e['SourceTable'])
+                row = model.objects.get(pk=e['SourceRow'])
+                e['OldValue'] = getattr(row, e['SourceColumn'])
                 e['User'] = request.user
                 e['InspectionID'] = None if e['InspectionID'] is None else AHJInspection.objects.get(InspectionID=e['InspectionID'])
+                e['EditType'] = 'U'
                 edit = add_edit(e)
                 response_data.append(EditSerializer(edit).data)
         return Response(response_data, status=response_status)
     except Exception as e:
-        print('ERROR: EDIT UPDATE', e)
+        print('ERROR in edit_update', e)
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])

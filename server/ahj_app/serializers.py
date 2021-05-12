@@ -54,6 +54,7 @@ class EnumModelSerializer(serializers.Serializer):
                 self.fields.pop('ID')
         return super().to_representation(value)
 
+
 class FeeStructureSerializer(serializers.Serializer):
     FeeStructurePK = OrangeButtonSerializer()
     FeeStructureID = OrangeButtonSerializer()
@@ -274,7 +275,7 @@ class EditSerializer(serializers.Serializer):
     EditID = serializers.IntegerField(read_only=True)
     ChangedBy = UserSerializer()
     ApprovedBy = UserSerializer()
-    AHJPK = serializers.IntegerField()
+    AHJPK = serializers.IntegerField(source='AHJPK.AHJPK')
     SourceTable = serializers.CharField()
     SourceColumn = serializers.CharField()
     SourceRow = serializers.IntegerField()
@@ -284,7 +285,9 @@ class EditSerializer(serializers.Serializer):
     NewValue = serializers.CharField()
     DateRequested = serializers.DateField(read_only=True)
     DateEffective = serializers.DateField(read_only=True)
-    Inspection = AHJInspectionSerializer(source='InspectionID')
+    EditType = serializers.CharField()
+    Inspection = AHJInspectionSerializer(source='InspectionID')  # TODO: should be int?
+    DataSourceComment = serializers.CharField()
 
     def create(self):
         return Edit(**self.validated_data)
