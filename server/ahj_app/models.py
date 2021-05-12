@@ -1,7 +1,7 @@
 import datetime
-from django.contrib.gis.db import models
 from django.conf import settings
 from .models_field_enums import *
+from django.contrib.gis.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
@@ -13,9 +13,9 @@ class AHJ(models.Model):
     AHJPK = models.AutoField(db_column='AHJPK', primary_key=True)
     AHJID = models.CharField(db_column='AHJID', unique=True, max_length=36)
     AHJCode = models.CharField(db_column='AHJCode', max_length=20, blank=True)
-    AHJLevelCode = models.CharField(db_column='AHJLevelCode', choices=AHJ_LEVEL_CODE_CHOICES, max_length=3)
+    AHJLevelCode = models.ForeignKey('AHJLevelCode', on_delete=models.DO_NOTHING, db_column='AHJLevelCodeID', null=True)
     PolygonID = models.ForeignKey('Polygon', on_delete=models.DO_NOTHING, db_column='PolygonID', null=True)
-    AddressID = models.ForeignKey('Address', on_delete=models.DO_NOTHING, db_column='AddressID')
+    AddressID = models.ForeignKey('Address', on_delete=models.DO_NOTHING, db_column='AddressID', null=True)
     AHJName = models.CharField(db_column='AHJName', max_length=100)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     DocumentSubmissionMethodNotes = models.CharField(db_column='DocumentSubmissionMethodNotes', max_length=255, blank=True)
@@ -23,15 +23,15 @@ class AHJ(models.Model):
     EstimatedTurnaroundDays = models.IntegerField(db_column='EstimatedTurnaroundDays', null=True)
     FileFolderURL = models.CharField(db_column='FileFolderURL', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=2048, blank=True)
-    BuildingCode = models.CharField(db_column='BuildingCode', choices=BUILDING_CODE_CHOICES, max_length=18)
+    BuildingCode = models.ForeignKey('BuildingCode', on_delete=models.DO_NOTHING, db_column='BuildingCodeID', null=True)
     BuildingCodeNotes = models.CharField(db_column='BuildingCodeNotes', max_length=255, blank=True)
-    ElectricCode = models.CharField(db_column='ElectricCode', choices=ELECTRIC_CODE_CHOICES, max_length=18)
+    ElectricCode = models.ForeignKey('ElectricCode', on_delete=models.DO_NOTHING, db_column='ElectricCodeID', null=True)
     ElectricCodeNotes = models.CharField(db_column='ElectricCodeNotes', max_length=255, blank=True)
-    FireCode = models.CharField(db_column='FireCode', choices=FIRE_CODE_CHOICES, max_length=18)
+    FireCode = models.ForeignKey('FireCode', on_delete=models.DO_NOTHING, db_column='FireCodeID', null=True)
     FireCodeNotes = models.CharField(db_column='FireCodeNotes', max_length=255, blank=True)
-    ResidentialCode = models.CharField(db_column='ResidentialCode', choices=RESIDENTIAL_CODE_CHOICES, max_length=18)
+    ResidentialCode = models.ForeignKey('ResidentialCode', on_delete=models.DO_NOTHING, db_column='ResidentialCodeID', null=True)
     ResidentialCodeNotes = models.CharField(db_column='ResidentialCodeNotes', max_length=255, blank=True)
-    WindCode = models.CharField(db_column='WindCode', choices=WIND_CODE_CHOICES, max_length=15)
+    WindCode = models.ForeignKey('WindCode', on_delete=models.DO_NOTHING, db_column='WindCodeID', null=True)
     WindCodeNotes = models.CharField(db_column='WindCodeNotes', max_length=255, blank=True)
 
     class Meta:
@@ -108,7 +108,7 @@ class Address(models.Model):
     StateProvince = models.CharField(db_column='StateProvince', max_length=100, blank=True)
     ZipPostalCode = models.CharField(db_column='ZipPostalCode', max_length=100, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
-    AddressType = models.CharField(db_column='AddressType', choices=ADDRESS_TYPE_CHOICES, max_length=12)
+    AddressType = models.ForeignKey('AddressType', on_delete=models.DO_NOTHING, db_column='AddressTypeID', null=True)
 
     class Meta:
         managed = True
@@ -122,16 +122,16 @@ class Contact(models.Model):
     FirstName = models.CharField(db_column='FirstName', max_length=255, blank=True)
     MiddleName = models.CharField(db_column='MiddleName', max_length=255, blank=True)
     LastName = models.CharField(db_column='LastName', max_length=255, blank=True)
-    HomePhone = models.CharField(db_column='HomePhone', max_length=15, blank=True)
-    MobilePhone = models.CharField(db_column='MobilePhone', max_length=15, blank=True)
-    WorkPhone = models.CharField(db_column='WorkPhone', max_length=15, blank=True)
-    ContactType = models.CharField(db_column='ContactType', choices=CONTACT_TYPE_CHOICES, max_length=18)
+    HomePhone = models.CharField(db_column='HomePhone', max_length=31, blank=True)
+    MobilePhone = models.CharField(db_column='MobilePhone', max_length=31, blank=True)
+    WorkPhone = models.CharField(db_column='WorkPhone', max_length=31, blank=True)
+    ContactType = models.ForeignKey('ContactType', on_delete=models.DO_NOTHING, db_column='ContactTypeID', null=True)
     ContactTimezone = models.CharField(db_column='ContactTimezone', max_length=255, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     Email = models.CharField(db_column='Email', max_length=50, blank=True)
     Title = models.CharField(db_column='Title', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=255, blank=True)
-    PreferredContactMethod = models.CharField(db_column='PreferredContactMethod', choices=PREFERRED_CONTACT_METHOD_CHOICES, max_length=15)
+    PreferredContactMethod = models.ForeignKey('PreferredContactMethod', on_delete=models.DO_NOTHING, db_column='PreferredContactMethodID', null=True)
 
     class Meta:
         managed = True
@@ -153,7 +153,7 @@ class AHJContactRepresentative(models.Model):
 class AHJInspection(models.Model):
     InspectionID = models.AutoField(db_column='InspectionID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
-    InspectionType = models.CharField(db_column='InspectionType', choices=INSPECTION_TYPE_CHOICES, max_length=10)
+    InspectionType = models.ForeignKey('InspectionType', on_delete=models.DO_NOTHING, db_column='InspectionTypeID', null=True)
     AHJInspectionName = models.CharField(db_column='AHJInspectionName', max_length=255)
     AHJInspectionNotes = models.CharField(db_column='AHJInspectionNotes', max_length=255, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
@@ -190,7 +190,7 @@ class FeeStructure(models.Model):
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     FeeStructureID = models.CharField(db_column='FeeStructureID', max_length=36) # UUIDField
     FeeStructureName = models.CharField(db_column='FeeStructureName', unique=True, max_length=255)
-    FeeStructureType = models.CharField(db_column='FeeStructureType', choices=FEE_STRUCTURE_TYPE_CHOICES, max_length=10)
+    FeeStructureType = models.ForeignKey('FeeStructureType', on_delete=models.DO_NOTHING, db_column='FeeStructureTypeID', null=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     FeeStructureStatus = models.IntegerField(db_column='FeeStructureStatus')
 
@@ -230,8 +230,8 @@ class Location(models.Model):
     Latitude = models.DecimalField(db_column='Latitude', max_digits=10, decimal_places=8, null=True)
     Longitude = models.DecimalField(db_column='Longitude', max_digits=11, decimal_places=8, null=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
-    LocationDeterminationMethod = models.CharField(db_column='LocationDeterminationMethod', choices=LOCATION_DETERMINATION_METHOD_CHOICES, max_length=17)
-    LocationType = models.CharField(db_column='LocationType', choices=LOCATION_TYPE_CHOICES, max_length=16)
+    LocationDeterminationMethod = models.ForeignKey('LocationDeterminationMethod', on_delete=models.DO_NOTHING, db_column='LocationDeterminationMethodID', null=True)
+    LocationType = models.ForeignKey('LocationType', on_delete=models.DO_NOTHING, db_column='LocationTypeID', null=True)
 
     class Meta:
         managed = True
@@ -243,10 +243,10 @@ class EngineeringReviewRequirement(models.Model):
     EngineeringReviewRequirementID = models.AutoField(db_column='EngineeringReviewRequirementID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
-    EngineeringReviewType = models.CharField(db_column='EngineeringReviewType', choices=ENGINEERING_REVIEW_TYPE_CHOICES, max_length=21)
-    RequirementLevel = models.CharField(db_column='RequirementLevel', choices=REQUIREMENT_LEVEL_CHOICES, max_length=21)
+    EngineeringReviewType = models.ForeignKey('EngineeringReviewType', on_delete=models.DO_NOTHING, db_column='EngineeringReviewTypeID', null=True)
+    RequirementLevel = models.ForeignKey('RequirementLevel', on_delete=models.DO_NOTHING, db_column='RequirementLevelID', null=True)
     RequirementNotes = models.CharField(db_column='RequirementNotes', max_length=255, blank=True)
-    StampType = models.CharField(db_column='StampType', choices=STAMP_TYPE_CHOICES, max_length=7)
+    StampType = models.ForeignKey('StampType', on_delete=models.DO_NOTHING, db_column='StampTypeID', null=True)
     EngineeringReviewRequirementStatus = models.IntegerField(db_column='EngineeringReviewRequirementStatus')
 
     class Meta:
@@ -254,10 +254,6 @@ class EngineeringReviewRequirement(models.Model):
         db_table = 'EngineeringReviewRequirement'
 
     SERIALIZER_EXCLUDED_FIELDS = ['EngineeringReviewRequirementID', 'EngineeringReviewRequirementStatus']
-
-class DocumentSubmissionMethod(models.Model):
-    DocumentSubmissionMethodID = models.AutoField(db_column='DocumentSubmissionMethodID', primary_key=True)
-    Value = models.CharField(db_column='Value', choices=DOCUMENT_SUBMISSION_METHOD_CHOICES, unique=True, max_length=11)
 
 class AHJDocumentSubmissionMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
@@ -274,10 +270,6 @@ class AHJDocumentSubmissionMethodUse(models.Model):
 
     def get_value(self):
         return self.DocumentSubmissionMethodID.Value
-
-class PermitIssueMethod(models.Model):
-    PermitIssueMethodID = models.AutoField(db_column='PermitIssueMethodID', primary_key=True)
-    Value = models.CharField(db_column='Value', choices=PERMIT_ISSUE_METHOD_CHOICES, unique=True, max_length=11)
 
 class AHJPermitIssueMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)

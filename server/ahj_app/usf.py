@@ -1,7 +1,11 @@
 import csv
 import os
+from functools import lru_cache
+
+from django.apps import apps
 from django.contrib.gis.utils import LayerMapping
 from .models import *
+from .models_field_enums import *
 
 BASE_DIR_SHP = os.path.expanduser('~/Downloads/2020CensusShapefiles/')
 
@@ -177,37 +181,92 @@ def translate_countysubdivisions():
         i += 1
 
 
+ENUM_FIELDS = (
+    'BuildingCode',
+    'ElectricCode',
+    'FireCode',
+    'ResidentialCode',
+    'WindCode',
+    'AHJLevelCode',
+    'DocumentSubmissionMethod',
+    'PermitIssueMethod',
+    'AddressType',
+    'LocationDeterminationMethod',
+    'LocationType',
+    'ContactType',
+    'PreferredContactMethod',
+    'EngineeringReviewType',
+    'RequirementLevel',
+    'StampType',
+    'FeeStructureType',
+    'InspectionType'
+)
+
+ENUM_PLURALS_TRANSLATE = {
+    'DocumentSubmissionMethods': 'DocumentSubmissionMethod',
+    'PermitIssueMethods': 'PermitIssueMethod'
+}
+
+
+def add_enum_values():
+    """
+    Adds all enum values to their enum tables.
+    """
+    for field in ENUM_FIELDS:
+        model = apps.get_model('ahj_app', field)
+        model.objects.all().delete()
+        model.objects.bulk_create(list(map(lambda choice: model(Value=choice[0]),
+                                           model._meta.get_field('Value').choices)))
+
+
 def is_zero_depth_field(name):
+    """
+    Checks if a field name has one dot in it.
+    For example, BuildingCode.Value
+    """
     if name.find('.') != -1 and name.find('.') == name.rfind('.'):
         return True
     return False
 
 
+def dict_filter_keys_start_with(start, row):
+    """
+    Given a dict, returns a new dict with key-value pairs
+    where the key of each pair starts with start.
+    """
+    return {k[len(start)+1:]: v for k, v in row.items() if k.startswith(start)}
+
+
 def build_field_val_dict(row):
+    """
+    Builds an Orange Button AuthorityHavingJurisdiction JSON object from a flattened object.
+    """
     result = {}
-    last_sub_obj = ''
-    for i, (k, v) in enumerate(row.items()):
+    done_keys = set()
+    for k, v in row.items():
         field = k[:k.find('.')]
-        if v == '' or last_sub_obj == field:
+        if k == '' or v == '' or field in done_keys:  # no value or already gathered to create a dict
             continue
-        elif is_zero_depth_field(k):
-            result[field] = v
-        elif k != '':
-            subrow = {}
-            for i, (k, v) in enumerate(row.items()):
-                if v == '':
-                    continue
-                if k.startswith(field):
-                    subrow[k[len(field) + 1:]] = v
-            last_sub_obj = field
-            if field.find('[') >= 0:
-                array_field = field[:field.find('[')]
+        elif is_zero_depth_field(k):  # (key, value or array of values) pair
+            square_loc = field.find('[')
+            if square_loc >= 0:
+                array_field = field[:square_loc]
+                if array_field not in result:
+                    result[array_field] = []
+                result[array_field].append(v)
+            else:
+                result[field] = v
+        else:  # (key, object or array of objects) pair
+            subrow = dict_filter_keys_start_with(field, row)
+            done_keys.add(field)
+            square_loc = field.find('[')
+            if square_loc >= 0:
+                array_field = field[:square_loc]
                 if array_field not in result:
                     result[array_field] = []
                 result[array_field].append(build_field_val_dict(subrow))
             else:
                 result[field] = build_field_val_dict(subrow)
-
     return result
 
 
@@ -231,12 +290,43 @@ def create_contact(contact_dict):
     return Contact.objects.create(**contact_dict)
 
 
+@lru_cache(maxsize=None)
+def get_enum_value_row(enum_field, enum_value):
+    """
+    Finds the row of the enum table given the field name and its enum value.
+    """
+    # Translate plural, if given
+    enum_field = ENUM_PLURALS_TRANSLATE[enum_field] if enum_field in ENUM_PLURALS_TRANSLATE else enum_field
+    return apps.get_model('ahj_app', enum_field).objects.get(Value=enum_value)
+
+
+def enum_values_to_primary_key(ahj_dict):
+    """
+    Replace enum values in a dict with the row of the value in its enum model.
+    For example, '2021IBC' => BuildingCode.objects.get(Value='2021IBC')
+    """
+    for field in ahj_dict:
+        if type(ahj_dict[field]) is dict:
+            ahj_dict[field] = enum_values_to_primary_key(ahj_dict[field])
+        elif type(ahj_dict[field]) is list:
+            for i in range(len(ahj_dict[field])):
+                if type(ahj_dict[field][i]) is dict:
+                    ahj_dict[field][i] = enum_values_to_primary_key(ahj_dict[field][i])
+                else:  # Array of enum values
+                    ahj_dict[field][i] = get_enum_value_row(field, ahj_dict[field][i])
+        else:
+            if field in ENUM_FIELDS:
+                ahj_dict[field] = get_enum_value_row(field, ahj_dict[field])
+    return ahj_dict
+
+
 def load_ahj_data_csv():
     with open(BASE_DIR_SHP + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         i = 1
         for row in reader:
             ahj_dict = build_field_val_dict(row)
+            enum_values_to_primary_key(ahj_dict)
             contacts_dict = ahj_dict.pop('Contacts', [])
             contacts = []
             for contact_dict in contacts_dict:
@@ -246,9 +336,20 @@ def load_ahj_data_csv():
                 ahj_dict['AddressID'] = create_address(address_dict)
             else:
                 ahj_dict['AddressID'] = Address.objects.create()
+            dsms = ahj_dict.pop('DocumentSubmissionMethods', [])
+            pims = ahj_dict.pop('PermitIssueMethods', [])
+            errs = ahj_dict.pop('EngineeringReviewRequirements', [])
             ahj = AHJ.objects.create(**ahj_dict)
             for contact in contacts:
                 AHJContactRepresentative.objects.create(AHJPK=ahj, ContactID=contact, ContactStatus=1)
+            for dsm in dsms:
+                AHJDocumentSubmissionMethodUse.objects.create(AHJPK=ahj, DocumentSubmissionMethodID=dsm, MethodStatus=1)
+            for pim in pims:
+                AHJPermitIssueMethodUse.objects.create(AHJPK=ahj, PermitIssueMethodID=pim, MethodStatus=1)
+            for err in errs:
+                err['AHJPK'] = ahj
+                err['EngineeringReviewRequirementStatus'] = 1
+                EngineeringReviewRequirement.objects.create(**err)
             print('AHJ {0}: {1}'.format(ahj.AHJID, i))
             i += 1
 
