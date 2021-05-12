@@ -76,7 +76,7 @@ def simple_sanitize(s: str):
     return s.replace(';', '').replace('\'', '')
 
 
-def get_name_query_cond(type: str, val: str):
+def get_name_query_cond(type: str, val: str, query_params: dict):
     """
     Returns the entered string as part of an SQL
     condition on the AHJ table of the form:
@@ -85,11 +85,12 @@ def get_name_query_cond(type: str, val: str):
     empty string to represent no condition on type.
     """
     if val is not None:
-        return 'AHJ.' + type + ' LIKE \'%%' + simple_sanitize(val) + '%%\' AND '
+        query_params[type] = '%' + val + '%'
+        return 'AHJ.' + type + ' LIKE %(' + type + ')s AND '
     return ''
 
 
-def get_list_query_cond(type: str, val):
+def get_list_query_cond(type: str, val: str, query_params: dict):
     """
     Returns the entered list of strings as part of
     an SQL condition on the AHJ table of the form:
@@ -97,20 +98,23 @@ def get_list_query_cond(type: str, val):
     """
     if val is not None:
         or_list = []
-        for v in val:
-            or_list.append('AHJ.' + type + '=\'' + simple_sanitize(v) + '\'')
+        for i in range(len(val)):
+            param_name = f'{type}{i}'
+            query_params[param_name] = val[i]
+            or_list.append('AHJ.' + type + '=%(' + param_name + ')s')
         ret_str = '(' + ' OR '.join(or_list) + ') AND '
         return ret_str
     return ''
 
 
-def get_basic_user_query_cond(type: str, val):
+def get_basic_user_query_cond(type: str, val: str, query_params: dict):
     if val is not None:
-        return 'Address.' + type + '=\'' + simple_sanitize(val) + '\' AND '
+        query_params[type] = val
+        return 'Address.' + type + '=%(' + type + ')s AND '
     return ''
 
 
-def get_basic_query_cond(type: str, val: str):
+def get_basic_query_cond(type: str, val: str, query_params: dict):
     """
     Returns the entered string as part of an SQL
     condition on the AHJ table of the form:
@@ -119,7 +123,8 @@ def get_basic_query_cond(type: str, val: str):
     empty string to represent no condition on type.
     """
     if val is not None:
-        return 'AHJ.' + type + '=\'' + simple_sanitize(val) + '\' AND '
+        query_params[type] = val
+        return 'AHJ.' + type + '=%(' + type + ')s AND '
     return ''
 
 
@@ -186,7 +191,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     points from a State -> County -> City level to filter
     at each step.
 
-    The other filterings such as BuildingCode, FireCode, ...
+    The other filtering such as BuildingCode, FireCode, ...
     are simply expanded as where clauses on the final
     condition. AHJName is a slight exception to this as
     we match any names that contain the string that was
@@ -196,6 +201,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     """
 
     full_query_string = ''' SELECT * FROM AHJ '''
+    query_params = {}
 
     if location is not None or polygon is not None:
         if polygon is not None:
@@ -258,28 +264,29 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     # include a where condition
     _state = StateProvince
     if _state is not None:
+        query_params['StateProvince'] = _state
         full_query_string += ' JOIN Address ON AHJ.AddressID = Address.AddressID '
-        where_clauses += ' Address.StateProvince = \'' + simple_sanitize(_state) + '\' AND '
+        where_clauses += ' Address.StateProvince=%(StateProvince)s AND '
 
     # Match a partially matching string for name
-    where_clauses += get_name_query_cond('AHJName', AHJName)
+    where_clauses += get_name_query_cond('AHJName', AHJName, query_params)
 
     # Append additional clauses onto condition when NOT NULL, (checked by `basic_query_cond`
-    where_clauses += get_basic_query_cond('AHJPK', AHJPK)
-    where_clauses += get_basic_query_cond('AHJID', AHJID)
-    where_clauses += get_basic_query_cond('AHJPK', AHJPK)
-    where_clauses += get_basic_query_cond('AHJCode', AHJCode)
-    where_clauses += get_basic_query_cond('AHJLevelCode', AHJLevelCode)
-    where_clauses += get_list_query_cond('BuildingCode', BuildingCode)
-    where_clauses += get_list_query_cond('ElectricCode', ElectricCode)
-    where_clauses += get_list_query_cond('FireCode', FireCode)
-    where_clauses += get_list_query_cond('ResidentialCode', ResidentialCode)
-    where_clauses += get_list_query_cond('WindCode', WindCode)
+    where_clauses += get_basic_query_cond('AHJPK', AHJPK, query_params)
+    where_clauses += get_basic_query_cond('AHJID', AHJID, query_params)
+    where_clauses += get_basic_query_cond('AHJPK', AHJPK, query_params)
+    where_clauses += get_basic_query_cond('AHJCode', AHJCode, query_params)
+    where_clauses += get_basic_query_cond('AHJLevelCode', AHJLevelCode, query_params)
+    where_clauses += get_list_query_cond('BuildingCode', BuildingCode, query_params)
+    where_clauses += get_list_query_cond('ElectricCode', ElectricCode, query_params)
+    where_clauses += get_list_query_cond('FireCode', FireCode, query_params)
+    where_clauses += get_list_query_cond('ResidentialCode', ResidentialCode, query_params)
+    where_clauses += get_list_query_cond('WindCode', WindCode, query_params)
     # NOTE: we append a 'True' at the end to always make the query valid
     # because the get_x_query_cond appends an `AND` to the condition
     full_query_string += ' WHERE ' + where_clauses + ' True;'
-    # print('QUERY: ', full_query_string)
-    return AHJ.objects.raw(full_query_string)
+    # print(AHJ.objects.raw('EXPLAIN ' + full_query_string, query_params))
+    return AHJ.objects.raw(full_query_string, query_params)
 
 
 def filter_users(request):

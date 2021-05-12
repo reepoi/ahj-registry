@@ -262,22 +262,23 @@ def dictfetchone(cursor):
     return dict(zip(columns, row))
 
 def get_polygons_in_state(statepolygonid):
-    query = 'SELECT COUNT(*) as numAHJs,' +\
-            'SUM(BuildingCode!="") as numBuildingCodes,' +\
-            'SUM(ElectricCode!="") as numElectricCodes,' +\
-            'SUM(FireCode!="") as numFireCodes,' +\
-            'SUM(ResidentialCode!="") as numResidentialCodes,' + \
-            'SUM(WindCode!="") as numWindCodes' + \
-            ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ' UNION SELECT PolygonID FROM CountySubdivisionPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ') as polygons_of_state ON Polygon.PolygonID=polygons_of_state.PolygonID LEFT JOIN AHJ ON Polygon.PolygonID=AHJ.PolygonID;'
-    cursor = connection.cursor()
-    cursor.execute(query)
-    return dictfetchone(cursor)
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT COUNT(*) as numAHJs,' + \
+                       'SUM(BuildingCode!="") as numBuildingCodes,' + \
+                       'SUM(ElectricCode!="") as numElectricCodes,' + \
+                       'SUM(FireCode!="") as numFireCodes,' + \
+                       'SUM(ResidentialCode!="") as numResidentialCodes,' + \
+                       'SUM(WindCode!="") as numWindCodes' + \
+                       ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ' UNION SELECT PolygonID FROM CountySubdivisionPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ') as polygons_of_state ON Polygon.PolygonID=polygons_of_state.PolygonID LEFT JOIN AHJ ON Polygon.PolygonID=AHJ.PolygonID;', {
+            'statepolygonid': statepolygonid
+        })
+        return dictfetchone(cursor)
 
 class DataVisAHJPolygonInfoSerializer(serializers.Serializer):
     PolygonID = serializers.IntegerField()
