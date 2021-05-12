@@ -395,3 +395,48 @@ def binary_search(arr, x):
 
             # If we reach here, then the element was not present
     return -1
+
+
+BASE_DIR_USER = os.path.expanduser('~/Downloads/2020CensusShapefiles/UserData')
+def upload_user_data():
+    users = {}
+
+    # Get user information
+    with open(BASE_DIR_USER + 'prod_core_user.csv') as file:
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        i = 1
+        for row in reader:
+            user = {}
+            user['Email'] = row['email_address']
+            user['password'] = row['password']
+            user['Username'] = f'username{i}'
+            user['FirstName'] = row['first_name']
+            user['LastName'] = row['last_name']
+            user['SignUpDate'] = row['date_joined']
+            user['is_active'] = row['is_active']
+
+            users[row['id']] = user
+            i += 1
+
+    with open(BASE_DIR_USER + 'prod_authtoken_token.csv') as file:
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        i = 1
+        for row in reader:
+            users[row['user_id']]['apitoken'] = row['key']
+            print(users[row['user_id']])
+
+    # Create users and api tokens
+    i = 1
+    for user in users.values():
+        apitoken = user.pop('apitoken')
+        firstname = user.pop('FirstName')
+        lastname = user.pop('LastName')
+        user = User.objects.create_user(**user)
+        user.is_active = True
+        user.save()
+        user.ContactID.FirstName = firstname
+        user.ContactID.LastName = lastname
+        user.ContactID.save()
+        APIToken.objects.create(key=apitoken, user=user)
+        print('User {0}: {1}'.format(i, user))
+        i += 1
