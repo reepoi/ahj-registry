@@ -49,6 +49,9 @@ def webpage_ahj_list(request):
 
 @api_view(['GET'])
 def get_single_ahj(request):
+    """
+    Endpoint to get a single ahj given an AHJPK
+    """
     AHJPK = request.GET.get('AHJPK')
     ahj = AHJ.objects.filter(AHJPK=AHJPK)
     context = {'fields_to_drop': []}

@@ -9,6 +9,11 @@ from .utils import simple_sanitize, dictfetchall
 
 @api_view(['GET'])
 def data_map(request):
+    """
+    View to return statistics about ahjs across the country
+    If given a StatePK, returns stats for each ahj in the state
+    else gives overall stats for every state
+    """
     statepolygon_pk = request.query_params.get('StatePK', None)
     polygon_columns = 'Name, Polygon.PolygonID, InternalPLatitude, InternalPLongitude, Name'
     ahj_columns = 'AHJPK, AHJName'
@@ -41,4 +46,7 @@ def data_map(request):
 
 @api_view(['GET'])
 def data_map_get_polygon(request):
+    """
+    Returns a polygon in GeoJSON given its ID
+    """
     return Response(PolygonSerializer(Polygon.objects.get(PolygonID=request.query_params.get('PolygonID', None))).data)

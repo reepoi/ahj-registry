@@ -1,10 +1,20 @@
+"""
+File of helper methods for uploading 2020 Census Bureau shapefile polygons and AHJ Data
+"""
+
 import csv
 import os
 from django.contrib.gis.utils import LayerMapping
 from .models import *
 
+# Directory containing the 2020 Census Bureau shapefiles
 BASE_DIR_SHP = os.path.expanduser('~/Downloads/2020CensusShapefiles/')
 
+"""
+Dictionaries that map fields in shapefiles to
+fields in the temporary tables (StateTemp, etc)
+to hold the shapefile data.
+"""
 
 state_mapping = {
     'GEOID': 'GEOID',
@@ -55,6 +65,15 @@ city_mapping = {
     'mpoly': 'MULTIPOLYGON'
 }
 
+"""
+Methods for uploading shapefiles to temporary tables (StateTemp, ...)
+Expects the file structure:
+- 2020CensusPolygons
+    - States
+    - Counties
+    - Citites
+    - CountySubdivisions
+"""
 
 def upload_all_shapefile_types():
     upload_state_shapefiles()
@@ -126,6 +145,12 @@ def get_other_polygon_type_fields(obj, polygon):
     }
 
 
+"""
+Moves the shapefile data from the temporary tables (StateTemp, ...)
+to the Polygon tables (Polygon, StatePolygon, ...)
+"""
+
+
 def translate_polygons():
     translate_states()
     translate_counties()
@@ -177,13 +202,23 @@ def translate_countysubdivisions():
         i += 1
 
 
+"""
+Helpers for uploading AHJ data from CSV files in the format provided by the AHJ Registry
+"""
+
 def is_zero_depth_field(name):
+    """
+    Returns true if the column name points to a Orange Button primitive, not an object
+    """
     if name.find('.') != -1 and name.find('.') == name.rfind('.'):
         return True
     return False
 
 
 def build_field_val_dict(row):
+    """
+    Parses CSV row into JSON representation of an AHJ
+    """
     result = {}
     last_sub_obj = ''
     for i, (k, v) in enumerate(row.items()):
@@ -232,6 +267,9 @@ def create_contact(contact_dict):
 
 
 def load_ahj_data_csv():
+    """
+    Loads ahj data csv from AHJ Registry
+    """
     with open(BASE_DIR_SHP + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         i = 1
@@ -253,6 +291,7 @@ def load_ahj_data_csv():
             i += 1
 
 
+# Dict to translate state FIPS codes to state abbreviations
 state_fips_to_abbr = {
     '01': 'AL',
     '02': 'AK',
@@ -323,7 +362,13 @@ state_fips_to_abbr = {
     '56': 'WY'
 }
 
+# dict for translating state abbreviations to state FIPS codes
 abbr_to_state_fips = dict(map(reversed, state_fips_to_abbr.items()))
+
+
+"""
+Helpers to assign an AHJ to its polygon by AHJName and polygon name
+"""
 
 
 def pair_all():

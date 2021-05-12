@@ -30,6 +30,7 @@ export default {
         }
     },
     methods: {
+        // Calls the APIToken create method in the backend which destroys the current user api token and returns a new one.
         GenerateAPIToken() {
             this.SubmitStatus = "PENDING";
             axios.get(constants.API_ENDPOINT + "auth/api-token/create/", 

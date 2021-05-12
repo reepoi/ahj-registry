@@ -209,6 +209,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# for os path reading/writing
+MEDIA_ROOT = 'server-storage/'
+STORAGE_DIRS = {
+    'USER_IMG': 'user-image/'
+}
+DEFAULT_USER_IMG = STORAGE_DIRS['USER_IMG']+'default.jpeg'
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 

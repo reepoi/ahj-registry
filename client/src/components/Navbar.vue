@@ -1,5 +1,5 @@
 <template>
-  <b-navbar toggleable="lg">
+  <b-navbar toggleable="lg" id='navbar'>
     <router-link :to="{ name: 'ahj-search' }">
       <b-navbar-brand>
         <img id="oblogo" src="@/assets/ob.png" />
@@ -11,31 +11,51 @@
 
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav class="mr-auto navbar-background">
+        <!-- show links around the site -->
         <b-nav-item href="#/about">About</b-nav-item>
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
         <!-- <b-nav-item href="#/ahj-search">API</b-nav-item> -->
         <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
-        <!-- <b-nav-item href="#/ahj-pdf-markup" v-if="loggedIn">PDF Editor</b-nav-item> -->
-        <!-- <b-nav-item href="#/leaderboard" v-if="loggedIn">Leaderboard</b-nav-item> -->
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto navbar-background">
+        <!-- if logged in show pfp, else show login button -->
         <b-nav-item href="#/login" v-if="!loggedIn">Login</b-nav-item>
         <b-nav-item href="#/register" v-if="!loggedIn">Register</b-nav-item>
         <b-nav-item-dropdown right v-if="loggedIn">
             <template #button-content>
-              <img v-if="Photo !== null" class="user-photo" :src="Photo">
-              <img v-else class="user-photo" src="../assets/images/profile-image-default.jpeg">
-            </template>
-            <b-dropdown-item :href="'#/user/' + Username"> 
-              <b-icon icon="person"></b-icon>
+              <!-- if user has inread messages, display small number -->
+              <div class="format"> 
+                <div v-if="totalUnreadMessages > 0" class="dot">
+                  <h3>{{totalUnreadMessages}}</h3>
+                </div>
+                <!-- Show users or default photo -->
+                <img v-if="Photo !== null" class="user-photo" :src="Photo">
+                <img v-else class="user-photo" src="../assets/images/profile-image-default.jpeg">
+              </div>            
+              </template>
+            <b-dropdown-item class='dropdown-item' :href="'#/user/' + Username"> 
+            <!-- go to profile -->
+              <b-icon class='icon' icon="person"></b-icon>
               Profile
             </b-dropdown-item>
-            <b-dropdown-item href="#/settings">
-              <b-icon icon="gear"></b-icon>
+            <b-dropdown-item class='dropdown-item' href="#/progress">
+            <!-- go to progress page -->
+              <b-icon class='icon' icon="bar-chart-line"></b-icon>
+              My Progress
+            </b-dropdown-item>
+            <b-dropdown-item class='dropdown-item' href="#/settings">
+            <!-- account setting page -->
+              <b-icon class='icon' icon="gear"></b-icon>
               Account Settings
             </b-dropdown-item>
-            <b-dropdown-item href="#/logout">
-            <b-icon icon="box-arrow-right"></b-icon>
+            <!-- open chat and tell parent -->
+            <b-dropdown-item class='dropdown-item' @click="$emit('event-open-modal')">
+            <b-icon class='icon' icon="chat"></b-icon>
+              Chat
+            </b-dropdown-item>
+            <b-dropdown-item class='dropdown-item' href="#/logout">
+            <!-- Logout -->
+            <b-icon class='icon' icon="box-arrow-right"></b-icon>
               Sign Out
             </b-dropdown-item>
         </b-nav-item-dropdown>
@@ -46,27 +66,36 @@
 
 <script>
 export default {
+  model: {
+    event: 'event-open-modal'
+  },
   computed: {
+    totalUnreadMessages() {
+      //get total num of unread messages
+      let val = 0;
+      for (let r of this.$store.state.rooms) {
+        val += r.unreadCount;
+      }
+      return val;
+    },
     loggedIn() {
       return this.$store.getters.loggedIn;
     },
     Photo() {
-      return this.$store.state.loginStatus.Photo;
+      return this.$store.getters.currentUserInfo ? this.$store.getters.currentUserInfo.Photo : "";
     },
     Username() {
-      return this.$store.state.loginStatus.Username;
+      return this.$store.getters.currentUserInfo ? this.$store.getters.currentUserInfo.Username : "";
     }
   },
   watch: {
-    "$store.state.loginStatus": function() {
-    }
   }
 }
 </script>
 
 <style scoped>
+
 nav {
-  font-family: "Segoe UI";
   font-size: 18px;
   font-style: normal;
   display: flex;
@@ -99,13 +128,31 @@ nav {
   margin-left: 5px;
 }
 
+.icon {
+  margin-right: 0.2em;
+}
+
+.dropdown-item {
+  padding-left: 0.5em !important;
+}
+
 .user-photo {
-  width: 3em;
-  border-radius: 2em;
+  height: 90%;
+  object-fit: cover;
+  border-radius: 2rem;
 }
 
 #nav-collapse {
   z-index: 1040;
+}
+
+@media (min-width: 1800px){
+  * {
+    font-size: 1.3rem;
+  }
+  nav {
+    font-size: 1.3rem;
+  }
 }
 
 @media (max-width: 990px){
@@ -114,4 +161,30 @@ nav {
   }
 }
 
+.dot {
+  height: 10px;
+  width: 10px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
+  position: absolute;
+  left: 75%;
+  top: 5px;
+  z-index: 5000;
+}
+h3{
+  position: relative;
+  font-size: 10px;
+  left:20%;
+  top:-1px;
+  color: white;
+  font-family: "Roboto Condensed";
+}
+.format{
+  width: 3em;
+  height: 3em;
+  object-fit: cover;
+  float: left;
+  position: relative;
+}
 </style>
