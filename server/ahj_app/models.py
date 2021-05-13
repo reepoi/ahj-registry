@@ -352,14 +352,12 @@ class UserManager(BaseUserManager):
         User = User.objects.create()
         # save to authuser
         user = self.model(email=email, **extra_fields)
-        #user.set_password(password)
 
     def create_user(self, **extra_fields):
         Email = extra_fields.get('Email', '')
         Username = extra_fields.get('Username', '')
         password = extra_fields.get('password', '')
         ContactID = Contact.objects.create(Email=Email, AddressID=Address.objects.create())
-
         user = self.model(
             Email=self.normalize_email(Email),
             ContactID=ContactID,
@@ -367,7 +365,11 @@ class UserManager(BaseUserManager):
             SignUpDate=datetime.date.today(),
         )
         user.set_password(password)
-        user.save(using=self._db)
+        try:
+            user.save(using=self._db)
+        except Exception as e:
+            print(e)
+        print('saved')
         return user
 
     def create_superuser(self, **extra_fields):
@@ -390,7 +392,8 @@ class User(AbstractBaseUser):
     PersonalBio = models.CharField(db_column='PersonalBio', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=255, blank=True, null=True)
     CompanyAffiliation = models.CharField(db_column='CompanyAffiliation', max_length=255, blank=True)
-    Photo = models.CharField(db_column='Photo', max_length=255, blank=True, null=True)
+    Photo = models.CharField(db_column='Photo', max_length=255,
+                             null=False, default=settings.DEFAULT_USER_IMG)
     IsPeerReviewer = models.IntegerField(db_column='IsPeerReviewer', null=True, default=False)
     NumReviewsDone = models.IntegerField(db_column='NumReviewsDone', default=0)
     AcceptedEdits = models.IntegerField(db_column='NumAcceptedEdits', default=0)

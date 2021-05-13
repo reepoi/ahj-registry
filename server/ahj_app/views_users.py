@@ -13,6 +13,7 @@ from django.conf import settings
 from .authentication import WebpageTokenAuth
 from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, WebpageToken
 from .serializers import UserSerializer, ContactSerializer, SubscribedChannelsSerializer
+from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
 
 import base64
 from filetype import guess_extension
@@ -61,7 +62,26 @@ def find_user(username):
     return user
 
 
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
+class RegisterUser(UserViewSet):
+    pass
+
+
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
+class LoginUser(TokenCreateView):
+    pass
+
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
+class LogoutUser(TokenDestroyView):
+    pass
+
+
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def get_active_user(request, authtoken):
     """
     Endpoint for getting the active user
@@ -78,6 +98,8 @@ def get_active_user(request, authtoken):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def get_single_user(request, username):
     """
     Function view for getting a single user with the specified UserID = id
@@ -94,6 +116,8 @@ def get_single_user(request, username):
 
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def user_update(request, username):
     """
     Update the user profile associated with `username` with all of the
@@ -144,6 +168,8 @@ def create_api_token(request):
 
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def set_ahj_maintainer(request):
     """
     View to assign a user as a data maintainer of an AHJ
@@ -165,6 +191,8 @@ def set_ahj_maintainer(request):
 
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def remove_ahj_maintainer(request):
     """
     View to revoke a user as a data maintainer of an AHJ

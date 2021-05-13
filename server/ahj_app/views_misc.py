@@ -12,6 +12,8 @@ import datetime
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def form_validator(request):
     """
     API call to validate the form information when a new user signs up
@@ -24,6 +26,8 @@ def form_validator(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def user_comments(request):
     """
     Endpoint to get all the comments made by a specific user.
@@ -34,6 +38,8 @@ def user_comments(request):
 
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def comment_submit(request):
     """
     Endpoint to submit a new user comment.
@@ -51,6 +57,8 @@ def comment_submit(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def user_edits(request):
     """
     Endpoint to get all edits made by the user with `UserID`.

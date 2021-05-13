@@ -28,6 +28,17 @@
                     <div class="error" v-if="!$v.formFirstNameCapital.required || !$v.formLastNameCapital.required">First and Last name are required.</div>
                 </div>
                 <div class="form-spacing">
+                    <label class="form-label">Username</label>
+                    <div class='spinner-row'>
+                        <b-spinner class="spinner" variant="secondary" v-if="usernameCheckPending"></b-spinner>
+                        <b-form-input size="lg" class="form-input" type="text" placeholder="Username" required v-model="FormUsername" v-on:input="CheckUsernameUnique" :state="($v.FormUsername.$dirty && !usernameCheckPending) ? usernameIsUnique && !$v.FormUsername.$error : null" alt="Username"></b-form-input>
+                    </div>
+                </div>
+                <div v-if="$v.FormUsername.$dirty">
+                    <div class="error" v-if="!$v.FormUsername.required">Username is required.</div>
+                    <div class="error" v-if="!this.usernameIsUnique && !this.usernameCheckPending">Username is already taken.</div> 
+                </div>
+                <div class="form-spacing">
                     <label>Work Phone</label>
                     <b-form-input size="lg" class="form__input" type="text" placeholder="Work Phone" :state="$v.WorkPhone.$dirty ? !$v.WorkPhone.$error : null" v-model="WorkPhone" alt="Work Phone"></b-form-input>
                 </div>
@@ -58,7 +69,7 @@
                     <label>Company Affiliation</label>
                     <b-form-input size="lg" class="form__input" type="text" placeholder="Company Affiliation" required v-model="userInfo.CompanyAffiliation" alt="CompanyAffiliation"></b-form-input>
                 </div>
-                <b-button id="edit-profile-button" @click="UpdateProfile" :disabled="this.SubmitStatus === 'PENDING'" block pill variant="primary">
+                <b-button id="edit-profile-button" @click="UpdateProfile" :disabled="this.SubmitStatus === 'PENDING' || usernameCheckPending || !this.usernameIsUnique" block pill variant="primary">
                     Update Profile
                 </b-button>
                 <h4 class="api-status-text" v-if="this.SubmitStatus === 'PENDING'"> Updating profile... </h4>
@@ -100,6 +111,14 @@ export default {
                 this.userInfo.LastName = this.CapitalizeFirstLetter(newLastName);
             }
         },
+        FormUsername: {
+            get: function () {
+                    return this.userInfo.Username;
+                },
+            set: function (newUsername) {
+                this.userInfo.Username = newUsername;
+            }
+        },
         WorkPhone: {
             get: function() {
                 return this.userInfo.WorkPhone;
@@ -110,7 +129,7 @@ export default {
         },
         UserData() {
             return this.$store.getters.currentUserInfo;
-        }
+        },
     },
     data() {
         return {
@@ -124,12 +143,15 @@ export default {
                 CompanyAffiliation: null,
                 IsPeerReviewer: 0,
                 WorkPhone: null,
-                PreferredContactMethod: null
+                PreferredContactMethod: null,
+                Username: null,
             },
-            Username: null,
+            OriginalUsername: null,
             Photo: null,
             SubmitStatus: '',
-            profileInfoLoaded: false
+            profileInfoLoaded: false,
+            usernameIsUnique: true,
+            usernameCheckPending: false
         }
     },
     methods: {
@@ -146,7 +168,7 @@ export default {
                         that.userInfo[key] = StoreProfileData['ContactID'][key].Value;
                 });
                 this.Photo = StoreProfileData['Photo'];
-                this.Username = StoreProfileData['Username'];
+                this.OriginalUsername = StoreProfileData['Username'];
             }
         },
         // Query the database with the new data inputted into the form.
@@ -155,7 +177,7 @@ export default {
             // make it so that if any validations fail, then we now mark those fields as incorrect.
             this.$v.$touch();
             // only proceed if all validations passed
-            if (!this.$v.$invalid) {
+            if (!this.$v.$invalid && !this.usernameCheckPending && this.usernameIsUnique) {
                 this.SubmitStatus = "PENDING";
                 // Only reformat workphone if there is any input
                 if (this.userInfo.WorkPhone)
@@ -169,14 +191,14 @@ export default {
                     fd.append('Photo', imageToRead.files[0]);
                 for (let userAttr in this.userInfo){
                     // If the user attribute is non-empty, add to FormData object
-                    
                     if (this.userInfo[userAttr])
                         fd.append(`${userAttr}`, this.userInfo[userAttr]);
                 }
-                axios.post(constants.API_ENDPOINT + "user/update/" + this.Username + "/", fd,
+                axios.post(constants.API_ENDPOINT + "user/update/" + this.OriginalUsername + "/", fd,
                     {
                         headers: {
                             'Content-Type': 'multipart/form-data',
+                            Authorization: `${this.$store.getters.authToken}`
                         }
                     }
                 )
@@ -211,7 +233,33 @@ export default {
         UpdatePhoto() {
             let url = URL.createObjectURL(document.getElementById("image-picker").files[0]);
             this.Photo = url;
-        }   
+        },
+        async CheckUsernameAvailable(){
+            let params = { 'Username' : this.userInfo.Username };
+            axios.get(constants.API_ENDPOINT + "auth/form-validator/",{
+                    params,
+                    headers: {
+                        Authorization: `${this.$store.getters.authToken}`
+                    }
+                })
+                .then(response => {
+                    if (this.usernameCheckPending){
+                        this.usernameCheckPending = false;
+                        if (this.userInfo.Username !== this.OriginalUsername){
+                            this.usernameIsUnique = !response.data.Username;
+                        }
+                        else {
+                            this.usernameIsUnique = true;
+                        }
+                        this.$v.FormUsername.$touch();
+                    }
+                }).catch(() => {return 'BACKEND ERROR'});
+        },
+        CheckUsernameUnique(){
+            this.usernameCheckPending = true;
+            clearTimeout(this.usernameTimer);
+            this.usernameTimer = setTimeout(this.CheckUsernameAvailable, 1000);
+        },
     },
   mounted() {
     // Get user's info if the store isn't already currently fetching it (which happens on app reload). 
@@ -232,6 +280,9 @@ export default {
         },
         formLastNameCapital: {
             required
+        },
+        FormUsername: {
+            required,
         },
         WorkPhone: {
             PhoneFormat
@@ -328,6 +379,24 @@ label {
 
 #image-picker {
     margin-left: 0.5em;
+}
+
+.spinner {
+    position: absolute;
+    left: 95%;
+    top: 14px;
+    width: 1.5em; 
+    height: 1.5em;
+}
+
+.spinner-row {
+    position: relative;
+}
+
+@media (max-width: 1300px){
+    .spinner {
+        left: 92%;
+    }
 }
 
 @media (max-width: 650px){

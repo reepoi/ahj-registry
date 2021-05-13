@@ -48,6 +48,8 @@ def webpage_ahj_list(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def get_single_ahj(request):
     """
     Endpoint to get a single ahj given an AHJPK

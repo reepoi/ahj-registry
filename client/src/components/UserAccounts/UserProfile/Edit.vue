@@ -64,6 +64,9 @@ export default {
                 {
                   params: {
                     'AHJPK': AHJPK
+                  },
+                  headers: {
+                    Authorization: `${this.$store.getters.authToken}`
                   }
                 })
                 .then( (response) => {

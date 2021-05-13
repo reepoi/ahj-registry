@@ -1,13 +1,17 @@
 from django.db import connection
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
+from .authentication import WebpageTokenAuth
 from .models import Polygon
 from .serializers import DataVisAHJPolygonInfoSerializer, PolygonSerializer
 from .utils import simple_sanitize, dictfetchall
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def data_map(request):
     """
     View to return statistics about ahjs across the country
@@ -45,6 +49,8 @@ def data_map(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def data_map_get_polygon(request):
     """
     Returns a polygon in GeoJSON given its ID

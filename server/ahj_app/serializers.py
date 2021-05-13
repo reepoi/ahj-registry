@@ -230,7 +230,7 @@ class UserCreateSerializer(UserCreateSerializer):
     """
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = ('UserID', 'ContactID', 'Username', 'password', 'Email', 'is_staff', 'is_active', 'SignUpDate', 'PersonalBio', 'URL', 'CompanyAffiliation', 'Photo', 'IsPeerReviewer', 'NumReviewsDone', 'CommunityScore', 'SecurityLevel')
+        fields = ('UserID', 'ContactID', 'Username', 'password', 'Email', 'is_staff', 'is_active', 'SignUpDate', 'PersonalBio', 'URL', 'CompanyAffiliation', 'Photo', 'IsPeerReviewer', 'NumReviewsDone', 'CommunityScore', 'APICalls', 'SecurityLevel')
 
 
 class CommentSerializer(serializers.Serializer):

@@ -163,6 +163,10 @@ export default {
                     "Email": this.Email,
                     "password": this.Password,
                     "Username": this.Username
+                }, {
+                    headers: {
+                        'Authorization': `${this.$store.getters.authToken}`
+                    }
                 }).then(() => {
                     this.submitStatus = 'OK';
                     document.getElementById("registration-form").reset();
@@ -174,7 +178,8 @@ export default {
                         },
                         {
                             headers: {
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
+                                'Authorization': `${this.$store.getters.authToken}`
                             }
                         }
                     )
@@ -200,18 +205,30 @@ export default {
         },
         async CheckUsernameAvailable(){
             let params = { 'Username' : this.Username };
-            axios.get(constants.API_ENDPOINT + "auth/form-validator/",{params})
-                        .then(response => {
-                            if (this.usernameCheckPending){
-                                this.usernameCheckPending = false;
-                                this.usernameIsUnique = !response.data.Username;
-                                this.$v.Username.$touch();
-                            }
-                        }).catch(() => {return 'BACKEND ERROR'});
+            axios.get(constants.API_ENDPOINT + "auth/form-validator/",
+                {
+                    params,
+                    headers: {
+                        Authorization: `${this.$store.getters.authToken}`
+                    }
+                })
+                .then(response => {
+                    if (this.usernameCheckPending){
+                        this.usernameCheckPending = false;
+                        this.usernameIsUnique = !response.data.Username;
+                        this.$v.Username.$touch();
+                    }
+                }).catch(() => {return 'BACKEND ERROR'});
         },
         async CheckEmailAvailable(){
             let params = { 'Email' : this.Email };
-            axios.get(constants.API_ENDPOINT + "auth/form-validator/",{ params })
+            axios.get(constants.API_ENDPOINT + "auth/form-validator/",
+                {
+                    params,
+                    headers: {
+                        Authorization: `${this.$store.getters.authToken}`
+                    }
+                })
                         .then(response => {
                             if (this.emailCheckPending){
                                 this.emailCheckPending = false;

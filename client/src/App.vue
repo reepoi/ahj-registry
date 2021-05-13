@@ -50,7 +50,6 @@ export default {
     }
   },
   mounted() {
-    // JSON.parse(localStorage.vuex).authToken
     if (this.$store.getters.loggedIn) {
       this.$store.dispatch('getUserInfo')
     }

@@ -240,10 +240,8 @@ export default {
             axios.get(query, {
                   params: {
                     'UserID': this.ProfileData.UserID
-                  }
-                },
-                {
-                    headers: {
+                  },
+                  headers: {
                         Authorization: `${this.$store.getters.authToken}`
                     }
                 })

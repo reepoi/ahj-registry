@@ -184,7 +184,7 @@ state: {
             axios
                 .get(url, {
                     headers: {
-                        //Authorization: constants.TOKEN_AUTH
+                        Authorization: `${this.getters.authToken}`
                     },
                     cancelToken: new axios.CancelToken(function executor(c) {
                         state.cancelAPICallToken = c;
