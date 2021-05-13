@@ -12,11 +12,9 @@ def test_proc():
         # pass
         print('CALLING DB PROCEDURES')
         apply_edits()
-        # cursor.callproc('EditUpdates')
 
 
 def edits_take_effect():
     with connection.cursor() as cursor:
+        # apply_edits()
         pass
-        # print('edits method in editTasks')
-        # cursor.callproc('EditUpdates')

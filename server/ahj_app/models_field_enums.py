@@ -87,6 +87,7 @@ class AHJLevelCode(models.Model):
     Value = models.CharField(db_column='Value', unique=True, choices=AHJ_LEVEL_CODE_CHOICES, max_length=3)
 
 
+# DocumentSubmissionMethod model is in models.py
 DOCUMENT_SUBMISSION_METHOD_CHOICES = [
     ('Epermitting', 'Epermitting'),
     ('Email', 'Email'),
@@ -95,22 +96,13 @@ DOCUMENT_SUBMISSION_METHOD_CHOICES = [
 ]
 
 
-class DocumentSubmissionMethod(models.Model):
-    DocumentSubmissionMethodID = models.AutoField(db_column='DocumentSubmissionMethodID', primary_key=True)
-    Value = models.CharField(db_column='Value', unique=True, choices=DOCUMENT_SUBMISSION_METHOD_CHOICES, max_length=11)
-
-
+# PermitIssueMethod model is in models.py
 PERMIT_ISSUE_METHOD_CHOICES = [
     ('Epermitting', 'Epermitting'),
     ('Email', 'Email'),
     ('InPerson', 'In Person'),
     ('SolarApp', 'SolarAPP')
 ]
-
-
-class PermitIssueMethod(models.Model):
-    PermitIssueMethodID = models.AutoField(db_column='PermitIssueMethodID', primary_key=True)
-    Value = models.CharField(db_column='Value', unique=True, choices=PERMIT_ISSUE_METHOD_CHOICES, max_length=11)
 
 
 ADDRESS_TYPE_CHOICES = [

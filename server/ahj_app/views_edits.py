@@ -6,15 +6,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import EngineeringReviewRequirement, AHJPermitIssueMethodUse, \
-    AHJDocumentSubmissionMethodUse, FeeStructure, AHJInspection, Contact, AHJContactRepresentative, \
-    AHJInspectionContact, AHJ, Edit, DocumentSubmissionMethod, PermitIssueMethod
+from .models import AHJInspection, AHJContactRepresentative, AHJ, Edit
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
     FeeStructureSerializer, AHJInspectionSerializer
 
 
-def add_edit(edit_dict : dict):
+def add_edit(edit_dict: dict):
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
     edit.DateRequested = datetime.date.today()
@@ -31,20 +29,14 @@ def add_edit(edit_dict : dict):
     return edit
 
 
-def apply_edits():
+def apply_edits():  #TODO: set status of additions false if rejected; translate enum text
     ready_edits = Edit.objects.filter(
         ReviewStatus='A',
         DateEffective=datetime.date.today()
     ).exclude(ApprovedBy=None)
     for edit in ready_edits:
         model = apps.get_model('ahj_app', edit.SourceTable)
-        parent_rel = 'AHJPK' if edit.InspectionID is None else 'InspectionID'
-        search_fields = {
-            model._meta.pk.name: edit.SourceRow
-        }
-        if len(model._meta.unique_together) > 0:
-            search_fields[parent_rel] = getattr(edit, parent_rel)
-        row = model.objects.filter(**search_fields)
+        row = model.objects.filter(**{model._meta.pk.name: edit.SourceRow})
         row.update(**{
             edit.SourceColumn: edit.NewValue
         })
@@ -54,8 +46,8 @@ def apply_edits():
 @api_view(['POST'])
 def edit_review(request):
     try:
-        eid = request.data['EditID'] # required
-        stat = request.data['Status'] # requred
+        eid = request.data['EditID']  # required
+        stat = request.data['Status']  # required
         if stat != 'A' and stat != 'R':
             raise ValueError('Invalid edit status ' + str(status))
         with transaction.atomic():
@@ -65,39 +57,57 @@ def edit_review(request):
             tomorrow = datetime.date.today() + datetime.timedelta(days=1)
             if not edit.DateEffective or edit.DateEffective < tomorrow:
                 edit.DateEffective = tomorrow
-            edit.save() # commit changes
+            edit.save()  # commit changes
             print(eid)
         return Response('Success!', status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
-def create_row(model, obj):  # TODO: Adding DocumentSub/PermitIssue creates a new row
+def create_row(model, obj):
     field_dict = {}
-    child_rows = []
+    rel_one_to_one = []
+    rel_many_to_many = []
     for field, value in obj.items():
         if type(value) is dict:
             """
             NOTE: This assumes the field name matches the name of its model!
             For example, a 'Contact' has the field 'Address', and Address is a model
             """
-            child_rows.append(create_row(apps.get_model('ahj_app', field), value))
+            rel_one_to_one.append(create_row(apps.get_model('ahj_app', field), value))
+        elif type(value) is list:
+            plurals_to_singular = {'Contacts': 'Contact'}
+            if field in plurals_to_singular:
+                field = plurals_to_singular[field]
+            for v in value:
+                rel_many_to_many.append(create_row(apps.get_model('ahj_app', field), v))
         else:
             field_dict[field] = value
     model_fields = model._meta.fields
-    for child in child_rows:
-        found_child_relation = False
+
+    # Establish all one-to-one relations with row
+    for r in rel_one_to_one:
+        found_field = False
         for field in model_fields:
-            if getattr(field, 'remote_field') is not None and field.remote_field.model.__name__ == child.__class__.__name__:
-                found_child_relation = True
-                field_dict[field.name] = child
-        if not found_child_relation:
-            raise ValueError('Model \'{parent_model}\' has no field related to \'{child_model}\''.format(parent_model=model.__name__, child_model=child.__class__.__name__))
-    print(field_dict)
+            if getattr(field, 'remote_field') is not None and field.remote_field.model.__name__ == r.__class__.__name__:
+                found_field = True
+                field_dict[field.name] = r
+        if not found_field:
+            raise ValueError('Model \'{parent_model}\' has no one-to-one relation with \'{rel_model}\''.format(parent_model=model.__name__, rel_model=r.__class__.__name__))
+
     # Could possibly generalize this check to being 'is table for enum values'
     if model.__name__ == 'PermitIssueMethod' or model.__name__ == 'DocumentSubmissionMethod':
-        return model.objects.get(**field_dict)
-    return model.objects.create(**field_dict)
+        row = model.objects.get(**field_dict)
+    else:
+        row = model.objects.create(**field_dict)
+
+    # Establish all many-to-many relations with row
+    for r in rel_many_to_many:
+        rel = r.create_relation_to(row)
+        setattr(rel, r.get_relation_status_field(), True)
+        rel.save()
+
+    return row
 
 def get_serializer(row):
     serializers = {
@@ -113,7 +123,7 @@ def get_serializer(row):
 
 
 @api_view(['POST'])
-def edit_addition(request):  # TODO: prevent adding Address/Location directly? It shouldn't happen
+def edit_addition(request):
     """
     Private front-end endpoint for passing an edit type=Addition request
     """
@@ -130,7 +140,7 @@ def edit_addition(request):  # TODO: prevent adding Address/Location directly? I
                     inspectionid = request.data.get('InspectionID')
                     inspection = None if inspectionid is None else AHJInspection.objects.get(InspectionID=inspectionid)
 
-                    if 'AHJPK' in obj:
+                    if 'AHJPK' in [field.name for field in model._meta.fields]:
                         """
                         The addition is a one-to-many relation to AHJ.
                         For example, FeeStructure and EngineeringReviewRequirement
@@ -146,8 +156,8 @@ def edit_addition(request):  # TODO: prevent adding Address/Location directly? I
                           'SourceTable'  : edit_info_row.__class__.__name__,
                           'SourceColumn' : row.get_relation_status_field(),
                           'SourceRow'    : edit_info_row.pk,
-                          'OldValue'     : False,
-                          'NewValue'     : None,
+                          'OldValue'     : None,
+                          'NewValue'     : True,
                           'EditType'     : 'A' }
                     edit = add_edit(e)
 
@@ -160,7 +170,7 @@ def edit_addition(request):  # TODO: prevent adding Address/Location directly? I
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
-def edit_deletion(request):  # TODO: Make this called for rejecting additions to set their Status field to false
+def edit_deletion(request):
     """
     Private front-end endpoint for passing an edit type=Deletion request
     """
@@ -185,13 +195,13 @@ def edit_deletion(request):  # TODO: Make this called for rejecting additions to
                           'SourceTable'  : edit_info_row.__class__.__name__,
                           'SourceColumn' : row.get_relation_status_field(),
                           'SourceRow'    : edit_info_row.pk,
-                          'OldValue'     : getattr(edit_info_row, row.get_relation_status_field()),  # None or True
+                          'OldValue'     : True,
                           'NewValue'     : False,
                           'EditType'     : 'D' }
                     edit = add_edit(e)
 
                     if source_table == 'Contact':
-                        response_data.append(ContactSerializer(row).data)  # TODO: Why need contact?
+                        response_data.append(ContactSerializer(row).data)
                     else:
                         response_data.append(EditSerializer(edit).data)
         return Response(response_data, status=response_status)

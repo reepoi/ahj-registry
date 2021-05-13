@@ -285,10 +285,9 @@ class Edit(models.Model):
     NewValue = models.CharField(db_column='NewValue', max_length=255, blank=True, null=True)
     DateRequested = models.DateField(db_column='DateRequested')
     DateEffective = models.DateField(db_column='DateEffective', blank=True, null=True)
-    ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1)
     #Edit type: A = addition, D = deletion, U = update
-    EditType = models.CharField(db_column='EditType',max_length=1,default='U')
-    DataSourceComment = models.CharField(db_column='DataSourceComment',max_length=255)
+    EditType = models.CharField(db_column='EditType', max_length=1, default='U')
+    DataSourceComment = models.CharField(db_column='DataSourceComment', max_length=255)
 
     class Meta:
         managed = True
@@ -318,13 +317,57 @@ class EngineeringReviewRequirement(models.Model):
     RequirementLevel = models.ForeignKey('RequirementLevel', on_delete=models.DO_NOTHING, db_column='RequirementLevelID', null=True)
     RequirementNotes = models.CharField(db_column='RequirementNotes', max_length=255, blank=True)
     StampType = models.ForeignKey('StampType', on_delete=models.DO_NOTHING, db_column='StampTypeID', null=True)
-    EngineeringReviewRequirementStatus = models.IntegerField(db_column='EngineeringReviewRequirementStatus')
+    EngineeringReviewRequirementStatus = models.BooleanField(db_column='EngineeringReviewRequirementStatus', null=True)
 
     class Meta:
         managed = True
         db_table = 'EngineeringReviewRequirement'
 
     SERIALIZER_EXCLUDED_FIELDS = ['EngineeringReviewRequirementID', 'EngineeringReviewRequirementStatus']
+
+    def create_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            self.EngineeringReviewRequirementStatus = None
+            return self
+        else:
+            raise ValueError('\'EngineeringReviewRequirement\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        if to.__class__.__name__ == 'AHJ':
+            return self
+        else:
+            raise ValueError('\'EngineeringReviewRequirement\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'EngineeringReviewRequirementStatus'
+
+class DocumentSubmissionMethod(models.Model):
+    DocumentSubmissionMethodID = models.AutoField(db_column='DocumentSubmissionMethodID', primary_key=True)
+    Value = models.CharField(db_column='Value', choices=DOCUMENT_SUBMISSION_METHOD_CHOICES, unique=True, max_length=11)
+
+    def create_relation_to(self, to):
+        status_fields = {
+            'DocumentSubmissionMethodID': self,
+            'MethodStatus': None
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJDocumentSubmissionMethodUse.objects.create(**status_fields)
+        else:
+            raise ValueError('\'DocumentSubmissionMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        status_fields = {
+            'DocumentSubmissionMethodID': self,
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJDocumentSubmissionMethodUse.objects.get(**status_fields)
+        else:
+            raise ValueError('\'DocumentSubmissionMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'MethodStatus'
 
 class AHJDocumentSubmissionMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
@@ -341,6 +384,37 @@ class AHJDocumentSubmissionMethodUse(models.Model):
 
     def get_value(self):
         return self.DocumentSubmissionMethodID.Value
+
+    def get_relation_status_field(self):
+        return 'MethodStatus'
+
+class PermitIssueMethod(models.Model):
+    PermitIssueMethodID = models.AutoField(db_column='PermitIssueMethodID', primary_key=True)
+    Value = models.CharField(db_column='Value', choices=PERMIT_ISSUE_METHOD_CHOICES, unique=True, max_length=11)
+
+    def create_relation_to(self, to):
+        status_fields = {
+            'PermitIssueMethodID': self,
+            'MethodStatus': None
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJPermitIssueMethodUse.objects.create(**status_fields)
+        else:
+            raise ValueError('\'PermitIssueMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_to(self, to):
+        status_fields = {
+            'PermitIssueMethodID': self,
+        }
+        if to.__class__.__name__ == 'AHJ':
+            status_fields['AHJPK'] = to
+            return AHJPermitIssueMethodUse.objects.get(**status_fields)
+        else:
+            raise ValueError('\'PermitIssueMethod\' cannot be related to \'{to_model}\''.format(to_model=to.__class__.__name__))
+
+    def get_relation_status_field(self):
+        return 'MethodStatus'
 
 class AHJPermitIssueMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
