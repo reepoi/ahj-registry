@@ -7,7 +7,8 @@ from django.contrib.gis.utils import LayerMapping
 from .models import *
 from .models_field_enums import *
 
-BASE_DIR_SHP = os.path.expanduser('~/Downloads/2020CensusShapefiles/')
+BASE_DIR = os.path.expanduser('~/AHJRegistryData/')
+BASE_DIR_SHP = BASE_DIR + '2020CensusPolygons/'
 
 
 state_mapping = {
@@ -58,6 +59,7 @@ city_mapping = {
     'INTPTLON': 'INTPTLON',
     'mpoly': 'MULTIPOLYGON'
 }
+
 
 def upload_all_shapefile_types():
     upload_state_shapefiles()
@@ -180,7 +182,7 @@ def translate_countysubdivisions():
         i += 1
 
 
-ENUM_FIELDS = (
+ENUM_FIELDS = {
     'BuildingCode',
     'ElectricCode',
     'FireCode',
@@ -199,7 +201,7 @@ ENUM_FIELDS = (
     'StampType',
     'FeeStructureType',
     'InspectionType'
-)
+}
 
 ENUM_PLURALS_TRANSLATE = {
     'DocumentSubmissionMethods': 'DocumentSubmissionMethod',
@@ -319,21 +321,7 @@ def enum_values_to_primary_key(ahj_dict):
     return ahj_dict
 
 
-def create_admin_user():
-    user = {}
-    user['Username'] = 'admin'
-    user['password'] = 'zyuNcylzH3Z3uPJGh4ei'
-    user['Email'] = ''
-    user['SignUpDate'] = datetime.date.today()
-    user['PersonalBio'] = ''
-    user['CompanyAffiliation'] = 'sunspec'
-    # user['NumReviewsDone'] = 0
-    # user['NumAcceptedEdits'] = 0
-    user['CommunityScore'] = 0
-    user['SecurityLevel'] = 0
-    return User.objects.create(**user)
-
-def create_edit_objects(ahj_obj,field_string,userID,DSC,newVal):
+def create_edit_objects(ahj_obj, field_string, userID, DSC, newVal):
     edit_dict = {}
     edit_dict['AHJPK'] = ahj_obj
     edit_dict['SourceTable'] = 'AHJ'
@@ -351,53 +339,84 @@ def create_edit_objects(ahj_obj,field_string,userID,DSC,newVal):
     return Edit.objects.create(**edit_dict)
 
 
+def create_admin_user():
+    admin_username = settings.ADMIN_ACCOUNT_USERNAME
+    admin_email = settings.ADMIN_ACCOUNT_EMAIL
+    admin_password = settings.ADMIN_ACCOUNT_PASSWORD
+    admin = User.objects.create_user(
+        Username=admin_username,
+        Email=admin_email,
+        password=admin_password
+    )
+    admin.is_active = True
+    admin.is_staff = True
+    admin.save()
+    webpage_api_token = WebpageToken.objects.create(user=admin)
+    api_token = APIToken.objects.create(user=admin)
+    print(f'WEBPAGE API TOKEN: {webpage_api_token}')
+    print(f'API TOKEN: {api_token}')
+
+
 def load_ahj_data_csv():
-    user = create_admin_user()
-    with open(BASE_DIR_SHP + 'AHJRegistryData/ahjregistrydata.csv') as file:
+    user = User.objects.get(Email=settings.ADMIN_ACCOUNT_EMAIL)
+    with open(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         i = 1
         for row in reader:
             ahj_dict = build_field_val_dict(row)
             enum_values_to_primary_key(ahj_dict)
-            contacts_dict = ahj_dict.pop('Contacts', [])
-            contacts = []
-            for contact_dict in contacts_dict:
-                contacts.append(create_contact(contact_dict))
+
             address_dict = ahj_dict.pop('Address', None)
             if address_dict is not None:
                 ahj_dict['AddressID'] = create_address(address_dict)
             else:
                 ahj_dict['AddressID'] = Address.objects.create()
+
             dsc = ahj_dict.pop('DataSourceComments', '')
             dsms = ahj_dict.pop('DocumentSubmissionMethods', [])
             pims = ahj_dict.pop('PermitIssueMethods', [])
             errs = ahj_dict.pop('EngineeringReviewRequirements', [])
+            contacts_dict = ahj_dict.pop('Contacts', [])
+
             ahj = AHJ.objects.create(**ahj_dict)
-            for contact in contacts:
-                AHJContactRepresentative.objects.create(AHJPK=ahj, ContactID=contact, ContactStatus=1)
+
+            for contact_dict in contacts_dict:
+                contact_dict['ParentTable'] = 'AHJ'
+                contact_dict['ParentID'] = ahj.AHJPK
+                contact_dict['ContactStatus'] = True
+                create_contact(contact_dict)
+
             for dsm in dsms:
                 AHJDocumentSubmissionMethodUse.objects.create(AHJPK=ahj, DocumentSubmissionMethodID=dsm, MethodStatus=1)
+
             for pim in pims:
                 AHJPermitIssueMethodUse.objects.create(AHJPK=ahj, PermitIssueMethodID=pim, MethodStatus=1)
+
             for err in errs:
                 err['AHJPK'] = ahj
                 err['EngineeringReviewRequirementStatus'] = 1
                 EngineeringReviewRequirement.objects.create(**err)
-            if not ahj.BuildingCode is None:
+
+            if ahj.BuildingCode is not None:
                 bcVal = BuildingCode.objects.get(BuildingCodeID=ahj.BuildingCode.BuildingCodeID).Value
-                create_edit_objects(ahj,'BuildingCodeID',user,dsc,bcVal)
-            if not ahj.FireCode is None:
+                create_edit_objects(ahj, 'BuildingCodeID', user, dsc, bcVal)
+
+            if ahj.FireCode is not None:
                 fcVal = FireCode.objects.get(FireCodeID=ahj.FireCode.FireCodeID).Value
-                create_edit_objects(ahj,'FireCodeID',user,dsc,fcVal)
-            if not ahj.ResidentialCode is None:
+                create_edit_objects(ahj, 'FireCodeID', user, dsc, fcVal)
+
+            if ahj.ResidentialCode is not None:
                 rcVal = ResidentialCode.objects.get(ResidentialCodeID=ahj.ResidentialCode.ResidentialCodeID).Value
-                create_edit_objects(ahj,'ResidentialCodeID',user,dsc,rcVal)
-            if not ahj.ElectricCode is None:
+                create_edit_objects(ahj, 'ResidentialCodeID', user, dsc, rcVal)
+
+            if ahj.ElectricCode is not None:
                 ecVal = ElectricCode.objects.get(ElectricCodeID=ahj.ElectricCode.ElectricCodeID).Value
-                create_edit_objects(ahj,'ElectricCodeID',user,dsc,ecVal)
-            if not ahj.WindCode is None:
+                create_edit_objects(ahj, 'ElectricCodeID', user, dsc, ecVal)
+
+            if ahj.WindCode is not None:
                 wcVal = WindCode.objects.get(WindCodeID=ahj.WindCode.WindCodeID).Value
-                create_edit_objects(ahj,'WindCodeID',user,dsc,wcVal)
+                create_edit_objects(ahj, 'WindCodeID', user, dsc, wcVal)
+
             print('AHJ {0}: {1}'.format(ahj.AHJID, i))
             i += 1
 
@@ -546,8 +565,8 @@ def binary_search(arr, x):
     return -1
 
 
-BASE_DIR_USER = os.path.expanduser('~/Downloads/2020CensusShapefiles/UserData/')
-def upload_user_data():
+BASE_DIR_USER = BASE_DIR + 'UserData/'
+def load_user_data_csv():
     users = {}
 
     # Get user information
