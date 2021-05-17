@@ -276,7 +276,6 @@ class EditSerializer(serializers.Serializer):
     SourceColumn = serializers.CharField()
     SourceRow = serializers.IntegerField()
     ReviewStatus = serializers.CharField()
-    Comments = serializers.CharField(allow_blank=True)
     OldValue = serializers.CharField(read_only=True)
     NewValue = serializers.CharField()
     DateRequested = serializers.DateField(read_only=True)

@@ -70,7 +70,8 @@ export default {
         return {
             AddCont: {
                 AHJPK: this.AHJPK,
-                InspectionID: null,
+                ParentTable: "AHJInspection",
+                ParentID: null,
                 SourceTable: "Contact",
                 Value: []
             },
@@ -99,8 +100,9 @@ export default {
         }
     },
     mounted(){
-        this.AddCont.InspectionID = this.data.InspectionID.Value;
+        this.AddCont.ParentID = this.data.InspectionID.Value;
         this.ID = this.data.InspectionID.Value;
+        this.AddCont.AHJPK = this.$parent.AHJInfo.AHJPK.Value;
         let k = Object.keys(this.Edits);
         for(let i = 0; i < k.length; i++){
             if(this.data[k[i]]){

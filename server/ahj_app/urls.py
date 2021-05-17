@@ -26,7 +26,5 @@ urlpatterns = [
     path('data-vis/data-map/polygon/',    views_datavis.data_map_get_polygon,    name='data-map'),
     path('auth/form-validator/',          views_misc.form_validator,             name='form-validator'),
     path('auth/',                         include('djoser.urls')),
-    path('auth/',                         include('djoser.urls.authtoken')),
-    path('edit-conts/',                   views_edits.unconfirmed_conts,         name='unconfirmed-conts'),
-    path('edit-insps/',                   views_edits.unconfirmed_insps,         name='unconfirmed-insps')
+    path('auth/',                         include('djoser.urls.authtoken'))
 ]
