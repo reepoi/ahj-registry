@@ -248,6 +248,8 @@ def build_field_val_dict(row):
         field = k[:k.find('.')]
         if k == '' or v == '' or field in done_keys:  # no value or already gathered to create a dict
             continue
+        elif field == 'AHJLevelCode':
+            result[field] = '0' + v if len(v) < 3 else v 
         elif is_zero_depth_field(k):  # (key, value or array of values) pair
             square_loc = field.find('[')
             if square_loc >= 0:
@@ -358,6 +360,7 @@ def create_admin_user():
 
 
 def load_ahj_data_csv():
+    create_admin_user()
     user = User.objects.get(Email=settings.ADMIN_ACCOUNT_EMAIL)
     with open(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
