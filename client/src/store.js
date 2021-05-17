@@ -253,8 +253,8 @@ state: {
         },
     },
     actions: {
-        async getUserInfo({state, getters, dispatch, commit}){ // get currently logged in user's info by their webpage auth token
-            let query = constants.API_ENDPOINT + "user/active/" + state.authToken + "/";
+        async getUserInfo({getters, dispatch, commit}){ // get currently logged in user's info by their webpage auth token
+            let query = constants.API_ENDPOINT + "user/active/";
             await axios.get(query, {
                 headers: {
                     Authorization: getters.authToken

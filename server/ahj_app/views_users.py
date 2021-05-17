@@ -53,15 +53,6 @@ def user_with_img(user):
     }
 
 
-def find_user(username):
-    """
-    Function to get the user given a username
-    """
-    user = User.objects.get(UserID=token.username)
-    user = user_with_img(user)
-    return user
-
-
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
 class RegisterUser(UserViewSet):
@@ -82,12 +73,14 @@ class LogoutUser(TokenDestroyView):
 @api_view(['GET'])
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
-def get_active_user(request, authtoken):
+def get_active_user(request):
     """
     Endpoint for getting the active user
     through the authtoken
     """
     try:
+        # Get authtoken from request header
+        authtoken = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
         token = WebpageToken.objects.get(key=authtoken)
         user = User.objects.get(UserID=token.user_id)
         user = user_with_img(user)
@@ -124,10 +117,16 @@ def user_update(request, username):
     { Key : Value } pairs send in the POST data.
     """
     fp = ''  # to help with error correction
+    photo_obj = None
+    changeableFields = ['Username', 'FirstName', 'LastName', 'PersonalBio', 'URL', 'CompanyAffiliation', 'WorkPhone', 'PreferredContactMethod', 'Title']
     try:
         user = User.objects.get(Username=username)
+        token = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
+        receivedToken = WebpageToken.objects.get(key=token)
+        # Check if the user requesting the user update is updating their own account
+        if (receivedToken.user.UserID != user.UserID):
+            raise Exception("Provided token credentials do not match user being updated.")
         contact = user.ContactID
-        print(request.data)
         # request.data is an immutable QueryDict, so we must make a copy
         data = request.data.copy()
         photo_obj = data.pop('Photo', None)
@@ -141,14 +140,17 @@ def user_update(request, username):
             data['Photo'] = fp  # the filepath needs to get updated in the db
         with transaction.atomic():
             for (key, value) in data.items():
-                setattr(user, key, value)
-                setattr(contact, key, value)
+                if key in changeableFields:
+                    setattr(user, key, value)
+                    setattr(contact, key, value)
+                else:
+                    raise Exception("The "+ key +" field cannot be changed.")
             user.save()
             contact.save()
         return Response('Success', status=status.HTTP_200_OK)
     except Exception as e:
         print('ERROR USER UPDATE : ', str(e))
-        if os.path.exists(settings.MEDIA_ROOT + fp):
+        if photo_obj is not None and os.path.exists(settings.MEDIA_ROOT + fp):
             os.remove(settings.MEDIA_ROOT + fp)
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 

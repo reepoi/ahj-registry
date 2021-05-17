@@ -13,7 +13,7 @@ export default {
   created() {
     axios.post(constants.API_ENDPOINT + "auth/token/logout/", {},{
       headers: {
-        Authorization: this.$store.getters.authToken,
+        Authorization: `Token ${this.$store.state.authToken}`,
       }
     }).then(() => {
       this.$store.commit("changeAuthToken", "");
