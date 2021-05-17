@@ -3,10 +3,12 @@ import datetime
 from django.apps import apps
 from django.db import transaction
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import AHJInspection, AHJ, Edit
+from .authentication import WebpageTokenAuth
+from .models import AHJ, Edit
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
     FeeStructureSerializer, AHJInspectionSerializer
@@ -57,6 +59,8 @@ def apply_edits():
 ####################
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def edit_review(request):
     try:
         eid = request.data['EditID']  # required
@@ -140,6 +144,8 @@ def get_serializer(row):
 
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def edit_addition(request):
     """
     Private front-end endpoint for passing an edit type=Addition request
@@ -186,6 +192,8 @@ def edit_addition(request):
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def edit_deletion(request):
     """
     Private front-end endpoint for passing an edit type=Deletion request
@@ -219,6 +227,8 @@ def edit_deletion(request):
 
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def edit_update(request):
     """
     Private front-end endpoint for passing an edit type=Addition request
@@ -248,34 +258,21 @@ def edit_update(request):
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def edit_list(request):
-    edits = Edit.objects.all()
     # Filtering by SourceTable, SourceRow, and SourceColumn
     source_row = request.query_params.get('AHJPK', None)
-    if source_row is not None:
-        edits = edits.filter(AHJPK=source_row)
+    if source_row is None:
+        return Response('An AHJPK must be provided', status=status.HTTP_400_BAD_REQUEST)
+    edits = Edit.objects.filter(AHJPK=source_row)
     edits = EditSerializer(edits, many=True).data
     return Response(edits, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def user_edits(request):
     UserID = request.query_params.get('UserID', None)
     edits = Edit.objects.filter(ChangedBy=UserID)
     return Response(EditSerializer(edits, many=True).data, status=status.HTTP_200_OK)
-
-@api_view(['GET'])
-def unconfirmed_conts(request):
-    source_row = request.query_params.get('SourceRow')
-    # conts = AHJContactRepresentative.objects.filter(AHJPK=int(source_row), ContactStatus=0)
-    conts = []
-    return ContactSerializer(conts, many=True).data
-
-@api_view(['GET'])
-def unconfirmed_insps(request):
-    source_row = request.query_params.get('SourceRow')
-    insps = AHJInspection.objects.filter(AHJPK=int(source_row), InspectionStatus=0)
-    return AHJInspectionSerializer(insps, many=True).data
-
-@api_view(['GET'])
-def unconfirmed_err(request):
-    return

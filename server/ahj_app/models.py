@@ -225,14 +225,13 @@ class Edit(models.Model):
     SourceRow = models.IntegerField(db_column='SourceRow')
     # status is P = pending, R = rejected, A = approved
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1, default='P')
-    Comments = models.CharField(db_column='Comments', max_length=255, blank=True)
     OldValue = models.CharField(db_column='OldValue', max_length=255, blank=True, null=True)
     NewValue = models.CharField(db_column='NewValue', max_length=255, blank=True, null=True)
     DateRequested = models.DateField(db_column='DateRequested')
     DateEffective = models.DateField(db_column='DateEffective', blank=True, null=True)
     #Edit type: A = addition, D = deletion, U = update
     EditType = models.CharField(db_column='EditType', max_length=1, default='U')
-    DataSourceComment = models.CharField(db_column='DataSourceComment', max_length=255)
+    DataSourceComment = models.CharField(db_column='DataSourceComment', max_length=255, blank=True)
 
     class Meta:
         managed = True

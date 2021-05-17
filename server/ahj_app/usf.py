@@ -322,12 +322,15 @@ def enum_values_to_primary_key(ahj_dict):
 
 
 def create_edit_objects(ahj_obj, field_string, userID, DSC, newVal):
+    """
+    Currently only creates edits for string fields on an AHJ.
+    This is a helper for adding DataSourceComments.
+    """
     edit_dict = {}
     edit_dict['AHJPK'] = ahj_obj
     edit_dict['SourceTable'] = 'AHJ'
     edit_dict['SourceColumn'] = field_string
     edit_dict['SourceRow'] = ahj_obj.AHJPK
-    edit_dict['Comments'] = ''
     edit_dict['OldValue'] = ''
     edit_dict['NewValue'] = newVal
     edit_dict['DateRequested'] = datetime.date.today() - datetime.timedelta(days=1)
@@ -397,25 +400,26 @@ def load_ahj_data_csv():
                 err['EngineeringReviewRequirementStatus'] = 1
                 EngineeringReviewRequirement.objects.create(**err)
 
-            if ahj.BuildingCode is not None:
-                bcVal = BuildingCode.objects.get(BuildingCodeID=ahj.BuildingCode.BuildingCodeID).Value
-                create_edit_objects(ahj, 'BuildingCodeID', user, dsc, bcVal)
+            if dsc != '':
+                if ahj.BuildingCode is not None:
+                    bcVal = BuildingCode.objects.get(BuildingCodeID=ahj.BuildingCode.BuildingCodeID).Value
+                    create_edit_objects(ahj, 'BuildingCode', user, dsc, bcVal)
 
-            if ahj.FireCode is not None:
-                fcVal = FireCode.objects.get(FireCodeID=ahj.FireCode.FireCodeID).Value
-                create_edit_objects(ahj, 'FireCodeID', user, dsc, fcVal)
+                if ahj.FireCode is not None:
+                    fcVal = FireCode.objects.get(FireCodeID=ahj.FireCode.FireCodeID).Value
+                    create_edit_objects(ahj, 'FireCode', user, dsc, fcVal)
 
-            if ahj.ResidentialCode is not None:
-                rcVal = ResidentialCode.objects.get(ResidentialCodeID=ahj.ResidentialCode.ResidentialCodeID).Value
-                create_edit_objects(ahj, 'ResidentialCodeID', user, dsc, rcVal)
+                if ahj.ResidentialCode is not None:
+                    rcVal = ResidentialCode.objects.get(ResidentialCodeID=ahj.ResidentialCode.ResidentialCodeID).Value
+                    create_edit_objects(ahj, 'ResidentialCode', user, dsc, rcVal)
 
-            if ahj.ElectricCode is not None:
-                ecVal = ElectricCode.objects.get(ElectricCodeID=ahj.ElectricCode.ElectricCodeID).Value
-                create_edit_objects(ahj, 'ElectricCodeID', user, dsc, ecVal)
+                if ahj.ElectricCode is not None:
+                    ecVal = ElectricCode.objects.get(ElectricCodeID=ahj.ElectricCode.ElectricCodeID).Value
+                    create_edit_objects(ahj, 'ElectricCode', user, dsc, ecVal)
 
-            if ahj.WindCode is not None:
-                wcVal = WindCode.objects.get(WindCodeID=ahj.WindCode.WindCodeID).Value
-                create_edit_objects(ahj, 'WindCodeID', user, dsc, wcVal)
+                if ahj.WindCode is not None:
+                    wcVal = WindCode.objects.get(WindCodeID=ahj.WindCode.WindCodeID).Value
+                    create_edit_objects(ahj, 'WindCode', user, dsc, wcVal)
 
             print('AHJ {0}: {1}'.format(ahj.AHJID, i))
             i += 1
