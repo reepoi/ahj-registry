@@ -4,7 +4,6 @@ import Router from "vue-router";
 import About from "./views/LandingPage.vue"
 import AHJSearchPage from "./views/AHJSearchPage.vue";
 import DataVis from "./views/DataVis.vue";
-import LeaderboardPage from "./views/LeaderboardPage.vue";
 import UserProfile from "./views/UserProfile";
 import UserSettings from "./views/UserAccounts/UserSettings";
 import AHJPage from "./views/AHJPage.vue";
@@ -39,11 +38,6 @@ let router = new Router({
         path: "/view-ahj/:AHJID",
         name: "view-ahj",
         component: AHJPage
-    },
-    {
-      path: "/leaderboard",
-      name: "leaderboard",
-      component: LeaderboardPage
     },
     {
       path: "/user/:username",
