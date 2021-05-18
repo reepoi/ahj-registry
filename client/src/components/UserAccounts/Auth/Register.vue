@@ -215,7 +215,7 @@ export default {
                 .then(response => {
                     if (this.usernameCheckPending){
                         this.usernameCheckPending = false;
-                        this.usernameIsUnique = !response.data.Username;
+                        this.usernameIsUnique = !response.data.UsernameExists;
                         this.$v.Username.$touch();
                     }
                 }).catch(() => {return 'BACKEND ERROR'});
@@ -232,7 +232,7 @@ export default {
                         .then(response => {
                             if (this.emailCheckPending){
                                 this.emailCheckPending = false;
-                                this.emailIsUnique = !response.data.Email;
+                                this.emailIsUnique = !response.data.EmailExists;
                                 this.$v.Email.$touch();
                             }
                         }).catch(() => {return 'BACKEND ERROR'});

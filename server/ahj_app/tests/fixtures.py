@@ -21,7 +21,7 @@ def create_user(db, django_user_model):
     def make_user(**kwargs):
         kwargs['password'] = 'strong-test-pass'
         # If any required field missing, generate it here
-        if 'Username' not in kwargs:
+        if 'Username' not in kwargs or kwargs['Username'] is None:
             kwargs['Username'] = str(uuid.uuid4())
         if 'Email' not in kwargs or kwargs['Email'] is None:
             kwargs['Email'] = random_char(5) + '@gmail.com'

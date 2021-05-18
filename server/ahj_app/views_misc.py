@@ -22,7 +22,7 @@ def form_validator(request):
     Email = request.GET.get('Email', None)
     usernameExists = User.objects.filter(Username=Username).exists()
     emailExists = User.objects.filter(Email=Email).exists()
-    return Response({"Username": usernameExists, "Email": emailExists})
+    return Response({"UsernameExists": usernameExists, "EmailExists": emailExists}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
