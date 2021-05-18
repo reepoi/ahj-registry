@@ -17,7 +17,7 @@
                         <i v-on:click="deleteContactAddition(index)" class="fas fa-minus"></i>
                     </div>
                     <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPChil${index}`">
-                        <div v-if="add.Type==='Inspection'">
+                        <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.AddCont.Value" v-bind:key="`INSPCONT${i}`">
                                 <h3>You have added a Contact to an AHJInspection: {{ add.data.AHJInspectionName.Value }}</h3>
                                 <i v-on:click="deleteInspectionContactAddition(index,i)" class="fas fa-minus"></i>
@@ -56,7 +56,7 @@
                         <i v-on:click="deleteInspectionDeletion(index)" class="fas fa-minus"></i>
                     </div>
                     <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPCD-${index}`">
-                        <div v-if="add.Type==='Inspection'">
+                        <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.Deleted.Value" v-bind:key="`INPSCDC-${i}`">
                                 <h3>You have deleted a Contact on AHJInspection: {{ add.data.AHJInspectionName.Value }}</h3>
                                 <i v-on:click="deleteContonInsp(index,i)" class="fas fa-minus"></i>
@@ -544,7 +544,7 @@
                     <div v-for="(c,index) in AHJInfo.AHJInspections" v-bind:key="`i-${index}`">
                         <div class="edit-title">{{c.AHJInspectionName.Value}}</div>
                         <div v-for="(e,index) in editList" v-bind:key="`i-e-${index}`">
-                            <edit-object v-if="e.SourceTable==='Inspection' && e.SourceRow===c.InspectionID.Value  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceTable==='AHJInspection' && e.SourceRow===c.InspectionID.Value  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                         <div class="edit-body no-border">
                             <div v-for="(ci,index) in c.Contacts" v-bind:key="`i-c-${index}`">
@@ -571,14 +571,14 @@
                         <div class="edit-body no-border">
                             <div v-for="e in editList" v-bind:key="`i-c-e-d-${e.EditID}`">
                                 <div v-for="ic in c.UnconfirmedContacts" v-bind:key="`i-c-d-${ic.ContactID.Value}`">
-                                    <div v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'False'">
+                                    <div v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'">
                                         <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                                     </div>
                                 </div>
                             </div>
                             <div v-for="e in editList" v-bind:key="`i-c-e-d-u${e.EditID}`">
                                 <div v-for="ic in c.Contacts" v-bind:key="`i-c-d-u-${ic.ContactID.Value}`">
-                                    <div v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'False'">
+                                    <div v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'">
                                         <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                                     </div>
                                 </div>
@@ -589,7 +589,7 @@
                     <div class="edit-body no-border">
                     <div v-for="e in editList" v-bind:key="`i-a-e-${e.EditID}`">
                         <div v-for="c in allInspections" v-bind:key="`i-a-c-${c.InspectionID.Value}`">
-                            <div v-if="e.SourceRow===c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.SourceColumn==='InspectionStatus' && e.EditType==='A'">
+                            <div v-if="e.SourceRow===c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.EditType==='A'">
                                 <inspection v-bind:editStatus="e.ReviewStatus" v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
@@ -599,7 +599,7 @@
                     <div class="edit-body no-border">
                     <div v-for="e in editList" v-bind:key="`i-d-e-${e.EditID}`">
                         <div v-for="c in allInspections" v-bind:key="`i-d-c-${c.InspectionID.Value}`">
-                            <div v-if="e.SourceRow==c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.SourceColumn==='InspectionStatus' && e.EditType==='D'">
+                            <div v-if="e.SourceRow==c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.EditType==='D'">
                                 <inspection v-bind:editStatus="e.ReviewStatus" v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
@@ -615,7 +615,7 @@
                         <div v-for="e in editList" v-bind:key="`DSM-e-a-${e.EditID}`">
                             <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-a-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='A'">
+                                <div v-if="e.SourceRow == err.UseID && e.EditType==='A'">
                                 <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
@@ -629,7 +629,7 @@
                         <div v-for="e in editList" v-bind:key="`DSM-e-d-${e.EditID}`">
                             <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-d-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='D'">
+                                <div v-if="e.SourceRow == err.UseID && e.EditType==='D'">
                                 <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
@@ -714,7 +714,7 @@
                         <div v-for="e in editList" v-bind:key="`PIM-d-${e.EditID}`">
                             <div v-if="e.SourceTable ==='AHJPermitIssueMethodUse'">
                             <div v-for="err in allPIM" v-bind:key="`PIM-e-d-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='D'">
+                                <div v-if="e.SourceRow == err.UseID && e.EditType==='D'">
                                 <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`PIM-e-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`PIM-e-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
@@ -1241,7 +1241,7 @@ export default {
                 this.PIMDeletion.Value = [];
                 this.DSMDeletion.Value = [];
                 for(let i = 0; i < this.$children[i].length;i++){
-                    if(this.$children[i].Type === "Inspection"){
+                    if(this.$children[i].Type === "AHJInspection"){
                         this.$children[i].Deleted.Value = [];
                     }
                 }
@@ -1334,14 +1334,14 @@ export default {
                 }
             }
             for(i = 0; i < this.$children.length; i++){
-                if(this.$children[i].Type === "Inspection"){
+                if(this.$children[i].Type === "AHJInspection"){
                     this.$children[i].getDeletions();
                 }
                 if(this.$children[i].isDeleted){
                     if(this.$children[i].Type === "Contact"){
                         this.contactDeletions.Value.push(this.$children[i].data.ContactID.Value);
                     }
-                    if(this.$children[i].Type === "Inspection"){
+                    if(this.$children[i].Type === "AHJInspection"){
                         this.inspectionDeletions.Value.push(this.$children[i].data.InspectionID.Value);
                     }
                     if(this.$children[i].Type === "EngineeringReviewRequirements"){
@@ -1361,9 +1361,9 @@ export default {
         },
         deleteEdit(index){
             let e = this.editObjects[index];
-            if(e.SourceTable === "Inspection"){
+            if(e.SourceTable === "AHJInspection"){
                 for(let i = 0; i < this.$children.length; i++){
-                    if(this.$children[i].ID == e.SourceRow && this.$children[i].Type === "Inspection"){
+                    if(this.$children[i].ID == e.SourceRow && this.$children[i].Type === "AHJInspection"){
                         this.$children[i].Edits[e.SourceColumn] = e.OldValue;
                     }
                 }
@@ -1377,7 +1377,7 @@ export default {
             }
             else if(e.SourceTable === "Contact" && e.InspectionID !== null){
                 for(let i = 0; i < this.$children.length; i++){
-                    if(this.$children[i].ID == e.InspectionID && this.$children[i].Type === "Inspection" && this.$children[i].eID < 0){
+                    if(this.$children[i].ID == e.InspectionID && this.$children[i].Type === "AHJInspection" && this.$children[i].eID < 0){
                         for(let j = 0; j < this.$children[i].$children.length;j++){
                             if(this.$children[i].$children[j].ID == e.SourceRow){
                                 this.$children[i].$children[j].Edits[e.SourceColumn] = e.OldValue;
@@ -1599,7 +1599,7 @@ export default {
             }
             this.showBigDiv('confirm-edits');
             for(let i = 0; i < this.$children.length; i++){
-                if(this.$children[i].Type === "Inspection" && this.$children[i].eID < 1){
+                if(this.$children[i].Type === "AHJInspection" && this.$children[i].eID < 1){
                     this.$children[i].delete();
                 }
                 if(this.$children[i].editable){
