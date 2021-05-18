@@ -1901,7 +1901,6 @@ export default {
             this.formatAddress(this.AHJInfo.Address);
             this.allContacts = [...this.AHJInfo.Contacts,...this.AHJInfo.UnconfirmedContacts];
             this.allInspections = [...this.AHJInfo.AHJInspections, ...this.AHJInfo.UnconfirmedInspections];
-            console.log(this.allInspections);
             this.allERR = [...this.AHJInfo.EngineeringReviewRequirements,...this.AHJInfo.UnconfirmedEngineeringReviewRequirements];
             this.allFS = [...this.AHJInfo.FeeStructures,...this.AHJInfo.UnconfirmedFeeStructures];
             this.allDSM = [...this.AHJInfo.DocumentSubmissionMethods,...this.AHJInfo.UnconfirmedDocumentSubmissionMethods];
@@ -1913,7 +1912,6 @@ export default {
         '$store.state.editList': function(){
             var list = this.$store.state.editList;
             this.editList = [...list];
-            console.log(this.editList);
         }
     }
 }
