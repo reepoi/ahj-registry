@@ -148,6 +148,7 @@ class UserSerializer(serializers.Serializer):
     CommunityScore = serializers.IntegerField()
     SignUpDate = serializers.DateField()
     MaintainedAHJs = serializers.ListField(source='get_maintained_ahjs')
+    APIToken = serializers.CharField(source='get_API_token')
 
 class UserCreateSerializer(UserCreateSerializer):
 
