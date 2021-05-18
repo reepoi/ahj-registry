@@ -425,6 +425,32 @@ def load_ahj_data_csv():
             i += 1
 
 
+def load_ahj_census_names_csv():
+    """
+    Save AHJ census names from a CSV with columns: (AHJID, AHJCensusName)
+    """
+    with open(BASE_DIR + 'AHJRegistryData/ahjcensusnames.csv') as file:
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        i = 1
+        for row in reader:
+            ahj = AHJ.objects.get(AHJID=row['AHJID'])
+            AHJCensusName.objects.create(AHJPK=ahj, AHJCensusName=row['AHJCensusName'])
+            print('AHJ {0}: {1}'.format(ahj.AHJID, i))
+            i += 1
+
+
+def load_ahj_census_names_ahj_table():
+    """
+    Save AHJ census names are AHJ names.
+    Use only if AHJ names are still AHJ census names.
+    """
+    i = 1
+    for ahj in AHJ.objects.all():
+        AHJCensusName.objects.create(AHJPK=ahj, AHJCensusName=ahj.AHJName)
+        print('AHJ {0}: {1}'.format(ahj.AHJID, i))
+        i += 1
+
+
 state_fips_to_abbr = {
     '01': 'AL',
     '02': 'AK',

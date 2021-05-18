@@ -562,3 +562,7 @@ class CityTemp(models.Model):
 
     def __str__(self):
         return self.NAMELSAD
+
+class AHJCensusName(models.Model):
+    AHJPK = models.OneToOneField('AHJ', on_delete=models.DO_NOTHING, db_column='AHJPK', primary_key=True)
+    AHJCensusName = models.CharField(db_column='AHJCensusName', max_length=100)
