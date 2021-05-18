@@ -12,6 +12,5 @@ def test_proc():
 
 
 def edits_take_effect():
-    pass
-    # if settings.APPLY_APPROVED_EDITS:
-    #     apply_edits()
+    if settings.APPLY_APPROVED_EDITS:
+        apply_edits()

@@ -77,7 +77,7 @@ export default {
             },
             isEditing: false,
             isDeleted: false,
-            Type: "Inspection",
+            Type: "AHJInspection",
             Edits: {
                 AHJInspectionName: "",
                 AHJInspectionNotes: "",
