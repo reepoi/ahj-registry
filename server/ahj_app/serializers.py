@@ -276,13 +276,24 @@ class EditSerializer(serializers.Serializer):
     SourceColumn = serializers.CharField()
     SourceRow = serializers.IntegerField()
     ReviewStatus = serializers.CharField()
-    Comments = serializers.CharField(allow_blank=True)
     OldValue = serializers.CharField(read_only=True)
     NewValue = serializers.CharField()
     DateRequested = serializers.DateField(read_only=True)
     DateEffective = serializers.DateField(read_only=True)
     EditType = serializers.CharField()
     DataSourceComment = serializers.CharField()
+
+    def to_representation(self, edit):
+        if self.context.get('drop_users', False):
+            """
+            This gives the option for callers of the serializer to only serialize the username of the user.
+            """
+            self.fields['ChangedBy'] = serializers.CharField(source='ChangedBy.Username')
+            if edit.ApprovedBy is None:
+                self.fields['ApprovedBy'] = UserSerializer()
+            else:
+                self.fields['ApprovedBy'] = serializers.CharField(source='ApprovedBy.Username')
+        return super().to_representation(edit)
 
     def create(self):
         return Edit(**self.validated_data)

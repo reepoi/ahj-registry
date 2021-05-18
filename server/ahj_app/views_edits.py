@@ -266,7 +266,7 @@ def edit_list(request):
     if source_row is None:
         return Response('An AHJPK must be provided', status=status.HTTP_400_BAD_REQUEST)
     edits = Edit.objects.filter(AHJPK=source_row)
-    edits = EditSerializer(edits, many=True).data
+    edits = EditSerializer(edits, many=True, context={'drop_users': True}).data
     return Response(edits, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
