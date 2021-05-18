@@ -519,7 +519,7 @@
                     <div class="edit-body no-border">
                     <div v-for="e in editList" v-bind:key="`c-e-a-${e.EditID}`">
                         <div v-for="c in allContacts" v-bind:key="`c-a-${c.ContactID.Value}`">
-                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='Contact' && e.NewValue === 'True'">
+                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='Contact' && e.EditType==='A'">
                                 <contact-card v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)" v-bind:editStatus="e.ReviewStatus"/>
                             </div>
                         </div>
@@ -529,7 +529,7 @@
                     <div class="edit-body no-border">
                     <div v-for="e in editList" v-bind:key="`c-d-${e.EditID}`">
                         <div v-for="c in allContacts" v-bind:key="`c-d-${c.ContactID.Value}`">
-                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='AHJContactRepresentative' && e.NewValue==='False'">
+                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='Contact' && e.EditType==='D'">
                                 <contact-card v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)" v-bind:editStatus="e.ReviewStatus"/>
                             </div>
                         </div>
@@ -563,7 +563,7 @@
                             </div>
                             <div v-for="e in editList" v-bind:key="`i-c-a-e-u${e.EditID}`">
                                 <div v-for="ic in c.Contacts" v-bind:key="`i-c-a-u-${ic.ContactID.Value}`">
-                                    <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'True'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                    <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='A'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                                 </div>
                             </div>
                         </div>
@@ -599,7 +599,7 @@
                     <div class="edit-body no-border">
                     <div v-for="e in editList" v-bind:key="`i-d-e-${e.EditID}`">
                         <div v-for="c in allInspections" v-bind:key="`i-d-c-${c.InspectionID.Value}`">
-                            <div v-if="e.SourceRow==c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.SourceColumn==='InspectionStatus' && e.NewValue === 'False'">
+                            <div v-if="e.SourceRow==c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.SourceColumn==='InspectionStatus' && e.EditType==='D'">
                                 <inspection v-bind:editStatus="e.ReviewStatus" v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
@@ -615,7 +615,7 @@
                         <div v-for="e in editList" v-bind:key="`DSM-e-a-${e.EditID}`">
                             <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-a-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='True'">
+                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='A'">
                                 <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
@@ -629,7 +629,7 @@
                         <div v-for="e in editList" v-bind:key="`DSM-e-d-${e.EditID}`">
                             <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-d-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='False'">
+                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='D'">
                                 <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
@@ -653,7 +653,7 @@
                     <div class="edit-body no-border">
                         <div v-for="e in editList" v-bind:key="`err-e-a-${e.EditID}`">
                             <div v-for="err in allERR" v-bind:key="`err-a-${err.EngineeringReviewRequirementID.Value}`">
-                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.NewValue === 'True'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.EditType==='A'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -661,7 +661,7 @@
                     <div class="edit-body no-border">
                         <div v-for="e in editList" v-bind:key="`err-e-d-${e.EditID}`">
                             <div v-for="err in allERR" v-bind:key="`err-d-${err.EngineeringReviewRequirementID.Value}`">
-                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.NewValue === 'False'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.EditType==='D'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -680,7 +680,7 @@
                     <div class="edit-body no-border">
                         <div v-for="e in editList" v-bind:key="`fs-e-a-${e.EditID}`">
                             <div v-for="err in allFS" v-bind:key="`fs-a-${err.FeeStructurePK.Value}`">
-                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.NewValue === 'True'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.EditType==='A'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -688,7 +688,7 @@
                     <div class="edit-body no-border">
                         <div v-for="e in editList" v-bind:key="`fs-d-e-${e.EditID}`">
                             <div v-for="err in allFS" v-bind:key="`fs-d-${err.FeeStructurePK.Value}`">
-                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.NewValue === 'False'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.EditType==='D'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -700,7 +700,7 @@
                         <div v-for="e in editList" v-bind:key="`PIM-${e.EditID}`">
                             <div v-if="e.SourceTable ==='AHJPermitIssueMethodUse'">
                             <div v-for="err in allPIM" v-bind:key="`PIM-e-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='True'">
+                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='A'">
                                 <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`PIM-e-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`PIM-e-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
@@ -714,7 +714,7 @@
                         <div v-for="e in editList" v-bind:key="`PIM-d-${e.EditID}`">
                             <div v-if="e.SourceTable ==='AHJPermitIssueMethodUse'">
                             <div v-for="err in allPIM" v-bind:key="`PIM-e-d-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='False'">
+                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='D'">
                                 <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`PIM-e-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`PIM-e-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
