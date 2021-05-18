@@ -511,7 +511,7 @@
                         <div class="edit-title">{{c.FirstName.Value + " " + c.LastName.Value}}</div>
                         <div class="edit-body no-border">
                         <div v-for="(e,index) in editList" v-bind:key="`c-e-${index}`">
-                            <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===c.ContactID.Value" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===c.ContactID.Value && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                         </div>
                     </div>
@@ -544,7 +544,7 @@
                     <div v-for="(c,index) in AHJInfo.AHJInspections" v-bind:key="`i-${index}`">
                         <div class="edit-title">{{c.AHJInspectionName.Value}}</div>
                         <div v-for="(e,index) in editList" v-bind:key="`i-e-${index}`">
-                            <edit-object v-if="e.SourceTable==='Inspection' && e.SourceRow===c.InspectionID.Value" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceTable==='Inspection' && e.SourceRow===c.InspectionID.Value  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                         <div class="edit-body no-border">
                             <div v-for="(ci,index) in c.Contacts" v-bind:key="`i-c-${index}`">
@@ -645,7 +645,7 @@
                     <div v-for="err in AHJInfo.EngineeringReviewRequirements" v-bind:key="`err-${err.EngineeringReviewRequirementID.Value}`">
                         <div class="edit-title">{{err.EngineeringReviewType.Value}}</div>
                         <div v-for="e in editList" v-bind:key="`err-e-${e.EditID}`">
-                            <edit-object v-if="e.SourceColumn !== 'EngineeringReviewRequirementStatus' && e.SourceRow == err.EngineeringReviewRequirementID && e.SourceTable === 'EngineeringReviewRequirement'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceRow == err.EngineeringReviewRequirementID && e.SourceTable === 'EngineeringReviewRequirement'  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                     </div>
                     </div>
@@ -672,7 +672,7 @@
                     <div v-for="err in AHJInfo.FeeStructures" v-bind:key="`fs-${err.FeeStructurePK.Value}`">
                         <div class="edit-title">{{err.FeeStructureName.Value}}</div>
                         <div v-for="e in editList" v-bind:key="`fs-e-${e.EditID}`">
-                            <edit-object v-if="e.SourceColumn !== 'FeeStructureStatus' &&e.SourceRow == err.FeeStructurePK.Value && e.SourceTable === 'FeeStructure'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceRow == err.FeeStructurePK.Value && e.SourceTable === 'FeeStructure'  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                     </div>
                     </div>
