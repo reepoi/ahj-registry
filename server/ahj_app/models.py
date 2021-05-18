@@ -474,6 +474,11 @@ class User(AbstractBaseUser):
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
 
+    def get_API_token(self):
+        if self.api_token:
+            return self.api_token.key
+        return None
+
     class Meta:
         db_table = 'User'
         managed = True
