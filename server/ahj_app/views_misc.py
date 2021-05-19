@@ -3,15 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import User, Comment, Edit
-from .utils import filter_users, UserSerializer, CommentSerializer, EditSerializer
-
-
-@api_view(['GET'])
-def get_leaderboard_users(request):
-    users = filter_users(request)
-    serializer = UserSerializer
-    payload = serializer(users, many=True)
-    return Response(payload.data)
+from .utils import CommentSerializer, EditSerializer
 
 
 @api_view(['GET'])

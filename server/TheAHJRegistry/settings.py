@@ -190,6 +190,10 @@ DJOSER = {
 }
 
 AUTH_USER_MODEL = 'ahj_app.User'
+ADMIN_ACCOUNT_USERNAME = ''
+ADMIN_ACCOUNT_EMAIL = ''
+ADMIN_ACCOUNT_PASSWORD = ''
+APPLY_APPROVED_EDITS = True
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
