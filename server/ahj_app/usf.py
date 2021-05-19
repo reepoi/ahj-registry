@@ -1,3 +1,7 @@
+"""
+File of helper methods for uploading 2020 Census Bureau shapefile polygons and AHJ Data
+"""
+
 import csv
 import os
 from functools import lru_cache
@@ -10,6 +14,11 @@ from .models_field_enums import *
 BASE_DIR = os.path.expanduser('~/AHJRegistryData/')
 BASE_DIR_SHP = BASE_DIR + '2020CensusPolygons/'
 
+"""
+Dictionaries that map fields in shapefiles to
+fields in the temporary tables (StateTemp, etc)
+to hold the shapefile data.
+"""
 
 state_mapping = {
     'GEOID': 'GEOID',
@@ -60,6 +69,15 @@ city_mapping = {
     'mpoly': 'MULTIPOLYGON'
 }
 
+"""
+Methods for uploading shapefiles to temporary tables (StateTemp, ...)
+Expects the file structure:
+- 2020CensusPolygons
+    - States
+    - Counties
+    - Citites
+    - CountySubdivisions
+"""
 
 def upload_all_shapefile_types():
     upload_state_shapefiles()
@@ -129,6 +147,12 @@ def get_other_polygon_type_fields(obj, polygon):
         'StatePolygonID': StatePolygon.objects.get(FIPSCode=obj.GEOID[:2]),
         'LSAreaCodeName': obj.NAMELSAD
     }
+
+
+"""
+Moves the shapefile data from the temporary tables (StateTemp, ...)
+to the Polygon tables (Polygon, StatePolygon, ...)
+"""
 
 
 def translate_polygons():
@@ -428,6 +452,7 @@ def load_ahj_data_csv():
             i += 1
 
 
+# Dict to translate state FIPS codes to state abbreviations
 state_fips_to_abbr = {
     '01': 'AL',
     '02': 'AK',
@@ -498,7 +523,13 @@ state_fips_to_abbr = {
     '56': 'WY'
 }
 
+# dict for translating state abbreviations to state FIPS codes
 abbr_to_state_fips = dict(map(reversed, state_fips_to_abbr.items()))
+
+
+"""
+Helpers to assign an AHJ to its polygon by AHJName and polygon name
+"""
 
 
 def pair_all():

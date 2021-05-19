@@ -289,45 +289,6 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     # print(AHJ.objects.raw('EXPLAIN ' + full_query_string, query_params))
     return AHJ.objects.raw(full_query_string, query_params)
 
-
-def filter_users(request):
-    """
-    Main Idea: This functional view uses raw SQL queries to
-    get the information out of the databaes. To make this
-    dynamic, we have to check which fields were passed
-    in with the request params, and modify the query
-    according.
-    """
-    # Initialize empty where clause filtering
-    where_clauses = ''
-    search_option = 'User.'
-
-    where_clauses += get_basic_user_query_cond('Country',
-        request.GET.get('Country[]', None))
-    where_clauses += get_basic_user_query_cond('StateProvince',
-        request.GET.get('StateProvince', None))
-    
-    search_option += request.GET.get('SearchOption', None)
-    where_clauses = simple_sanitize(where_clauses)
-    search_option = simple_sanitize(search_option)
-
-    full_query_string = ''' SELECT User.UserID, User.Username, 
-                                   User.Photo, User.SignupDate, 
-                                   User.CommunityScore
-                            FROM User 
-                            WHERE User.ContactID IN (
-                                SELECT Contact.ContactID 
-                                FROM Contact 
-                                WHERE Contact.AddressID IN (
-                                    SELECT Address.AddressID 
-                                    FROM Address 
-                                    WHERE ''' + where_clauses + ''' True) 
-                                )
-                                ORDER BY '''+ search_option +  ''' DESC;'''
-
-    return User.objects.raw(full_query_string)
-
-
 def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
     ahj_list.sort(key=lambda ahj: int(ahj.PolygonID.LandArea) if ahj.PolygonID is not None else 0) # Sort first by landarea ascending
     ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode) if ahj.AHJLevelCode != '' else 0) # Then sort by numerical value AHJLevelCode descending

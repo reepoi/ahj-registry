@@ -1,20 +1,20 @@
 <template>
     <div>
         <p>Changed the <b>{{EditedField}}</b> field on {{ahjName}} AHJ's <b>{{EditedDataType}}</b> data.</p>
-        <p>
-            <span class="row-element">Old Value: <span class="red">{{ActivityData.OldValue}}</span></span>  
-            <span>New Value: <span class="green">{{ActivityData.NewValue}}</span></span>
-        </p>
-        <p>
-            <span class="row-element">Status: 
+        <div class="flex">
+            <p>Old Value: <span class="red">{{ActivityData.OldValue}}</span></p>
+            <p>New Value: <span class="green">{{ActivityData.NewValue}}</span></p>
+        </div>
+        <div class="flex">
+            <p> Status: 
                 <b-icon icon="circle-fill" class="circle-icon" :class="StatusColor"></b-icon> 
                 <span :class="StatusColor">{{Status}}</span>
-            </span>
-            <span>
+            </p>
+            <p>
                 <span v-if="Status === 'Accepted'">Accepted by:</span> <span v-if="Status === 'Rejected'">Rejected by: </span> 
                 <span v-if="this.ActivityData.ApprovedBy">{{ReviewedByFullName}}</span>
-            </span>
-        </p>
+            </p>
+        </div>
     </div>
 </template>
 
@@ -53,21 +53,27 @@ export default {
         }
     },
     methods: {
+        // reformats the field returned by the API such that there are spaces between capital letters.
         SplitByCapital(string){
             return string.replace(/([A-Z]+)/g, ' $1').trim();
         },
+        // Finds the name of an AHJ given the AHJPK for that AHJ.
         FindAHJName(AHJPK){
             let query = constants.API_ENDPOINT + "ahj-one/";
             axios.get(query,
                 {
                   params: {
                     'AHJPK': AHJPK
+                  },
+                  headers: {
+                    Authorization: `${this.$store.getters.authToken}`
                   }
                 })
                 .then( (response) => {
                     this.ahjName = response.data[0].AHJName.Value;
                 })
-                .catch(() => {
+                .catch((error) => {
+                    console.log(error);
                 });
         }
     },
@@ -95,4 +101,13 @@ export default {
 .row-element {
     margin-right: 5%;
 }
+.flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.flex > p:first-child {
+    margin-right: 1em;
+}
+
 </style>
