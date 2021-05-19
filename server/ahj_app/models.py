@@ -475,9 +475,10 @@ class User(AbstractBaseUser):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
 
     def get_API_token(self):
-        if self.api_token:
-            return self.api_token.key
-        return None
+        api_token = APIToken.objects.filter(user=self).first()
+        if api_token is None:
+            return ''
+        return api_token.key
 
     class Meta:
         db_table = 'User'
