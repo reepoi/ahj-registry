@@ -78,16 +78,12 @@ def get_active_user(request):
     Endpoint for getting the active user
     through the authtoken
     """
-    try:
-        # Get authtoken from request header
-        authtoken = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
-        token = WebpageToken.objects.get(key=authtoken)
-        user = User.objects.get(UserID=token.user_id)
-        user = user_with_img(user)
-        return Response(user, status=status.HTTP_200_OK)
-    except Exception as e:
-        print('ERROR GET ACTIVE USER : ', str(e))
-        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+    # Get authtoken from request header
+    authtoken = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
+    token = WebpageToken.objects.get(key=authtoken)
+    user = User.objects.get(UserID=token.user_id)
+    user = user_with_img(user)
+    return Response(user, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

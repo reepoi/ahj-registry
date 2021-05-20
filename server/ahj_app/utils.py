@@ -42,7 +42,9 @@ def simple_sanitize(s: str):
     """
     Sanitize SQL string inputs simply by dropping ';' and '''
     """
-    return s.replace(';', '').replace('\'', '')
+    if s is not None:
+        return s.replace(';', '').replace('\'', '')
+    return None
 
 
 def get_name_query_cond(type: str, val: str):
@@ -53,7 +55,7 @@ def get_name_query_cond(type: str, val: str):
     if val is not None, otherwise it returns the
     empty string to represent no condition on type.
     """
-    if val is not None:
+    if val is not None and type is not None:
         return 'AHJ.' + type + ' LIKE \'%%' + simple_sanitize(val) + '%%\' AND '
     return ''
 

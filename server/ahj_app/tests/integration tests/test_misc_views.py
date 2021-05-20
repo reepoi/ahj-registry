@@ -3,7 +3,6 @@ from ahj_app.models import User, Edit, Comment
 from fixtures import *
 import pytest
 import datetime
-import json
 
 @pytest.mark.django_db
 def test_form_validator__username_exists(generate_client_with_webpage_credentials):

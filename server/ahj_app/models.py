@@ -344,15 +344,6 @@ class CountySubdivisionPolygon(models.Model):
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    # eventually handle first name and last name into contact table, for now handles username and password
-    def _create_user(self, email, password, **extra_fields):
-        # save to user
-        ContactID = Contact.objects.create(Email=email)
-        
-        User = User.objects.create()
-        # save to authuser
-        user = self.model(email=email, **extra_fields)
-
     def create_user(self, **extra_fields):
         Email = extra_fields.get('Email', '')
         Username = extra_fields.get('Username', '')
@@ -369,16 +360,7 @@ class UserManager(BaseUserManager):
             user.save(using=self._db)
         except Exception as e:
             print(e)
-        print('saved')
         return user
-
-    def create_superuser(self, **extra_fields):
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-
-        return self.create_user(**extra_fields)
 
 class User(AbstractBaseUser):
     UserID = models.AutoField(db_column='UserID', primary_key=True)
@@ -404,15 +386,11 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'Email'
     objects = UserManager()
-
-    def has_perm(self, perm, obj=None):
-        return self.is_superuser
-    
-    def has_module_perms(self, core):
-        return self.is_superuser
     
     def get_email_field_name(self=None):
-        return 'Email'
+        if self is None:
+            return None
+        return self.Email
 
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
