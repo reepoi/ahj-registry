@@ -447,6 +447,7 @@ class User(AbstractBaseUser):
     Email = models.CharField(db_column='Email', unique=True, max_length=254)
     is_staff = models.BooleanField(db_column='IsStaff', default=False)
     is_active = models.BooleanField(db_column='IsActive', default=False)
+    is_superuser = models.BooleanField(db_column='IsSuperuser', default=False)
     SignUpDate = models.DateField(db_column='SignUpDate', blank=True)
     PersonalBio = models.CharField(db_column='PersonalBio', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=255, blank=True, null=True)
