@@ -882,7 +882,7 @@
         </div>
         <!-- Header to page -->
         <div id='titleCard'>
-            <div id='mapDiv'>
+            <div id='mapDiv' ref="map">
 
             </div>
             <div id='text'>
@@ -898,7 +898,7 @@
                     <!-- OPen window to display edits on this page -->
                     <a v-if="!isEditing" style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;" v-on:click="showBigDiv('edits')">Show Edits</a>
                     <!-- Allow user to edit this AHJ -->
-                    <a v-if="!isEditing" style="margin:0;padding:0;text-decoration: underline; cursor:pointer;" v-on:click="editing()">Edit This AHJ</a>
+                    <a id="editButton" v-if="!isEditing" style="margin:0;padding:0;text-decoration: underline; cursor:pointer;" v-on:click="editing()">Edit This AHJ</a>
                     <!-- Open window to display edits -->
                     <a v-else style="margin:0;padding:0;text-decoration: underline; margin-right:10px; cursor:pointer;" v-on:click="showBigDiv('confirm-edits'); createEditObjects();">Submit Edits</a>
                     <!-- Cancel user made edits without submitting -->
@@ -1423,7 +1423,7 @@ export default {
         //set up map view for page header
         setupLeaflet() {
             //info leaflet needs about map (we want it not to move)
-            let leafletMap = L.map('mapDiv', {            
+            let leafletMap = L.map(this.$refs.map, {            
                 dragging: false,
                 zoomControl: false,
                 scrollWheelZoom: false
@@ -1441,15 +1441,18 @@ export default {
         setPolygon() {
             //find this AHJs polygons
             let polygons = this.$store.state.apiData.results['ahjlist']
-                .map(ahj => ahj.Polygon);
+                .map(ahj => ahj.Polygon );
+            polygons = polygons.filter(function(p){ if(!p){return false} return true; })
                 //create the polygon layer
-            this.polygonLayer = L.geoJSON(polygons, {
-                style: constants.MAP_PLYGN_SYTLE
-            });
-            //add it to leaflet map
-            this.polygonLayer.addTo(this.leafletMap);
-            //display only the polygon on map
-            this.leafletMap.fitBounds(this.polygonLayer.getBounds());
+            if(polygons && polygons.length > 0){
+                this.polygonLayer = L.geoJSON(polygons, {
+                    style: constants.MAP_PLYGN_SYTLE
+                });
+                //add it to leaflet map
+                this.polygonLayer.addTo(this.leafletMap);
+                //display only the polygon on map
+                this.leafletMap.fitBounds(this.polygonLayer.getBounds());
+            }
         },
         //for manual dropdown chevrons
         toggleShow(elementId){
@@ -1473,6 +1476,8 @@ export default {
         },
         //format address properly
         formatAddress(Address){
+            this.AddressString = "";
+            this.CityCountyState = "";
             //if no first values, address string is empty
             if(Address.AddrLine1.Value === "" && Address.AddrLine2.Value === "" && Address.AddrLine3.Value === ""){
                 this.AddressString = "";
@@ -1498,37 +1503,37 @@ export default {
                 this.CityCountyState = "";
             }
             // add comma before city county state fields, if necessary
-            if(this.AddressString !== ""){
-                this.CityCountyState += ', ';
-            }
             //add city
             if(Address.City.Value !== ""){
+                if(this.AddressString !== ""){
+                    this.CityCountyState += ', ';
+                }
                 this.CityCountyState += Address.City.Value;
             }
             //add county and comma if necessary
             if(Address.County.Value !== ""){
-                if(this.CityCountyState !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
                     this.CityCountyState += ", ";
                 }
                 this.CityCountyState += Address.County.Value;
             }
             //add state and comma if necessary
             if(Address.StateProvince.Value !== ""){
-                if(this.CityCountyState !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
                     this.CityCountyState += ", "
                 }
                 this.CityCountyState += Address.StateProvince.Value;
             }
             //add country andf comma if necessary
             if(Address.Country.Value !== ""){
-                if(this.CityCountyState !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
                     this.CityCountyState += ", "
                 }
                 this.CityCountyState += Address.Country.Value;
             }
             //add zip code and comma if necessary
             if(Address.ZipPostalCode.Value !== ""){
-                if(this.CityCountyState !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
                     this.CityCountyState += ", "
                 }
                 this.CityCountyState += Address.ZipPostalCode.Value;
@@ -2324,7 +2329,6 @@ export default {
             this.formatAddress(this.AHJInfo.Address);
             this.allContacts = [...this.AHJInfo.Contacts,...this.AHJInfo.UnconfirmedContacts];
             this.allInspections = [...this.AHJInfo.AHJInspections, ...this.AHJInfo.UnconfirmedInspections];
-            console.log(this.allInspections);
             this.allERR = [...this.AHJInfo.EngineeringReviewRequirements,...this.AHJInfo.UnconfirmedEngineeringReviewRequirements];
             this.allFS = [...this.AHJInfo.FeeStructures,...this.AHJInfo.UnconfirmedFeeStructures];
             this.allDSM = [...this.AHJInfo.DocumentSubmissionMethods,...this.AHJInfo.UnconfirmedDocumentSubmissionMethods];
