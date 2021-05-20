@@ -1,11 +1,13 @@
 import json
 
 from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
 
 from .serializers import *
 import googlemaps
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 
+from .usf import get_enum_value_row
 
 gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_KEY)
 
@@ -69,6 +71,17 @@ def get_location_gecode_address_str(address):
     return location
 
 
+def get_enum_value_row_else_null(enum_field, enum_value):
+    try:
+        if enum_value is None:
+            return None
+        elif isinstance(enum_value, list):
+            return [get_enum_value_row_else_null(enum_field, v) for v in enum_value]
+        return get_enum_value_row(enum_field, enum_value)
+    except ObjectDoesNotExist:
+        return None
+
+
 def simple_sanitize(s: str):
     """
     Sanitize SQL string inputs simply by dropping ';' and '''
@@ -90,13 +103,13 @@ def get_name_query_cond(type: str, val: str, query_params: dict):
     return ''
 
 
-def get_list_query_cond(type: str, val: str, query_params: dict):
+def get_list_query_cond(type: str, val: list, query_params: dict):
     """
     Returns the entered list of strings as part of
     an SQL condition on the AHJ table of the form:
             (AHJ.`type` = 'val1' OR AHJ.`type` = 'val2' OR ... ) AND
     """
-    if val is not None:
+    if len(val) != 0:
         or_list = []
         for i in range(len(val)):
             param_name = f'{type}{i}'
@@ -276,12 +289,12 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     where_clauses += get_basic_query_cond('AHJID', AHJID, query_params)
     where_clauses += get_basic_query_cond('AHJPK', AHJPK, query_params)
     where_clauses += get_basic_query_cond('AHJCode', AHJCode, query_params)
-    where_clauses += get_basic_query_cond('AHJLevelCode', AHJLevelCode, query_params)
-    where_clauses += get_list_query_cond('BuildingCode', BuildingCode, query_params)
-    where_clauses += get_list_query_cond('ElectricCode', ElectricCode, query_params)
-    where_clauses += get_list_query_cond('FireCode', FireCode, query_params)
-    where_clauses += get_list_query_cond('ResidentialCode', ResidentialCode, query_params)
-    where_clauses += get_list_query_cond('WindCode', WindCode, query_params)
+    where_clauses += get_basic_query_cond('AHJLevelCode', getattr(get_enum_value_row_else_null('AHJLevelCode', AHJLevelCode), 'pk', None), query_params)
+    where_clauses += get_list_query_cond('BuildingCode', [e.pk for e in get_enum_value_row_else_null('BuildingCode', BuildingCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('ElectricCode', [e.pk for e in get_enum_value_row_else_null('ElectricCode', ElectricCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('FireCode', [e.pk for e in get_enum_value_row_else_null('FireCode', FireCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('ResidentialCode', [e.pk for e in get_enum_value_row_else_null('ResidentialCode', ResidentialCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('WindCode', [e.pk for e in get_enum_value_row_else_null('WindCode', WindCode) if e is not None], query_params)
 
     # NOTE: we append a 'True' at the end to always make the query valid
     # because the get_x_query_cond appends an `AND` to the condition

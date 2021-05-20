@@ -47,11 +47,11 @@ def ahj_list(request):
         AHJID=get_ob_value_primitive(request.data, 'AHJID', throw_exception=False),
         AHJCode=get_ob_value_primitive(request.data, 'AHJCode', throw_exception=False),
         AHJLevelCode=get_ob_value_primitive(request.data, 'AHJLevelCode', throw_exception=False),
-        BuildingCode=get_ob_value_primitive(request.data, 'BuildingCodes', throw_exception=False),
-        ElectricCode=get_ob_value_primitive(request.data, 'ElectricCodes', throw_exception=False),
-        FireCode=get_ob_value_primitive(request.data, 'FireCodes', throw_exception=False),
-        ResidentialCode=get_ob_value_primitive(request.data, 'ResidentialCodes', throw_exception=False),
-        WindCode=get_ob_value_primitive(request.data, 'WindCodes', throw_exception=False),
+        BuildingCode=get_ob_value_primitive(request.data, 'BuildingCodes', throw_exception=False, exception_return_value=[]),
+        ElectricCode=get_ob_value_primitive(request.data, 'ElectricCodes', throw_exception=False, exception_return_value=[]),
+        FireCode=get_ob_value_primitive(request.data, 'FireCodes', throw_exception=False, exception_return_value=[]),
+        ResidentialCode=get_ob_value_primitive(request.data, 'ResidentialCodes', throw_exception=False, exception_return_value=[]),
+        WindCode=get_ob_value_primitive(request.data, 'WindCodes', throw_exception=False, exception_return_value=[]),
         StateProvince=get_ob_value_primitive(request.data, 'StateProvince', throw_exception=False),
         location=str_location)
 
