@@ -430,14 +430,16 @@ def load_ahj_data_csv():
 
 def load_ahj_census_names_csv():
     """
-    Save AHJ census names from a CSV with columns: (AHJID, AHJCensusName)
+    Save AHJ census names from a CSV with columns: (AHJID, AHJCensusName, StateProvince)
     """
     with open(BASE_DIR + 'AHJRegistryData/ahjcensusnames.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         i = 1
         for row in reader:
             ahj = AHJ.objects.get(AHJID=row['AHJID'])
-            AHJCensusName.objects.create(AHJPK=ahj, AHJCensusName=row['AHJCensusName'])
+            AHJCensusName.objects.create(AHJPK=ahj,
+                                         AHJCensusName=row['AHJCensusName'],
+                                         StateProvince=row['StateProvince'])
             print('AHJ {0}: {1}'.format(ahj.AHJID, i))
             i += 1
 
@@ -449,7 +451,9 @@ def load_ahj_census_names_ahj_table():
     """
     i = 1
     for ahj in AHJ.objects.all():
-        AHJCensusName.objects.create(AHJPK=ahj, AHJCensusName=ahj.AHJName)
+        AHJCensusName.objects.create(AHJPK=ahj,
+                                     AHJCensusName=ahj.AHJName,
+                                     StateProvince=ahj.AddressID.StateProvince)
         print('AHJ {0}: {1}'.format(ahj.AHJID, i))
         i += 1
 
