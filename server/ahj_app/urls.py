@@ -28,6 +28,8 @@ urlpatterns = [
     path('auth/users/',                   views_users.RegisterUser.as_view({'post': 'create'}),    name='user-create'),
     path('auth/token/login/',             views_users.LoginUser.as_view(),                         name='user-login'),
     path('auth/token/logout/',            views_users.LogoutUser.as_view(),                        name='user-logout'),
+    path('auth/',                         include('djoser.urls')),
+    path('auth/',                         include('djoser.urls.authtoken')),
     path('create-chatroom/',              views_misc.create_chat_room,                             name='create-chat-room'),
     path('adjust-timestamp/',             views_misc.reset_last_read,                              name='adjust-timestamp'),
 ]

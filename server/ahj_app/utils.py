@@ -59,7 +59,7 @@ def get_location_gecode_address_str(address):
         }
     }
     geo_res = []
-    if address is not None:
+    if bool(address): # Check if address is non-falsey 
         geo_res = gmaps.geocode(address)
     if len(geo_res) != 0:
         latitude = geo_res[0]['geometry']['location']['lat']
@@ -292,7 +292,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
 
 def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
     ahj_list.sort(key=lambda ahj: int(ahj.PolygonID.LandArea) if ahj.PolygonID is not None else 0) # Sort first by landarea ascending
-    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode) if ahj.AHJLevelCode != '' else 0) # Then sort by numerical value AHJLevelCode descending
+    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode.Value) if ahj.AHJLevelCode is not None else 0) # Then sort by numerical value AHJLevelCode descending
     return ahj_list
 
 

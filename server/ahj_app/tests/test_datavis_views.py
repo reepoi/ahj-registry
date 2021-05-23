@@ -16,14 +16,20 @@ def poly_obj(idNum):
 @pytest.mark.django_db
 def test_data_map__empty_param(client_with_webpage_credentials):
     polyArr = []
+
     for i in range(1,5): # generate 4 polygons
         polyArr.append(poly_obj(i))
     
     for i in range(0,3): # assign 3 of those polygons as state polygons
         StatePolygon.objects.create(PolygonID=polyArr[i])
 
+    ahj = AHJ.objects.create(AHJPK=1, AHJID=1, PolygonID=polyArr[0], AddressID=Address.objects.create())
+    ahj = AHJ.objects.create(AHJPK=2, AHJID=2, PolygonID=polyArr[1], AddressID=Address.objects.create())
+    ahj = AHJ.objects.create(AHJPK=3, AHJID=3, PolygonID=polyArr[2], AddressID=Address.objects.create())
+
     url = reverse('data-map')
     response = client_with_webpage_credentials.get(url) # Get all the polygons that are a StatePolygon
+    print('after get')
     assert len(response.data) == 3 # Should be only 3 polygons that are state polygons, 1 is not a StatePolygon
     assert response.status_code == 200
 

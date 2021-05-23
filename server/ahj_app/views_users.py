@@ -11,7 +11,7 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 
 from .authentication import WebpageTokenAuth
-from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, WebpageToken
+from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, WebpageToken, PreferredContactMethod
 from .serializers import UserSerializer, ContactSerializer, SubscribedChannelsSerializer
 from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
 
@@ -137,8 +137,12 @@ def user_update(request, username):
         with transaction.atomic():
             for (key, value) in data.items():
                 if key in changeableFields:
-                    setattr(user, key, value)
-                    setattr(contact, key, value)
+                    if key == 'PreferredContactMethod': # We must update enum fields seperately
+                        contactMethodID = PreferredContactMethod.objects.get(Value=value) # Find the matching preferredContactMethodID
+                        setattr(contact, 'PreferredContactMethod', contactMethodID)
+                    else:
+                        setattr(user, key, value)
+                        setattr(contact, key, value)
                 else:
                     raise Exception("The "+ key +" field cannot be changed.")
             user.save()

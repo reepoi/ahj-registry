@@ -1,5 +1,5 @@
 from django.urls import reverse
-from ahj_app.models import User, Contact, AHJUserMaintains
+from ahj_app.models import User, Contact, AHJUserMaintains, PreferredContactMethod
 from fixtures import *
 import pytest
 
@@ -29,6 +29,7 @@ def test_get_single_user__user_does_not_exist(generate_client_with_webpage_crede
 
 @pytest.mark.django_db
 def test_update_user__user_exists(generate_client_with_webpage_credentials):
+    PreferredContactMethod.objects.create(PreferredContactMethodID=1, Value='Email') # create a PreferredContactMethod so we can change that attr in the Contact model
     client = generate_client_with_webpage_credentials(Username='someone', Email='test@test.com')
     newUserData = {
         'Username': 'username',
@@ -38,7 +39,7 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
         'URL': 'url',
         'CompanyAffiliation': 'ca',
         'WorkPhone': '123-456-7890',
-        'PreferredContactMethod': 'Phone',
+        'PreferredContactMethod': 'Email',
         'Title': 'title'
     }
     # send update to user-update path 
@@ -53,7 +54,11 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
             assert getattr(user, field.name) == newUserData[field.name]
     for field in Contact._meta.get_fields():
         if field.name in newUserData:
-            assert getattr(ContactID, field.name) == newUserData[field.name]
+            if field.name == 'PreferredContactMethod':
+                print(getattr(ContactID, 'PreferredContactMethod'))
+                assert getattr(ContactID, 'PreferredContactMethod').Value == newUserData[field.name]
+            else:
+                assert getattr(ContactID, field.name) == newUserData[field.name]
     
     assert response.status_code == 200
 
