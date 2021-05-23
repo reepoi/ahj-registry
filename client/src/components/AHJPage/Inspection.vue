@@ -77,15 +77,15 @@ export default {
             //object to add a contact
             AddCont: {
                 AHJPK: this.AHJPK,
-                InspectionID: null,
+                ParentTable: "AHJInspection",
+                ParentID: null,
                 SourceTable: "Contact",
                 Value: []
             },
             isEditing: false,
             //deleted flag
             isDeleted: false,
-            Type: "Inspection",
-            //edit object
+            Type: "AHJInspection",
             Edits: {
                 AHJInspectionName: "",
                 AHJInspectionNotes: "",
@@ -109,9 +109,9 @@ export default {
         }
     },
     mounted(){
-        //set Inspection ID and set edit object values to default
-        this.AddCont.InspectionID = this.data.InspectionID.Value;
+        this.AddCont.ParentID = this.data.InspectionID.Value;
         this.ID = this.data.InspectionID.Value;
+        this.AddCont.AHJPK = this.$parent.AHJInfo.AHJPK.Value;
         let k = Object.keys(this.Edits);
         for(let i = 0; i < k.length; i++){
             if(this.data[k[i]]){

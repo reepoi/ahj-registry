@@ -23,7 +23,7 @@
                         <i v-on:click="deleteContactAddition(index)" class="fas fa-minus"></i>
                     </div>
                     <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPChil${index}`">
-                        <div v-if="add.Type==='Inspection'">
+                        <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.AddCont.Value" v-bind:key="`INSPCONT${i}`">
                                 <!-- Contact added to an inspection -->
                                 <h3>You have added a Contact to an AHJInspection: {{ add.data.AHJInspectionName.Value }}</h3>
@@ -78,7 +78,7 @@
                         <i v-on:click="deleteInspectionDeletion(index)" class="fas fa-minus"></i>
                     </div>
                     <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPCD-${index}`">
-                        <div v-if="add.Type==='Inspection'">
+                        <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.Deleted.Value" v-bind:key="`INPSCDC-${i}`">
                                 <!-- Delete Inspection Contact -->
                                 <h3>You have deleted a Contact on AHJInspection: {{ add.data.AHJInspectionName.Value }}</h3>
@@ -606,7 +606,7 @@
                         <div class="edit-body no-border">
                             <!-- Loop through the edits made on this AHJ and find the ones that were made on this contact, i.e. edit.ContactID and contact.ContactID match -->
                         <div v-for="(e,index) in editList" v-bind:key="`c-e-${index}`">
-                            <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===c.ContactID.Value" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===c.ContactID.Value && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                         </div>
                     </div>
@@ -616,7 +616,7 @@
                     <div v-for="e in editList" v-bind:key="`c-e-a-${e.EditID}`">
                         <!-- Loop through both confirmed and unconfirmed contacts on this AHJ to find the one associated with this edit -->
                         <div v-for="c in allContacts" v-bind:key="`c-a-${c.ContactID.Value}`">
-                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='AHJContactRepresentative' && e.NewValue === 'True'">
+                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='Contact' && e.EditType==='A'">
                                 <contact-card v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)" v-bind:editStatus="e.ReviewStatus"/>
                             </div>
                         </div>
@@ -628,7 +628,7 @@
                     <div v-for="e in editList" v-bind:key="`c-d-${e.EditID}`">
                         <!-- Loop through both confirmed and unconfirmed contacts on this AHJ to find the one associated with this edit -->
                         <div v-for="c in allContacts" v-bind:key="`c-d-${c.ContactID.Value}`">
-                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='AHJContactRepresentative' && e.NewValue==='False'">
+                            <div v-if="e.SourceRow==c.ContactID.Value && e.SourceTable==='Contact' && e.EditType==='D'">
                                 <contact-card v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)" v-bind:editStatus="e.ReviewStatus"/>
                             </div>
                         </div>
@@ -646,7 +646,7 @@
                         <div class="edit-title">{{c.AHJInspectionName.Value}}</div>
                         <!-- Loop through all edits and find the ones associated with this Inspection -->
                         <div v-for="(e,index) in editList" v-bind:key="`i-e-${index}`">
-                            <edit-object v-if="e.SourceTable==='Inspection' && e.SourceRow===c.InspectionID.Value" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceTable==='AHJInspection' && e.SourceRow===c.InspectionID.Value  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                         <div class="edit-body no-border">
                             <!-- Loop through all the contacts for this inspection -->
@@ -654,8 +654,9 @@
                                 <div class="edit-title">{{ci.FirstName.Value + " " + ci.LastName.Value}}</div>
                                 <!-- Loop throught edits and find the ones associated with this contact -->
                                 <div v-for="(e,index) in editList" v-bind:key="`i-c-e-${index}`">
-                                    <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===ci.ContactID.Value" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                                    <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===ci.ContactID.Value && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                                 </div>
+                            </div>
                         </div>
                         <!-- Contacts added to this inspection -->
                         <div class="edit-title">Contact Additions</div>
@@ -664,14 +665,14 @@
                             <div v-for="e in editList" v-bind:key="`i-c-a-e-${e.EditID}`">
                                 <!-- Find unconfirmed contact associated with edits and display -->
                                 <div v-for="ic in c.UnconfirmedContacts" v-bind:key="`i-c-a-${ic.ContactID.Value}`">
-                                    <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'True'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                    <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='A'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                                 </div>
                             </div>
                             <!-- Loop through Edit list -->
                             <div v-for="e in editList" v-bind:key="`i-c-a-e-u${e.EditID}`">
                                 <!-- Find confirmed contacts associated with edits -->
                                 <div v-for="ic in c.Contacts" v-bind:key="`i-c-a-u-${ic.ContactID.Value}`">
-                                    <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'True'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                    <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='A'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                                 </div>
                             </div>
                         </div>
@@ -682,8 +683,8 @@
                             <div v-for="e in editList" v-bind:key="`i-c-e-d-${e.EditID}`">
                                 <!-- Find unconfirmed contacts associated with edits and display -->
                                 <div v-for="ic in c.UnconfirmedContacts" v-bind:key="`i-c-d-${ic.ContactID.Value}`">
-                                    <div v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'False'">
-                                        <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'False'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                    <div v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'">
+                                        <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                                     </div>
                                 </div>
                             </div>
@@ -691,8 +692,8 @@
                             <div v-for="e in editList" v-bind:key="`i-c-e-d-u${e.EditID}`">
                                 <!-- Find confirmed contacts associated with edit and display -->
                                 <div v-for="ic in c.Contacts" v-bind:key="`i-c-d-u-${ic.ContactID.Value}`">
-                                    <div v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'False'">
-                                        <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='AHJInspectionContact' && e.SourceRow == ic.ContactID.Value && e.NewValue === 'False'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                    <div v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'">
+                                        <contact-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable==='Contact' && e.SourceRow == ic.ContactID.Value && e.EditType==='D'" v-bind:data="ic" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                                     </div>
                                 </div>
                             </div>
@@ -705,7 +706,7 @@
                     <div v-for="e in editList" v-bind:key="`i-a-e-${e.EditID}`">
                         <!-- Find inspection associated with edit and display -->
                         <div v-for="c in allInspections" v-bind:key="`i-a-c-${c.InspectionID.Value}`">
-                            <div v-if="e.SourceRow==c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.SourceColumn==='InspectionStatus' && e.NewValue === 'True'">
+                            <div v-if="e.SourceRow===c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.EditType==='A'">
                                 <inspection v-bind:editStatus="e.ReviewStatus" v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
@@ -718,11 +719,10 @@
                     <div v-for="e in editList" v-bind:key="`i-d-e-${e.EditID}`">
                         <!-- Find inspection associated with edit and display -->
                         <div v-for="c in allInspections" v-bind:key="`i-d-c-${c.InspectionID.Value}`">
-                            <div v-if="e.SourceRow==c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.SourceColumn==='InspectionStatus' && e.NewValue === 'False'">
+                            <div v-if="e.SourceRow==c.InspectionID.Value && e.SourceTable==='AHJInspection' && e.EditType==='D'">
                                 <inspection v-bind:editStatus="e.ReviewStatus" v-bind:data="c" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
-                    </div>
                     </div>
                     </div>
                     </div>
@@ -736,11 +736,10 @@
                     <div class="edit-body no-border">
                         <!-- Loop through edits -->
                         <div v-for="e in editList" v-bind:key="`DSM-e-a-${e.EditID}`">
-                            <div v-if="e.SourceTable ==='DocumentSubmissionMethodUse'">
-                                <!-- Find DSM associated with this edit and display -->
+                            <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-a-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='True'">
-                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <div v-if="e.SourceRow == err.UseID && e.EditType==='A'">
+                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>
@@ -753,11 +752,10 @@
                     <div class="edit-body no-border">
                         <!-- Loop through edit list -->
                         <div v-for="e in editList" v-bind:key="`DSM-e-d-${e.EditID}`">
-                            <div v-if="e.SourceTable ==='DocumentSubmissionMethodUse'">
-                                <!-- Find DSM associated with this edit and display -->
+                            <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-d-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='False'">
-                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <div v-if="e.SourceRow == err.UseID && e.EditType==='D'">
+                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>
@@ -775,7 +773,7 @@
                         <div class="edit-title">{{err.EngineeringReviewType.Value}}</div>
                         <!-- Loop through edits and find ones associated with each ERR and display -->
                         <div v-for="e in editList" v-bind:key="`err-e-${e.EditID}`">
-                            <edit-object v-if="e.SourceColumn !== 'EngineeringReviewRequirementStatus' && e.SourceRow == err.EngineeringReviewRequirementID && e.SourceTable === 'EngineeringReviewRequirement'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceRow == err.EngineeringReviewRequirementID && e.SourceTable === 'EngineeringReviewRequirement'  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                     </div>
                     </div>
@@ -786,7 +784,7 @@
                         <div v-for="e in editList" v-bind:key="`err-e-a-${e.EditID}`">
                             <!-- Find ERR associated with edits and display -->
                             <div v-for="err in allERR" v-bind:key="`err-a-${err.EngineeringReviewRequirementID.Value}`">
-                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.NewValue === 'True'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.EditType==='A'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -797,7 +795,7 @@
                         <div v-for="e in editList" v-bind:key="`err-e-d-${e.EditID}`">
                             <!-- Find ERR associated with this edit and display -->
                             <div v-for="err in allERR" v-bind:key="`err-d-${err.EngineeringReviewRequirementID.Value}`">
-                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.NewValue === 'False'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <err-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'EngineeringReviewRequirement' && e.SourceRow == err.EngineeringReviewRequirementID.Value && e.EditType==='D'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -811,7 +809,7 @@
                         <div class="edit-title">{{err.FeeStructureName.Value}}</div>
                         <!-- Find edits associated with each Fee Structure and display -->
                         <div v-for="e in editList" v-bind:key="`fs-e-${e.EditID}`">
-                            <edit-object v-if="e.SourceColumn !== 'FeeStructureStatus' &&e.SourceRow == err.FeeStructurePK.Value && e.SourceTable === 'FeeStructure'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="e.SourceRow == err.FeeStructurePK.Value && e.SourceTable === 'FeeStructure'  && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                     </div>
                     </div>
@@ -822,7 +820,7 @@
                         <div v-for="e in editList" v-bind:key="`fs-e-a-${e.EditID}`">
                             <!-- Find FS Associated with each addition edit and display -->
                             <div v-for="err in allFS" v-bind:key="`fs-a-${err.FeeStructurePK.Value}`">
-                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.NewValue === 'True'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.EditType==='A'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -833,7 +831,7 @@
                         <div v-for="e in editList" v-bind:key="`fs-d-e-${e.EditID}`">
                             <!-- Loop through all FS and find ones associated with Edits -->
                             <div v-for="err in allFS" v-bind:key="`fs-d-${err.FeeStructurePK.Value}`">
-                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.NewValue === 'False'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
+                                <fs-card v-bind:editStatus="e.ReviewStatus" v-if="e.SourceTable === 'FeeStructure' && e.SourceRow == err.FeeStructurePK.Value && e.EditType==='D'" v-bind:data="err" v-bind:eID="e.EditID" v-on:official="handleOfficial($event)"/>
                             </div>
                         </div>
                     </div>
@@ -846,11 +844,10 @@
                     <div class="edit-body no-border">
                         <!-- Loop through edits -->
                         <div v-for="e in editList" v-bind:key="`PIM-${e.EditID}`">
-                            <div v-if="e.SourceTable ==='PermitIssueMethodUse'">
-                                <!-- Find PIM associated with edits and display -->
+                            <div v-if="e.SourceTable ==='AHJPermitIssueMethodUse'">
                             <div v-for="err in allPIM" v-bind:key="`PIM-e-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='True'">
-                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='A'">
+                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`PIM-e-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`PIM-e-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>
@@ -863,11 +860,10 @@
                     <div class="edit-body no-border">
                         <!-- Loop through edits -->
                         <div v-for="e in editList" v-bind:key="`PIM-d-${e.EditID}`">
-                            <div v-if="e.SourceTable ==='PermitIssueMethodUse'">
-                                <!-- Loop through ERR and find ones associated with edits and display -->
+                            <div v-if="e.SourceTable ==='AHJPermitIssueMethodUse'">
                             <div v-for="err in allPIM" v-bind:key="`PIM-e-d-${err.UseID}`">
-                                <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.NewValue==='False'">
-                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <div v-if="e.SourceRow == err.UseID && e.EditType==='D'">
+                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`PIM-e-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`PIM-e-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>
@@ -1165,63 +1161,60 @@ export default {
             //contact addition to send to backend
             contactAddition: {
                 SourceTable: "Contact",
-                InspectionID: null,
+                ParentTable: "AHJ",
+                ParentID: null,
                 AHJPK: null,
                 Value: []
             },
             //inspection contact additions to backend
             inspectionContactAddition: {
                 SourceTable: "Contact",
-                InspectionID: null,
+                ParentTable: "AHJInspection",
+                ParentID: null,
                 AHJPK: null,
                 Value: []
             },
             //inspection additions to send to backend
             inspectionAddition: {
                 SourceTable: "AHJInspection",
-                InspectionID: null,
+                ParentTable: "AHJ",
+                ParentID: null,
                 AHJPK: null,
                 Value: []
             },
             //contact deletions to send to backend
             contactDeletions: {
                 SourceTable: "Contact",
-                InspectionID: null,
                 AHJPK: null,
                 Value: []
             },
             //inspection deletions to send to backend
             inspectionDeletions: {
                 SourceTable: "AHJInspection",
-                InspectionID: null,
                 AHJPK: null,
                 Value: []
             },
             //ERR deletions, for backend
             ERRDeletions: {
                 SourceTable: "EngineeringReviewRequirement",
-                InspectionID: null,
                 AHJPK: null,
                 Value: []
             },
             //FS Deletions for backend
             FSDeletions: {
                 SourceTable: "FeeStructure",
-                InspectionID: null,
                 AHJPK: null,
                 Value: []
             },
             //DSM Deletions for backend
             DSMDeletion: {
                 SourceTable: "DocumentSubmissionMethod",
-                InspectionID: null,
                 AHJPK: null,
                 Value: []
             },
             //PIM deletions for backend
             PIMDeletion: {
                 SourceTable: "PermitIssueMethod",
-                InspectionID: null,
                 AHJPK: null,
                 Value: []
             },
@@ -1292,14 +1285,16 @@ export default {
             //ERR addition object sent to backend
             ERRAddition: {
                 AHJPK: null,
-                InspectionID: null,
+                ParentTable: "AHJ",
+                ParentID: null,
                 SourceTable: 'EngineeringReviewRequirement',
                 Value: []
             },
             //FS addition model for backend
             FSAddition: {
                 AHJPK: null,
-                InspectionID: null,
+                ParentTable: "AHJ",
+                ParentID: null,
                 SourceTable: 'FeeStructure',
                 Value: []
             },
@@ -1315,14 +1310,16 @@ export default {
             //DSM additions for backend
             AddDSM: {
                 AHJPK: null,
-                InspectionID: null,
+                ParentTable: "AHJ",
+                ParentID: null,
                 SourceTable: "DocumentSubmissionMethod",
                 Value: []
             },
             //PIM addition for backend
             AddPIM:{
                 AHJPK: null,
-                InspectionID: null,
+                ParentTable: "AHJ",
+                ParentID: null,
                 SourceTable: "PermitIssueMethod",
                 Value: []
             },
@@ -1566,8 +1563,7 @@ export default {
                 this.PIMDeletion.Value = [];
                 this.DSMDeletion.Value = [];
                 for(let i = 0; i < this.$children[i].length;i++){
-                    if(this.$children[i].Type === "Inspection"){
-                        // find all inspection and clear their deleted contacts
+                    if(this.$children[i].Type === "AHJInspection"){
                         this.$children[i].Deleted.Value = [];
                     }
                 }
@@ -1684,8 +1680,7 @@ export default {
             }
             //get children deletions
             for(i = 0; i < this.$children.length; i++){
-                //if is inspection, get contact deletions for that inspeciton
-                if(this.$children[i].Type === "Inspection"){
+                if(this.$children[i].Type === "AHJInspection"){
                     this.$children[i].getDeletions();
                 }
                 //if child has been deleted, add to proper deletion object
@@ -1693,7 +1688,7 @@ export default {
                     if(this.$children[i].Type === "Contact"){
                         this.contactDeletions.Value.push(this.$children[i].data.ContactID.Value);
                     }
-                    if(this.$children[i].Type === "Inspection"){
+                    if(this.$children[i].Type === "AHJInspection"){
                         this.inspectionDeletions.Value.push(this.$children[i].data.InspectionID.Value);
                     }
                     if(this.$children[i].Type === "EngineeringReviewRequirements"){
@@ -1714,10 +1709,9 @@ export default {
         },
         deleteEdit(index){
             let e = this.editObjects[index];
-            //if deleting an edit, find its object and reset all its values
-            if(e.SourceTable === "Inspection"){
+            if(e.SourceTable === "AHJInspection"){
                 for(let i = 0; i < this.$children.length; i++){
-                    if(this.$children[i].ID == e.SourceRow && this.$children[i].Type === "Inspection"){
+                    if(this.$children[i].ID == e.SourceRow && this.$children[i].Type === "AHJInspection"){
                         this.$children[i].Edits[e.SourceColumn] = e.OldValue;
                     }
                 }
@@ -1733,7 +1727,7 @@ export default {
             //contact on inspection
             else if(e.SourceTable === "Contact" && e.InspectionID !== null){
                 for(let i = 0; i < this.$children.length; i++){
-                    if(this.$children[i].ID == e.InspectionID && this.$children[i].Type === "Inspection" && this.$children[i].eID < 0){
+                    if(this.$children[i].ID == e.InspectionID && this.$children[i].Type === "AHJInspection" && this.$children[i].eID < 0){
                         for(let j = 0; j < this.$children[i].$children.length;j++){
                             if(this.$children[i].$children[j].ID == e.SourceRow){
                                 this.$children[i].$children[j].Edits[e.SourceColumn] = e.OldValue;
@@ -1952,7 +1946,7 @@ export default {
             this.showBigDiv('confirm-edits');
             //delete all edit objects on children
             for(let i = 0; i < this.$children.length; i++){
-                if(this.$children[i].Type === "Inspection" && this.$children[i].eID < 1){
+                if(this.$children[i].Type === "AHJInspection" && this.$children[i].eID < 1){
                     this.$children[i].delete();
                 }
                 if(this.$children[i].editable){
@@ -2309,6 +2303,8 @@ export default {
             //Set AHJPK values in edit object to the correct value
             this.reset();
             this.inspectionAddition.AHJPK = this.AHJInfo.AHJPK.Value;
+            this.inspectionAddition.ParentID = this.AHJInfo.AHJPK.Value;
+            this.contactAddition.ParentID = this.AHJInfo.AHJPK.Value;
             this.contactAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.contactDeletions.AHJPK = this.AHJInfo.AHJPK.Value;
             this.inspectionDeletions.AHJPK = this.AHJInfo.AHJPK.Value;
@@ -2318,27 +2314,31 @@ export default {
             this.PIMDeletion.AHJPK = this.AHJInfo.AHJPK.Value;
             this.AddInsp.AHJPK = this.AHJInfo.AHJPK.Value;
             this.AddPIM.AHJPK = this.AHJInfo.AHJPK.Value;
+            this.AddPIM.ParentID = this.AHJInfo.AHJPK.Value;
             this.AddDSM.AHJPK = this.AHJInfo.AHJPK.Value;
+            this.AddDSM.ParentID = this.AHJInfo.AHJPK.Value;
             this.ERRAddition.AHJPK = this.AHJInfo.AHJPK.Value;
+            this.ERRAddition.ParentID = this.AHJInfo.AHJPK.Value;
             this.FSAddition.AHJPK = this.AHJInfo.AHJPK.Value;
-            //format address, setup leaflet map
+            this.FSAddition.ParentID = this.AHJInfo.AHJPK.Value;
             this.formatAddress(this.AHJInfo.Address);
-            this.setupLeaflet();
-            this.setPolygon();
-            //agglomerate confirmed and unconfirmed entities
             this.allContacts = [...this.AHJInfo.Contacts,...this.AHJInfo.UnconfirmedContacts];
             this.allInspections = [...this.AHJInfo.AHJInspections, ...this.AHJInfo.UnconfirmedInspections];
+            console.log(this.allInspections);
             this.allERR = [...this.AHJInfo.EngineeringReviewRequirements,...this.AHJInfo.UnconfirmedEngineeringReviewRequirements];
             this.allFS = [...this.AHJInfo.FeeStructures,...this.AHJInfo.UnconfirmedFeeStructures];
             this.allDSM = [...this.AHJInfo.DocumentSubmissionMethods,...this.AHJInfo.UnconfirmedDocumentSubmissionMethods];
             this.allPIM = [...this.AHJInfo.PermitIssueMethods,...this.AHJInfo.UnconfirmedPermitIssueMethods];
             //check if current user manages this AHJ
             this.assertIsManaged();
+            this.setupLeaflet();
+            this.setPolygon();
         },
         //when edit list comes in, collect it
         '$store.state.editList': function(){
             var list = this.$store.state.editList;
             this.editList = [...list];
+            console.log(this.editList);
         }
     }
 }

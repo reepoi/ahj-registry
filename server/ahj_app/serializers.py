@@ -49,15 +49,26 @@ class OrangeButtonSerializer(serializers.Field):
             return attribute
 
     def to_representation(self, value):
-        """
-        Method to take a field value and wrap
-        it into Orange Button primitives
-        """
-        if type(value) is dict and 'Value' in value:
+        if type(value) is dict and 'Value' in value and value['Value'] is None:
             return value
         ob_obj = {}
         ob_obj['Value'] = value
         return ob_obj
+
+class EnumModelSerializer(serializers.Serializer):
+    Value = serializers.CharField()
+
+    def get_attribute(self, instance):
+        attribute = super().get_attribute(instance)
+        if attribute is None:
+            return {'Value': ''}
+        else:
+            return attribute
+
+    def to_representation(self, value):
+        if type(value) is dict and 'Value' in value and value['Value'] == '':
+            return value
+        return super().to_representation(value)
 
 
 class FeeStructureSerializer(serializers.Serializer):
@@ -67,7 +78,7 @@ class FeeStructureSerializer(serializers.Serializer):
     FeeStructurePK = OrangeButtonSerializer()
     FeeStructureID = OrangeButtonSerializer()
     FeeStructureName = OrangeButtonSerializer()
-    FeeStructureType = OrangeButtonSerializer()
+    FeeStructureType = EnumModelSerializer()
     Description = OrangeButtonSerializer()
     FeeStructureStatus = OrangeButtonSerializer()
 
@@ -95,8 +106,8 @@ class LocationSerializer(serializers.Serializer):
     Latitude = OrangeButtonSerializer()
     Longitude = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    LocationDeterminationMethod = OrangeButtonSerializer()
-    LocationType = OrangeButtonSerializer()
+    LocationDeterminationMethod = EnumModelSerializer()
+    LocationType = EnumModelSerializer()
 
     def to_representation(self, location):
         """
@@ -126,7 +137,7 @@ class AddressSerializer(serializers.Serializer):
     StateProvince = OrangeButtonSerializer()
     ZipPostalCode = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    AddressType = OrangeButtonSerializer()
+    AddressType = EnumModelSerializer()
     Location = LocationSerializer(source='LocationID')
 
     def to_representation(self, address):
@@ -154,13 +165,13 @@ class ContactSerializer(serializers.Serializer):
     HomePhone = OrangeButtonSerializer()
     MobilePhone = OrangeButtonSerializer()
     WorkPhone = OrangeButtonSerializer()
-    ContactType = OrangeButtonSerializer()
+    ContactType = EnumModelSerializer()
     ContactTimezone = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
     Email = OrangeButtonSerializer()
     Title = OrangeButtonSerializer()
     URL = OrangeButtonSerializer()
-    PreferredContactMethod = OrangeButtonSerializer()
+    PreferredContactMethod = EnumModelSerializer()
     Address = AddressSerializer(source='AddressID')
 
     def to_representation(self, contact):
@@ -220,6 +231,7 @@ class UserSerializer(serializers.Serializer):
     APICalls = serializers.IntegerField()
     SignUpDate = serializers.DateField()
     MaintainedAHJs = serializers.ListField(source='get_maintained_ahjs')
+    APIToken = serializers.CharField(source='get_API_token')
     ChatRooms = SubscribedChannelsSerializer(source="get_subscribed_channels", many=True)
 
 
@@ -251,6 +263,12 @@ class DocumentSubmissionMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
 
+    def to_representation(self, dsmu):
+        if self.context.get('is_public_view', False):
+            for field in AHJDocumentSubmissionMethodUse.SERIALIZER_EXCLUDED_FIELDS:
+                if field in self.fields:
+                    self.fields.pop(field)
+        return super().to_representation(dsmu)
 
 class PermitIssueMethodUseSerializer(serializers.Serializer):
     """
@@ -259,13 +277,19 @@ class PermitIssueMethodUseSerializer(serializers.Serializer):
     UseID = serializers.IntegerField()
     Value = serializers.CharField(source='get_value')
 
+    def to_representation(self, pimu):
+        if self.context.get('is_public_view', False):
+            for field in AHJPermitIssueMethodUse.SERIALIZER_EXCLUDED_FIELDS:
+                if field in self.fields:
+                    self.fields.pop(field)
+        return super().to_representation(pimu)
 
 class AHJInspectionSerializer(serializers.Serializer):
     """
     Serializes Orange Button AHJInspection object
     """
     InspectionID = OrangeButtonSerializer()
-    InspectionType = OrangeButtonSerializer()
+    InspectionType = EnumModelSerializer()
     AHJInspectionName = OrangeButtonSerializer()
     AHJInspectionNotes = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
@@ -295,10 +319,10 @@ class EngineeringReviewRequirementSerializer(serializers.Serializer):
     """
     EngineeringReviewRequirementID = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
-    EngineeringReviewType = OrangeButtonSerializer()
-    RequirementLevel = OrangeButtonSerializer()
+    EngineeringReviewType = EnumModelSerializer()
+    RequirementLevel = EnumModelSerializer()
     RequirementNotes = OrangeButtonSerializer()
-    StampType = OrangeButtonSerializer()
+    StampType = EnumModelSerializer()
     EngineeringReviewRequirementStatus = OrangeButtonSerializer()
 
     def to_representation(self, err):
@@ -322,7 +346,7 @@ class AHJSerializer(serializers.Serializer):
     AHJPK = OrangeButtonSerializer()
     AHJID = OrangeButtonSerializer()
     AHJCode = OrangeButtonSerializer()
-    AHJLevelCode = OrangeButtonSerializer()
+    AHJLevelCode = EnumModelSerializer()
     AHJName = OrangeButtonSerializer()
     Description = OrangeButtonSerializer()
     DocumentSubmissionMethodNotes = OrangeButtonSerializer()
@@ -330,15 +354,15 @@ class AHJSerializer(serializers.Serializer):
     EstimatedTurnaroundDays = OrangeButtonSerializer()
     FileFolderURL = OrangeButtonSerializer()
     URL = OrangeButtonSerializer()
-    BuildingCode = OrangeButtonSerializer()
+    BuildingCode = EnumModelSerializer()
     BuildingCodeNotes = OrangeButtonSerializer()
-    ElectricCode = OrangeButtonSerializer()
+    ElectricCode = EnumModelSerializer()
     ElectricCodeNotes = OrangeButtonSerializer()
-    FireCode = OrangeButtonSerializer()
+    FireCode = EnumModelSerializer()
     FireCodeNotes = OrangeButtonSerializer()
-    ResidentialCode = OrangeButtonSerializer()
+    ResidentialCode = EnumModelSerializer()
     ResidentialCodeNotes = OrangeButtonSerializer()
-    WindCode = OrangeButtonSerializer()
+    WindCode = EnumModelSerializer()
     WindCodeNotes = OrangeButtonSerializer()
     Address = AddressSerializer(source='AddressID')
     Contacts = ContactSerializer(source='get_contacts', many=True)
@@ -383,17 +407,29 @@ class EditSerializer(serializers.Serializer):
     EditID = serializers.IntegerField(read_only=True)
     ChangedBy = UserSerializer()
     ApprovedBy = UserSerializer()
-    AHJPK = serializers.IntegerField()
+    AHJPK = serializers.IntegerField(source='AHJPK.AHJPK')
     SourceTable = serializers.CharField()
     SourceColumn = serializers.CharField()
     SourceRow = serializers.IntegerField()
     ReviewStatus = serializers.CharField()
-    Comments = serializers.CharField(allow_blank=True)
     OldValue = serializers.CharField(read_only=True)
     NewValue = serializers.CharField()
     DateRequested = serializers.DateField(read_only=True)
     DateEffective = serializers.DateField(read_only=True)
-    Inspection = AHJInspectionSerializer(source='InspectionID')
+    EditType = serializers.CharField()
+    DataSourceComment = serializers.CharField()
+
+    def to_representation(self, edit):
+        if self.context.get('drop_users', False):
+            """
+            This gives the option for callers of the serializer to only serialize the username of the user.
+            """
+            self.fields['ChangedBy'] = serializers.CharField(source='ChangedBy.Username')
+            if edit.ApprovedBy is None:
+                self.fields['ApprovedBy'] = UserSerializer()
+            else:
+                self.fields['ApprovedBy'] = serializers.CharField(source='ApprovedBy.Username')
+        return super().to_representation(edit)
 
     def create(self):
         """
@@ -421,33 +457,24 @@ def dictfetchone(cursor):
 
 
 def get_polygons_in_state(statepolygonid):
-    """
-    Given a state polygon id, returns a dict containing various statistics as:
-    {
-        "numAHJs": <number_of_ahjs_in_state>,
-        "numBuildingCodes": <number_of_ahjs_with_known_building_codes>,
-        "numElectricCodes": <number_of_ahjs_with_known_electric_codes>,
-        "numFireCodes": <number_of_ahjs_with_known_fire_codes>,
-        "numResidentialCodes": <number_of_ahjs_with_known_residential_codes>,
-        "numWindCodes": <number_of_ahjs_with_known_wind_codes>
-    }
-    """
-    query = 'SELECT COUNT(*) as numAHJs,' + \
-            'SUM(BuildingCode!="") as numBuildingCodes,' + \
-            'SUM(ElectricCode!="") as numElectricCodes,' + \
-            'SUM(FireCode!="") as numFireCodes,' + \
-            'SUM(ResidentialCode!="") as numResidentialCodes,' + \
-            'SUM(WindCode!="") as numWindCodes' + \
-            ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ' UNION SELECT PolygonID FROM CountySubdivisionPolygon WHERE StatePolygonID=' \
-            + statepolygonid + \
-            ') as polygons_of_state ON Polygon.PolygonID=polygons_of_state.PolygonID LEFT JOIN AHJ ON Polygon.PolygonID=AHJ.PolygonID;'
-    cursor = connection.cursor()
-    cursor.execute(query)
-    return dictfetchone(cursor)
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT COUNT(*) as numAHJs,' + \
+                       'SUM(BuildingCode!="") as numBuildingCodes,' + \
+                       'SUM(ElectricCode!="") as numElectricCodes,' + \
+                       'SUM(FireCode!="") as numFireCodes,' + \
+                       'SUM(ResidentialCode!="") as numResidentialCodes,' + \
+                       'SUM(WindCode!="") as numWindCodes' + \
+                       ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ' UNION SELECT PolygonID FROM CountySubdivisionPolygon WHERE StatePolygonID=' \
+                       + '%(statepolygonid)s' + \
+                       ') as polygons_of_state ON Polygon.PolygonID=polygons_of_state.PolygonID LEFT JOIN AHJ ON Polygon.PolygonID=AHJ.PolygonID;', {
+            'statepolygonid': statepolygonid
+        })
+        return dictfetchone(cursor)
+
 
 
 class DataVisAHJPolygonInfoSerializer(serializers.Serializer):

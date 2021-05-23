@@ -7,11 +7,12 @@
                 Go to Documentation
             </b-button>
         </div>
+        <b-button id="get-token-button" class="button" @click="displayAPIToken" block pill variant="primary">Get Current API Token</b-button>
         <b-button id="generate-token-button" class="button" @click="GenerateAPIToken" :disabled="this.SubmitStatus === 'PENDING'" block pill variant="primary">
             Generate New Token
         </b-button>
         <p>Note: One token per account. <b> Generating a new token will destroy any older tokens.</b></p>
-        
+        <h4 class="api-status-text" v-if="this.showAPIToken">Your current API token: <span>{{this.$store.state.currentUserInfo.APIToken}}</span></h4>
         <h4 class="api-status-text" v-if="this.generatedAPIToken && this.SubmitStatus === 'OK'">Your new API token: <span>{{this.APIToken}}</span></h4>
         <h4 class="api-status-text" v-if="this.SubmitStatus === 'PENDING'"> Generating Token... </h4>
         <h4 class="api-status-text error" v-if="this.SubmitStatus === 'ERROR'"> Something went wrong with generating your API token. </h4>
@@ -26,13 +27,15 @@ export default {
         return {
             APIToken: "",
             generatedAPIToken: false,
-            SubmitStatus: ""
+            SubmitStatus: "",
+            showAPIToken: false
         }
     },
     methods: {
         // Calls the APIToken create method in the backend which destroys the current user api token and returns a new one.
         GenerateAPIToken() {
             this.SubmitStatus = "PENDING";
+            this.showAPIToken = false;
             axios.get(constants.API_ENDPOINT + "auth/api-token/create/", 
                         {
                             headers: {
@@ -44,10 +47,20 @@ export default {
                         this.SubmitStatus = "OK";
                         this.APIToken = response.data['auth_token'];
                         this.generatedAPIToken = true;
+                        this.$store.state.currentUserInfo.APIToken = response.data['auth_token'];
                     })
                     .catch(() => {
                         this.SubmitStatus = "ERROR";
                     });
+        },
+        displayAPIToken(){
+            this.generatedAPIToken = false;
+            if(this.showAPIToken){
+                this.showAPIToken = false;
+            }
+            else{
+                this.showAPIToken = true;
+            }
         }
     }
 }
@@ -61,10 +74,13 @@ export default {
     background-color: #ff8c00 !important;
 }
 #documentation-button {
-    margin-bottom: 50px;
+    margin-bottom: 25px;
 }
 #generate-token-button {
     margin-bottom: 5px;
+}
+#get-token-button{
+    margin-bottom: 25px;
 }
 .api-status-text {
     margin-top: 30px;

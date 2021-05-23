@@ -11,7 +11,6 @@ urlpatterns = [
     path('ahj/set-maintainer/',           views_users.set_ahj_maintainer,                          name='ahj-set-maintainer'),
     path('ahj/remove-maintainer/',        views_users.remove_ahj_maintainer,                       name='ahj-remove-maintainer'),
     path('edit/',                         views_edits.edit_list,                                   name='edit-list'),
-    path('edit/submit/',                  views_edits.edit_submit,                                 name='edit-submit'),
     path('auth/api-token/create/',        views_users.create_api_token,                            name='create-api-token'),
     path('edit/review/',                  views_edits.edit_review,                                 name='edit-review'),
     path('edit/update/',                  views_edits.edit_update,                                 name='edit-update'),
@@ -29,8 +28,6 @@ urlpatterns = [
     path('auth/users/',                   views_users.RegisterUser.as_view({'post': 'create'}),    name='user-create'),
     path('auth/token/login/',             views_users.LoginUser.as_view(),                         name='user-login'),
     path('auth/token/logout/',            views_users.LogoutUser.as_view(),                        name='user-logout'),
-    path('edit-conts/',                   views_edits.unconfirmed_conts,                           name='unconfirmed-conts'),
-    path('edit-insps/',                   views_edits.unconfirmed_insps,                           name='unconfirmed-insps'),
     path('create-chatroom/',              views_misc.create_chat_room,                             name='create-chat-room'),
     path('adjust-timestamp/',             views_misc.reset_last_read,                              name='adjust-timestamp'),
 ]
