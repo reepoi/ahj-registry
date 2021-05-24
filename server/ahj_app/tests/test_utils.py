@@ -2,7 +2,7 @@ from django.db import connection
 from django.urls import reverse
 from django.http import HttpRequest
 from ahj_app.models import User, Edit, Comment
-from ahj_app.models_field_enums import AHJ_LEVEL_CODE_CHOICES
+from ahj_app.models_field_enums import *
 from fixtures import *
 from ahj_app.utils import *
 import pytest
@@ -80,7 +80,6 @@ def create_ahj(ahjpk, ahjid, landArea, ahjLevelCode):
     return ahj
     
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
    'latVal, longVal, expected_output', [
        (None, None, None),
@@ -100,7 +99,21 @@ def test_get_str_location(latVal, longVal, expected_output):
     }
     assert get_str_location(location) == expected_output
 
-@pytest.mark.django_db
+def test_get_str_address__regular_input():
+    address = {
+        'AddrLine1': { 'Value': 'line1' },
+        'AddrLine2': { 'Value': 'line2' },
+        'AddrLine3': { 'Value': 'line3' },
+        'City': { 'Value': 'City' },
+        'County': { 'Value': 'County' },
+        'StateProvince': { 'Value': 'State' },
+        'ZipPostalCode': { 'Value': 'Zip' },
+    }
+    assert get_str_address(address) == 'line1 line2 line3, City County State Zip'
+
+def test_get_str_address__empty_input():
+    assert get_str_address({}) == '  ,    '
+
 @pytest.mark.parametrize(
    'address, expected_output', [
        (
@@ -119,7 +132,6 @@ def test_get_location_gecode_address_str(address, expected_output):
     assert location == expected_output
 
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
    'input, expected_output', [
        (None, None),
@@ -133,7 +145,6 @@ def test_get_location_gecode_address_str(address, expected_output):
 def test_simple_sanitize(input, expected_output):
     assert simple_sanitize(input) == expected_output
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
    'type, val, expected_output', [
        (None, None, ''),
@@ -145,7 +156,6 @@ def test_simple_sanitize(input, expected_output):
 def test_get_name_query_cond(type, val, expected_output):
     assert get_name_query_cond(type,val, {}) == expected_output
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
    'type, val, expected_output', [
        ('BuildingCode', ['2018IBC', '2021IBC'], '(AHJ.BuildingCode=%(BuildingCode0)s OR AHJ.BuildingCode=%(BuildingCode1)s) AND '),
@@ -156,7 +166,6 @@ def test_get_name_query_cond(type, val, expected_output):
 def test_list_query_cond(type, val, expected_output):
     assert get_list_query_cond(type,val, {}) == expected_output
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
    'type, val, expected_output', [
        ('City', 'New York', 'Address.City=%(City)s AND '),
@@ -166,7 +175,6 @@ def test_list_query_cond(type, val, expected_output):
 def test_get_basic_user_query_cond(type, val, expected_output):
     assert get_basic_user_query_cond(type,val, {}) == expected_output
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
    'type, val, expected_output', [
        ('BuildingCode', '2018IBC', 'AHJ.BuildingCode=%(BuildingCode)s AND '),
@@ -176,11 +184,9 @@ def test_get_basic_user_query_cond(type, val, expected_output):
 def test_get_basic_query_cond(type, val, expected_output):
     assert get_basic_query_cond(type,val, {}) == expected_output
 
-@pytest.mark.django_db
 def test_point_to_polygon_geojson(geojson_point, geojson_polygon):
     assert point_to_polygon_geojson(geojson_point) == geojson_polygon
 
-@pytest.mark.django_db
 def test_get_multipolygon__collection_exists(location, feature_collection):
     request = HttpRequest()
     request.method = 'POST'
@@ -188,13 +194,11 @@ def test_get_multipolygon__collection_exists(location, feature_collection):
     resp = get_multipolygon(request, location)
     assert str(resp) == 'MULTIPOLYGON (((-111.7 40.97, -111.6 40.83, -111.87 40.81, -111.7 40.97)), ((1 1, 1 1, 1 1, 1 1)))'
 
-@pytest.mark.django_db
 def test_get_multipolygon__collection_does_not_exist(location):
     request = HttpRequest()
     request.data = {}
     assert get_multipolygon(request, location) == None
 
-@pytest.mark.django_db
 def test_get_multipolygon_wkt(mpoly_obj):
     assert str(get_multipolygon_wkt(mpoly_obj)) == 'MULTIPOLYGON(((0 0, 0 1, 1 1, 0 0)), ((1 1, 1 2, 2 2, 1 1)))' 
 
@@ -215,11 +219,9 @@ def test_order_ahj_list_AHJLevelCode_PolygonLandArea():
     assert ahjList[2].AHJPK == ahj3.AHJPK
     assert ahjList[3].AHJPK == ahj1.AHJPK
 
-@pytest.mark.django_db
 def test_get_public_api_serializer_context():
     assert get_public_api_serializer_context() == {'is_public_view': True}
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
    'ob_json, field_name, expected_output', [
        ({ 'Building Code': {'Value' : 840}}, 'Building Code', 840), # Single value
@@ -266,12 +268,12 @@ def ahj_filter_polygon():
     mp = MultiPolygon(geosPolygon(((0, 1), (0, 12), (10, 12), (10, 1), (0, 1))))
     return get_multipolygon_wkt(mp)
 
-def ahj_filter_create_ahj(ahjpk, ahjid, polygonTuple, ahjLevel):
+def ahj_filter_create_ahj(ahjpk, ahjid, polygonTuple, ahjLevel, BuildingCode=None, ElectricCode=None):
     p1 = geosPolygon(polygonTuple)
     mp = MultiPolygon(p1)
     polygon = Polygon.objects.create(Polygon=mp, LandArea=1, WaterArea=1, InternalPLatitude=1, InternalPLongitude=1)
     address = Address.objects.create()
-    ahj = AHJ.objects.create(AHJPK=ahjpk, AHJID= ahjid, PolygonID=polygon, AddressID=address, AHJLevelCode=ahjLevel)
+    ahj = AHJ.objects.create(AHJPK=ahjpk, AHJID= ahjid, PolygonID=polygon, AddressID=address, AHJLevelCode=ahjLevel, BuildingCode=BuildingCode, ElectricCode=ElectricCode)
     StatePolygon.objects.create(PolygonID=polygon)
     return ahj
 
@@ -280,13 +282,15 @@ def ahj_filter_ahjs():
     ahjLevel1 = AHJLevelCode.objects.create(AHJLevelCodeID=1, Value=AHJ_LEVEL_CODE_CHOICES[0][0])
     ahjLevel2 = AHJLevelCode.objects.create(AHJLevelCodeID=2, Value=AHJ_LEVEL_CODE_CHOICES[1][0])
     ahjLevel3 = AHJLevelCode.objects.create(AHJLevelCodeID=3, Value=AHJ_LEVEL_CODE_CHOICES[2][0])
+    buildingCode = AHJLevelCode.objects.create(AHJLevelCodeID=3, Value=BUILDING_CODE_CHOICES[2][0])
+    electricCode = AHJLevelCode.objects.create(AHJLevelCodeID=3, Value=ELECTRIC_CODE_CHOICES)
 
     ahj1 = ahj_filter_create_ahj(1, 1, ((0, 0), (0, 10), (10, 10), (10, 0), (0,0)), ahjLevel1) # AHJs 1 and 2 are in the same polygon as ahj_filter_polygon
     ahj2 = ahj_filter_create_ahj(2, 2, ((0, 3), (0, 13), (10, 13), (10, 3), (0, 3)), ahjLevel2)
     ahj3 = ahj_filter_create_ahj(3, 3, ((20, 20), (20, 30), (30, 30), (30, 20), (20,20)), ahjLevel3) # AHJ 3's polygon is over ahj_filter_location
 
-    ahj4 = ahj_filter_create_ahj(4, 4, ((100, 100), (100, 110), (110, 110), (110, 100), (100, 100)), ahjLevel1) # AHJ 4 and 5 are found through the request 
-    ahj5 = ahj_filter_create_ahj(5, 5, ((100, 100), (100, 110), (110, 110), (110, 100), (100, 100)), ahjLevel1)
+    ahj4 = ahj_filter_create_ahj(4, 4, ((100, 100), (100, 110), (110, 110), (110, 100), (100, 100)), ahjLevel1, buildingCode, electricCode) # AHJ 4 and 5 are found through the request 
+    ahj5 = ahj_filter_create_ahj(5, 5, ((100, 100), (100, 110), (110, 110), (110, 100), (100, 100)), ahjLevel1, buildingCode, electricCode)
     return ahj1, ahj2, ahj3, ahj4, ahj5
 
 @pytest.mark.django_db
@@ -309,3 +313,10 @@ def test_filter_ahjs__only_polygon_search(ahj_filter_ahjs, ahj_filter_polygon):
 
     assert len(ahj_list) == 2 # polygon should overlap with AHJs 1 and 2
     assert all(x in [int(ahj_list[0].AHJID), int(ahj_list[1].AHJID)] for x in [ahj1.AHJID, ahj2.AHJID])
+
+@pytest.mark.django_db
+def test_filter_ahjs__only_search_filters(ahj_filter_ahjs, ahj_filter_location):
+    ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
+    ahj_list = filter_ahjs(BuildingCode='2018IBC', ElectricCode='2018NEC')
+    assert len(ahj_list) == 2
+
