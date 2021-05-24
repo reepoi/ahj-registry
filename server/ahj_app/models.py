@@ -503,10 +503,16 @@ class WebpageToken(rest_framework.authtoken.models.Token):
      def get_user(self):
          return self.user
 
+     def __str__(self):
+         return f'WebpageToken({self.key})'
+
 class APIToken(rest_framework.authtoken.models.Token):
      key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
      created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
      user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+
+     def __str__(self):
+        return f'APIToken({self.key})'
 
 class StateTemp(models.Model):
     GEOID = models.CharField(max_length=2)
