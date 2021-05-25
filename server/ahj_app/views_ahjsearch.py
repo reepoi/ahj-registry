@@ -70,6 +70,8 @@ def webpage_ahj_list(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def get_single_ahj(request):
     AHJPK = request.GET.get('AHJPK')
     ahj = AHJ.objects.filter(AHJPK=AHJPK)

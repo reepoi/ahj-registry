@@ -1,21 +1,30 @@
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
+from .authentication import WebpageTokenAuth
 from .models import User, Comment, Edit
 from .utils import CommentSerializer, EditSerializer
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def form_validator(request):
+    """
+    API call to validate the form information when a new user signs up
+    """
     Username = request.GET.get('Username', None)
     Email = request.GET.get('Email', None)
     usernameExists = User.objects.filter(Username=Username).exists()
     emailExists = User.objects.filter(Email=Email).exists()
-    return Response({"Username": usernameExists, "Email": emailExists})
+    return Response({"UsernameExists": usernameExists, "EmailExists": emailExists}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def user_comments(request):
     UserID = request.query_params.get('UserID', None)
     comments = Comment.objects.filter(UserID=int(UserID))
@@ -23,6 +32,8 @@ def user_comments(request):
 
 
 @api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def comment_submit(request):
     comment_text = request.data.get('CommentText', None)
     if comment_text is None:
@@ -36,6 +47,8 @@ def comment_submit(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def user_edits(request):
     UserID = request.query_params.get('UserID', None)
     edits = Edit.objects.filter(ChangedBy=UserID)

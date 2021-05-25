@@ -61,7 +61,7 @@ def get_location_gecode_address_str(address):
         }
     }
     geo_res = []
-    if address is not None:
+    if bool(address): # Check if address is non-falsey 
         geo_res = gmaps.geocode(address)
     if len(geo_res) != 0:
         latitude = geo_res[0]['geometry']['location']['lat']
@@ -86,7 +86,9 @@ def simple_sanitize(s: str):
     """
     Sanitize SQL string inputs simply by dropping ';' and '''
     """
-    return s.replace(';', '').replace('\'', '')
+    if s is not None:
+        return s.replace(';', '').replace('\'', '')
+    return None
 
 
 def get_name_query_cond(type: str, val: str, query_params: dict):
@@ -97,7 +99,7 @@ def get_name_query_cond(type: str, val: str, query_params: dict):
     if val is not None, otherwise it returns the
     empty string to represent no condition on type.
     """
-    if val is not None:
+    if val is not None and type is not None:
         query_params[type] = '%' + val + '%'
         return 'AHJ.' + type + ' LIKE %(' + type + ')s AND '
     return ''
@@ -109,7 +111,7 @@ def get_list_query_cond(type: str, val: list, query_params: dict):
     an SQL condition on the AHJ table of the form:
             (AHJ.`type` = 'val1' OR AHJ.`type` = 'val2' OR ... ) AND
     """
-    if len(val) != 0:
+    if val is not None and len(val) != 0:
         or_list = []
         for i in range(len(val)):
             param_name = f'{type}{i}'
@@ -305,7 +307,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
 
 def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
     ahj_list.sort(key=lambda ahj: int(ahj.PolygonID.LandArea) if ahj.PolygonID is not None else 0) # Sort first by landarea ascending
-    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode) if ahj.AHJLevelCode != '' else 0) # Then sort by numerical value AHJLevelCode descending
+    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode.Value) if ahj.AHJLevelCode is not None else 0) # Then sort by numerical value AHJLevelCode descending
     return ahj_list
 
 
