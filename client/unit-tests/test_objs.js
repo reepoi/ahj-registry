@@ -25,18 +25,6 @@ export let address = {
     Location: { ...location }
 }
 
-export let Inspection = { 
-    AHJInspectionName: { Value: "Name" }, 
-    InspectionID: { Value: 1},
-    InspectionType: { Value: "RoughIn" },
-    AHJInspectionNotes: { Value: "Notes" },
-    Description: { Value: "Description" },
-    FileFolderURL: { Value: "url" },
-    TechnicianRequired: { Value: 0 },
-    AHJPK: { Value: 1 },
-    Contacts: [],
-    UnconfirmedContacts: []
-}
 
 export let ERR = { 
     EngineeringReviewRequirementID: { Value: 1 },
@@ -89,6 +77,19 @@ export let Contact = {
     ParentTable: "AHJ"
 }
 
+export let Inspection = { 
+    AHJInspectionName: { Value: "Name" }, 
+    InspectionID: { Value: 1},
+    InspectionType: { Value: "RoughIn" },
+    AHJInspectionNotes: { Value: "Notes" },
+    Description: { Value: "Description" },
+    FileFolderURL: { Value: "url" },
+    TechnicianRequired: { Value: 0 },
+    AHJPK: { Value: 1 },
+    Contacts: [{...Contact}],
+    UnconfirmedContacts: []
+}
+
 export let AHJ = {
     AHJPK: { Value: 1 },
     AHJID: { Value: "ahjid" },
@@ -127,4 +128,16 @@ export let AHJ = {
     UnconfirmedPermitIssueMethods: [],
     Comments: [],
     Polygon: null
+}
+
+export let Edit = {
+    DateRequested: "09-12-1998",
+    OldValue: "2018IBC",
+    NewValue: "2021IBC",
+    SourceColumn: "BuildingCode",
+    SourceRow: 1,
+    SourceTable: "AHJ",
+    Comments: "No comments here!",
+    ChangedBy: "No one",
+    ReviewStatus: "A"
 }

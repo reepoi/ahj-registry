@@ -23,7 +23,7 @@ import AHJSearchPageFilter from "../components/SearchPage/AHJSearchPageFilter.vu
 import AHJTablePagination from "../components/SearchPage/AHJTablePagination";
 import AHJTableResultInfo from "../components/SearchPage/AHJTableResultInfo";
 import "intro.js/minified/introjs.min.css";
-import * as introJs from 'intro.js';
+const introJs = require('intro.js');
 export default {
   data() {
     return {

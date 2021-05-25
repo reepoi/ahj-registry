@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils';
 import AHJPage from '../src/views/AHJPage.vue'
 import { createLocalVue } from '@vue/test-utils';
 import BootstrapVue from 'bootstrap-vue';
