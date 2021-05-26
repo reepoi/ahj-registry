@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { mount } from '@vue/test-utils';
 import AHJTableView from '../src/components/SearchPage/AHJTableView';
 import { createLocalVue } from '@vue/test-utils';

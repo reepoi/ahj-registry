@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { mount } from '@vue/test-utils';
 import AHJSearchPageFilter from '../src/components/SearchPage/AHJSearchPageFilter';
 import { createLocalVue } from '@vue/test-utils';

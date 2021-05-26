@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { mount } from '@vue/test-utils';
 import Contact from '../src/components/AHJPage/ContactCard';
 import { createLocalVue } from '@vue/test-utils';

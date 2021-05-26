@@ -14,7 +14,7 @@ class AHJ(models.Model):
     AHJPK = models.AutoField(db_column='AHJPK', primary_key=True)
     AHJID = models.CharField(db_column='AHJID', unique=True, max_length=36)
     AHJCode = models.CharField(db_column='AHJCode', max_length=20, blank=True)
-    AHJLevelCode = models.ForeignKey('AHJLevelCode', on_delete=models.DO_NOTHING, db_column='AHJLevelCodeID', null=True)
+    AHJLevelCode = models.ForeignKey('AHJLevelCode', on_delete=models.DO_NOTHING, db_column='AHJLevelCode', null=True)
     PolygonID = models.ForeignKey('Polygon', on_delete=models.DO_NOTHING, db_column='PolygonID', null=True)
     AddressID = models.ForeignKey('Address', on_delete=models.DO_NOTHING, db_column='AddressID', null=True)
     AHJName = models.CharField(db_column='AHJName', max_length=100)
@@ -24,15 +24,15 @@ class AHJ(models.Model):
     EstimatedTurnaroundDays = models.IntegerField(db_column='EstimatedTurnaroundDays', null=True)
     FileFolderURL = models.CharField(db_column='FileFolderURL', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=2048, blank=True)
-    BuildingCode = models.ForeignKey('BuildingCode', on_delete=models.DO_NOTHING, db_column='BuildingCodeID', null=True)
+    BuildingCode = models.ForeignKey('BuildingCode', on_delete=models.DO_NOTHING, db_column='BuildingCode', null=True)
     BuildingCodeNotes = models.CharField(db_column='BuildingCodeNotes', max_length=255, blank=True)
-    ElectricCode = models.ForeignKey('ElectricCode', on_delete=models.DO_NOTHING, db_column='ElectricCodeID', null=True)
+    ElectricCode = models.ForeignKey('ElectricCode', on_delete=models.DO_NOTHING, db_column='ElectricCode', null=True)
     ElectricCodeNotes = models.CharField(db_column='ElectricCodeNotes', max_length=255, blank=True)
-    FireCode = models.ForeignKey('FireCode', on_delete=models.DO_NOTHING, db_column='FireCodeID', null=True)
+    FireCode = models.ForeignKey('FireCode', on_delete=models.DO_NOTHING, db_column='FireCode', null=True)
     FireCodeNotes = models.CharField(db_column='FireCodeNotes', max_length=255, blank=True)
-    ResidentialCode = models.ForeignKey('ResidentialCode', on_delete=models.DO_NOTHING, db_column='ResidentialCodeID', null=True)
+    ResidentialCode = models.ForeignKey('ResidentialCode', on_delete=models.DO_NOTHING, db_column='ResidentialCode', null=True)
     ResidentialCodeNotes = models.CharField(db_column='ResidentialCodeNotes', max_length=255, blank=True)
-    WindCode = models.ForeignKey('WindCode', on_delete=models.DO_NOTHING, db_column='WindCodeID', null=True)
+    WindCode = models.ForeignKey('WindCode', on_delete=models.DO_NOTHING, db_column='WindCode', null=True)
     WindCodeNotes = models.CharField(db_column='WindCodeNotes', max_length=255, blank=True)
 
     class Meta:
@@ -128,13 +128,13 @@ class Contact(models.Model):
     HomePhone = models.CharField(db_column='HomePhone', max_length=31, blank=True)
     MobilePhone = models.CharField(db_column='MobilePhone', max_length=31, blank=True)
     WorkPhone = models.CharField(db_column='WorkPhone', max_length=31, blank=True)
-    ContactType = models.ForeignKey('ContactType', on_delete=models.DO_NOTHING, db_column='ContactTypeID', null=True)
+    ContactType = models.ForeignKey('ContactType', on_delete=models.DO_NOTHING, db_column='ContactType', null=True)
     ContactTimezone = models.CharField(db_column='ContactTimezone', max_length=255, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     Email = models.CharField(db_column='Email', max_length=50, blank=True)
     Title = models.CharField(db_column='Title', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=255, blank=True)
-    PreferredContactMethod = models.ForeignKey('PreferredContactMethod', on_delete=models.DO_NOTHING, db_column='PreferredContactMethodID', null=True)
+    PreferredContactMethod = models.ForeignKey('PreferredContactMethod', on_delete=models.DO_NOTHING, db_column='PreferredContactMethod', null=True)
     ContactStatus = models.BooleanField(db_column='ContactStatus', null=True)
 
     class Meta:
@@ -195,7 +195,7 @@ class FeeStructure(models.Model):
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     FeeStructureID = models.CharField(db_column='FeeStructureID', max_length=36) # UUIDField
     FeeStructureName = models.CharField(db_column='FeeStructureName', unique=True, max_length=255)
-    FeeStructureType = models.ForeignKey('FeeStructureType', on_delete=models.DO_NOTHING, db_column='FeeStructureTypeID', null=True)
+    FeeStructureType = models.ForeignKey('FeeStructureType', on_delete=models.DO_NOTHING, db_column='FeeStructureType', null=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     FeeStructureStatus = models.BooleanField(db_column='FeeStructureStatus', null=True)
 
@@ -245,8 +245,8 @@ class Location(models.Model):
     Latitude = models.DecimalField(db_column='Latitude', max_digits=10, decimal_places=8, null=True)
     Longitude = models.DecimalField(db_column='Longitude', max_digits=11, decimal_places=8, null=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
-    LocationDeterminationMethod = models.ForeignKey('LocationDeterminationMethod', on_delete=models.DO_NOTHING, db_column='LocationDeterminationMethodID', null=True)
-    LocationType = models.ForeignKey('LocationType', on_delete=models.DO_NOTHING, db_column='LocationTypeID', null=True)
+    LocationDeterminationMethod = models.ForeignKey('LocationDeterminationMethod', on_delete=models.DO_NOTHING, db_column='LocationDeterminationMethod', null=True)
+    LocationType = models.ForeignKey('LocationType', on_delete=models.DO_NOTHING, db_column='LocationType', null=True)
 
     class Meta:
         managed = True
@@ -258,10 +258,10 @@ class EngineeringReviewRequirement(models.Model):
     EngineeringReviewRequirementID = models.AutoField(db_column='EngineeringReviewRequirementID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
-    EngineeringReviewType = models.ForeignKey('EngineeringReviewType', on_delete=models.DO_NOTHING, db_column='EngineeringReviewTypeID', null=True)
-    RequirementLevel = models.ForeignKey('RequirementLevel', on_delete=models.DO_NOTHING, db_column='RequirementLevelID', null=True)
+    EngineeringReviewType = models.ForeignKey('EngineeringReviewType', on_delete=models.DO_NOTHING, db_column='EngineeringReviewType', null=True)
+    RequirementLevel = models.ForeignKey('RequirementLevel', on_delete=models.DO_NOTHING, db_column='RequirementLevel', null=True)
     RequirementNotes = models.CharField(db_column='RequirementNotes', max_length=255, blank=True)
-    StampType = models.ForeignKey('StampType', on_delete=models.DO_NOTHING, db_column='StampTypeID', null=True)
+    StampType = models.ForeignKey('StampType', on_delete=models.DO_NOTHING, db_column='StampType', null=True)
     EngineeringReviewRequirementStatus = models.BooleanField(db_column='EngineeringReviewRequirementStatus', null=True)
 
     class Meta:
@@ -483,9 +483,10 @@ class User(AbstractBaseUser):
         return [channel for channel in SubscribedChannels.objects.filter(UserID=self)]
 
     def get_API_token(self):
-        if self.api_token:
-            return self.api_token.key
-        return None
+        api_token = APIToken.objects.filter(user=self).first()
+        if api_token is None:
+            return ''
+        return api_token.key
 
     class Meta:
         db_table = 'User'

@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { mount } from '@vue/test-utils';
 import MapView from '../src/components/SearchPage/MapView';
 import { createLocalVue } from '@vue/test-utils';

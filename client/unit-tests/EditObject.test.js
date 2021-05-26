@@ -1,4 +1,8 @@
- import { mount } from '@vue/test-utils';
+/**
+ * @jest-environment jsdom
+ */
+
+import { mount } from '@vue/test-utils';
 import editObj from '../src/components/AHJPage/EditObject';
 import { createLocalVue } from '@vue/test-utils';
 import BootstrapVue from 'bootstrap-vue';

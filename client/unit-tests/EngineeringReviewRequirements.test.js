@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { mount } from '@vue/test-utils';
 import ERR from '../src/components/AHJPage/EngineeringReviewRequirements';
 import { createLocalVue } from '@vue/test-utils';

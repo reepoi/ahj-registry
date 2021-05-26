@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { mount } from '@vue/test-utils';
 import AHJTablePagination from '../src/components/SearchPage/AHJTablePagination';
 import { createLocalVue } from '@vue/test-utils';

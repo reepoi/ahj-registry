@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { mount } from '@vue/test-utils';
 import FeeStructure from '../src/components/AHJPage/FeeStructure';
 import { createLocalVue } from '@vue/test-utils';
