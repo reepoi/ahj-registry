@@ -3,10 +3,10 @@ from . import views_ahjsearch, views_ahjsearch_api, views_users, views_misc, vie
 
 
 urlpatterns = [
-    path('ahj/',                          views_ahjsearch_api.ahj_list,          name='ahj'),
-    path('ahj-private/',                  views_ahjsearch.webpage_ahj_list,      name='ahj'),
-    path('geo/address/',                  views_ahjsearch_api.ahj_geo_address,   name='ahj'),
-    path('geo/location/',                 views_ahjsearch_api.ahj_geo_location,  name='ahj'),
+    path('ahj/',                          views_ahjsearch_api.ahj_list,          name='ahj-public'),
+    path('ahj-private/',                  views_ahjsearch.webpage_ahj_list,      name='ahj-private'),
+    path('geo/address/',                  views_ahjsearch_api.ahj_geo_address,   name='ahj-geo-address'),
+    path('geo/location/',                 views_ahjsearch_api.ahj_geo_location,  name='ahj-geo-location'),
     path('ahj-one/',                      views_ahjsearch.get_single_ahj,        name='single_ahj'),
     path('ahj/set-maintainer/',           views_users.set_ahj_maintainer,        name='ahj-maintainer'),
     path('ahj/remove-maintainer/',        views_users.remove_ahj_maintainer,     name='ahj-maintainer'),
