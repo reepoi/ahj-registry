@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,9 +22,12 @@ def get_ob_value_primitive(ob_json, field_name, throw_exception=True, exception_
             return values
         return ob_json[field_name]['Value']
     except (TypeError, KeyError):
-        if throw_exception:
+        if throw_exception and field_name in ob_json: # Throws exception if the json had the key but it was not in correct OB format
             raise ValueError(f'Missing \'Value\' key for Orange Button field \'{field_name}\'')
-        return exception_return_value
+        return exception_return_value # returns empty string if the json didn't have the field name as a key
+    
+def check_address_empty(address):
+    return re.search('[a-zA-Z0-9]', address) # If number or letter exists, then at least one address field has been provided
 
 
 def get_str_location(location):
@@ -38,13 +42,13 @@ def get_str_location(location):
 
 def get_str_address(address):
     return \
-        get_ob_value_primitive(address, 'AddrLine1', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'AddrLine2', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'AddrLine3', throw_exception=False, exception_return_value='') + ', ' + \
-        get_ob_value_primitive(address, 'City', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'County', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'StateProvince', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'ZipPostalCode', throw_exception=False, exception_return_value='')
+        get_ob_value_primitive(address, 'AddrLine1', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'AddrLine2', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'AddrLine3', exception_return_value='') + ', ' + \
+        get_ob_value_primitive(address, 'City', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'County', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'StateProvince', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'ZipPostalCode', exception_return_value='')
 
 
 def get_location_gecode_address_str(address):
@@ -190,7 +194,7 @@ def get_multipolygon_wkt(multipolygon):
 
 
 def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode=None,
-                BuildingCode=None, ElectricCode=None, FireCode=None, ResidentialCode=None, WindCode=None,
+                BuildingCode=[], ElectricCode=[], FireCode=[], ResidentialCode=[], WindCode=[],
                 StateProvince=None, location=None, polygon=None):
     """
     Main Idea: This functional view uses raw SQL queries to
@@ -305,7 +309,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
 
 def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
     ahj_list.sort(key=lambda ahj: int(ahj.PolygonID.LandArea) if ahj.PolygonID is not None else 0) # Sort first by landarea ascending
-    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode) if ahj.AHJLevelCode != '' else 0) # Then sort by numerical value AHJLevelCode descending
+    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode.Value) if ahj.AHJLevelCode is not None else 0) # Then sort by numerical value AHJLevelCode descending
     return ahj_list
 
 
