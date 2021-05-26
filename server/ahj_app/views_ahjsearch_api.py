@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from .authentication import APITokenAuth
 from .serializers import AHJSerializer
 from .utils import order_ahj_list_AHJLevelCode_PolygonLandArea, filter_ahjs, get_str_location, \
-    get_public_api_serializer_context, get_ob_value_primitive, get_str_address, get_location_gecode_address_str
+    get_public_api_serializer_context, get_ob_value_primitive, get_str_address, get_location_gecode_address_str, check_address_empty
 
 
 @api_view(['POST'])
@@ -41,7 +41,6 @@ def ahj_list(request):
                 str_location = get_str_location(location=json_location)
     except TypeError:
         return Response('Invalid Address, all values must be strings', status=status.HTTP_400_BAD_REQUEST)
-
     ahjs = filter_ahjs(
         AHJName=get_ob_value_primitive(request.data, 'AHJName', throw_exception=False),
         AHJID=get_ob_value_primitive(request.data, 'AHJID', throw_exception=False),
@@ -87,6 +86,8 @@ def ahj_geo_location(request):
 
     try:
         str_location = get_str_location(ob_location)
+        if (str_location == None):
+            return Response('Location field(s) cannot be empty.', status=status.HTTP_400_BAD_REQUEST)
     except (TypeError, KeyError, ValueError) as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -113,7 +114,9 @@ def ahj_geo_address(request):
 
     try:
         str_address = get_str_address(ob_address)
-    except TypeError:
+        if (check_address_empty(str_address) == None):
+            return Response('Address field(s) cannot be empty.', status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
         return Response('Invalid Address, all values must be strings', status=status.HTTP_400_BAD_REQUEST)
 
     ob_location = get_location_gecode_address_str(str_address)
