@@ -37,6 +37,8 @@ class AHJ(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJ'
+        verbose_name = 'AHJ'
+        verbose_name_plural = 'AHJs'
 
 
     def get_contacts(self):
@@ -95,6 +97,8 @@ class Comment(models.Model):
     class Meta:
         managed = True
         db_table = 'Comment'
+        verbose_name = 'Comment'
+        verbose_name_plural = 'Comments'
 
 class Address(models.Model):
     AddressID = models.AutoField(db_column='AddressID', primary_key=True)
@@ -113,6 +117,8 @@ class Address(models.Model):
     class Meta:
         managed = True
         db_table = 'Address'
+        verbose_name = 'Address'
+        verbose_name_plural = 'Addresses'
 
     SERIALIZER_EXCLUDED_FIELDS = ['AddressID']
 
@@ -139,6 +145,8 @@ class Contact(models.Model):
     class Meta:
         managed = True
         db_table = 'Contact'
+        verbose_name = 'Contact'
+        verbose_name_plural = 'Contacts'
         index_together = (('ParentTable', 'ParentID'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['ContactID']
@@ -185,6 +193,8 @@ class AHJInspection(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJInspection'
+        verbose_name = 'AHJ Inspection'
+        verbose_name_plural = 'AHJ Inspections'
         unique_together = (('AHJPK', 'AHJInspectionName'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['InspectionID', 'UnconfirmedContacts', 'InspectionStatus']
@@ -201,6 +211,8 @@ class FeeStructure(models.Model):
     class Meta:
         managed = True
         db_table = 'FeeStructure'
+        verbose_name = 'Fee Structure'
+        verbose_name_plural = 'Fee Structures'
         unique_together = (('FeeStructureID', 'AHJPK'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['FeeStructurePK', 'FeeStructureStatus']
@@ -236,6 +248,8 @@ class Edit(models.Model):
     class Meta:
         managed = True
         db_table = 'Edit'
+        verbose_name = 'Edit'
+        verbose_name_plural = 'Edits'
 
 class Location(models.Model):
     LocationID = models.AutoField(db_column='LocationID', primary_key=True)
@@ -250,6 +264,8 @@ class Location(models.Model):
     class Meta:
         managed = True
         db_table = 'Location'
+        verbose_name = 'Location'
+        verbose_name_plural = 'Locations'
 
     SERIALIZER_EXCLUDED_FIELDS = ['LocationID']
 
@@ -266,6 +282,8 @@ class EngineeringReviewRequirement(models.Model):
     class Meta:
         managed = True
         db_table = 'EngineeringReviewRequirement'
+        verbose_name = 'Engineering Review Requirement'
+        verbose_name_plural = 'Engineering Review Requirements'
 
     SERIALIZER_EXCLUDED_FIELDS = ['EngineeringReviewRequirementID', 'EngineeringReviewRequirementStatus']
 
@@ -297,6 +315,10 @@ class DocumentSubmissionMethod(models.Model):
     def get_relation_status_field(self):
         return 'MethodStatus'
 
+    class Meta:
+        verbose_name = 'Document Submission Method'
+        verbose_name_plural = 'Document Submission Methods'
+
 class AHJDocumentSubmissionMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -306,6 +328,8 @@ class AHJDocumentSubmissionMethodUse(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJDocumentSubmissionMethodUse'
+        verbose_name = 'AHJ Document Submission Method Use'
+        verbose_name_plural = 'AHJ Document Submission Method Uses'
         unique_together = (('AHJPK', 'DocumentSubmissionMethodID'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['UseID']
@@ -334,6 +358,10 @@ class PermitIssueMethod(models.Model):
     def get_relation_status_field(self):
         return 'MethodStatus'
 
+    class Meta:
+        verbose_name = 'Permit Issue Method'
+        verbose_name_plural = 'Permit Issue Methods'
+
 class AHJPermitIssueMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -343,6 +371,8 @@ class AHJPermitIssueMethodUse(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJPermitIssueMethodUse'
+        verbose_name = 'AHJ Permit Issue Method Use'
+        verbose_name_plural = 'AHJ Permit Issue Method Uses'
         unique_together = (('AHJPK', 'PermitIssueMethodID'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['UseID']
@@ -366,6 +396,8 @@ class Polygon(models.Model):
     class Meta:
         managed = True
         db_table = 'Polygon'
+        verbose_name = 'Polygon'
+        verbose_name_plural = 'Polygons'
 
 class StatePolygon(models.Model):
     PolygonID = models.OneToOneField(Polygon, models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -374,6 +406,8 @@ class StatePolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'StatePolygon'
+        verbose_name = 'State Polygon'
+        verbose_name_plural = 'State Polygons'
 
 class CountyPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -383,6 +417,8 @@ class CountyPolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'CountyPolygon'
+        verbose_name = 'County Polygon'
+        verbose_name_plural = 'County Polygons'
 
 class CityPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -392,6 +428,8 @@ class CityPolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'CityPolygon'
+        verbose_name = 'City Polygon'
+        verbose_name_plural = 'City Polygons'
 
 class CountySubdivisionPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -401,6 +439,8 @@ class CountySubdivisionPolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'CountySubdivisionPolygon'
+        verbose_name = 'County Subdivision Polygon'
+        verbose_name_plural = 'County Subdivision Polygons'
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -483,6 +523,8 @@ class User(AbstractBaseUser):
 
     class Meta:
         db_table = 'User'
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
         managed = True
 
 class AHJUserMaintains(models.Model):
@@ -494,6 +536,8 @@ class AHJUserMaintains(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJUserMaintains'
+        verbose_name = 'AHJ User Maintains'
+        verbose_name_plural = 'AHJ User Maintains'
         unique_together = (('AHJPK', 'UserID'),)
 
 class WebpageToken(rest_framework.authtoken.models.Token):
@@ -504,10 +548,18 @@ class WebpageToken(rest_framework.authtoken.models.Token):
      def get_user(self):
          return self.user
 
+     class Meta:
+        verbose_name = 'Webpage Token'
+        verbose_name_plural = 'Webpage Tokens'
+
 class APIToken(rest_framework.authtoken.models.Token):
      key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
      created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
      user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+
+     class Meta:
+        verbose_name = 'API Token'
+        verbose_name_plural = 'API Tokens'
 
 class StateTemp(models.Model):
     GEOID = models.CharField(max_length=2)
@@ -521,6 +573,10 @@ class StateTemp(models.Model):
 
     def __str__(self):
         return self.NAME
+
+    class Meta:
+        verbose_name = 'Temporary State Polygon'
+        verbose_name_plural = 'Temporary State Polygons'
 
 # Census county shapefile model
 class CountyTemp(models.Model):
@@ -538,6 +594,10 @@ class CountyTemp(models.Model):
     def __str__(self):
         return self.NAMELSAD
 
+    class Meta:
+        verbose_name = 'Temporary County Polygon'
+        verbose_name_plural = 'Temporary County Polygons'
+
 # Census cousub shapefile model
 class CousubTemp(models.Model):
     STATEFP = models.CharField(max_length=2)
@@ -553,6 +613,10 @@ class CousubTemp(models.Model):
 
     def __str__(self):
         return self.NAMELSAD
+
+    class Meta:
+        verbose_name = 'Temporary Cousub Polygon'
+        verbose_name_plural = 'Temporary Cousub Polygons'
 
 # Census place shapefile model
 class CityTemp(models.Model):
@@ -570,6 +634,14 @@ class CityTemp(models.Model):
     def __str__(self):
         return self.NAMELSAD
 
+    class Meta:
+        verbose_name = 'Temporary City Polygon'
+        verbose_name_plural = 'Temporary City Polygons'
+
 class AHJCensusName(models.Model):
     AHJPK = models.OneToOneField('AHJ', on_delete=models.DO_NOTHING, db_column='AHJPK', primary_key=True)
     AHJCensusName = models.CharField(db_column='AHJCensusName', max_length=100)
+
+    class Meta:
+        verbose_name = 'AHJ Census Name'
+        verbose_name_plural = 'AHJ Census Names'
