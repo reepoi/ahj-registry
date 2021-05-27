@@ -36,9 +36,28 @@ describe('User Profile tests', () => {
         let contactInfo = await page.$('button.contact-info-button');
         await contactInfo.click();
         await expect(page).toMatchElement('div.modal-content', { visible: true });
-        await new Promise(r => setTimeout(r, 8000));
+        let exit = await page.$('button.btn-primary');
+        await exit.click();
+        await expect(page).not.toMatchElement('div.modal-content', { visible: true });
     });
     it('Edit profile button', async () => {
-        
+        await new Promise(r => setTimeout(r, 1000));
+        let [editButton] = await page.$x('//button[contains(.,"Edit Profile")]');
+        await editButton.click();
+        while( await page.waitForXPath('//*[contains(text(), "Loading")]', { hidden: true }) !== null){}
+        await expect(page).toMatch('Update profile picture');
+    });
+    it('Navigate to API', async () => {
+        let apiButton = await page.$('#api-button');
+        await apiButton.click();
+        while( await page.waitForXPath('//*[contains(text(), "Loading")]', { hidden: true }) !== null){}
+        await expect(page).toMatch("Generate New Token");
+        await new Promise(r => setTimeout(r, 8000));
+    });
+    it('Generate new token', async () => {
+        let tokenButton = await page.$('#generate-token-button');
+        await tokenButton.click();
+        while( await page.waitForXPath('//*[contains(text(), "Generating Token")]', { hidden: true }) !== null){}
+        await expect(page).toMatch('Your new API token');
     });
 });
