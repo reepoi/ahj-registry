@@ -515,6 +515,9 @@ class User(AbstractBaseUser):
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
 
+    def is_ahj_official(self):
+        return len(self.get_maintained_ahjs()) > 0
+
     def get_API_token(self):
         api_token = APIToken.objects.filter(user=self).first()
         if api_token is None:

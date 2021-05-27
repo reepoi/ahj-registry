@@ -37,7 +37,7 @@ GDAL_LIBRARY_PATH = '/usr/local/lib/libgdal.so'
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'ahj_app.apps.AhjAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
