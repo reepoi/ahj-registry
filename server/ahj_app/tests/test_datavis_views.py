@@ -61,7 +61,6 @@ def test_data_map_get_polygon__normal_call(client_with_webpage_credentials):
 def test_data_map_get_polygon__no_param_passed(client_with_webpage_credentials):
     url = reverse('data-map-polygon')
     response = client_with_webpage_credentials.get(url)
-    print(response.data)
     assert response.status_code == 400
 
 @pytest.mark.django_db

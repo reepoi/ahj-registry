@@ -10,37 +10,6 @@ def user_obj(create_user):
     user = create_user(Username='someone')
     return user
 
-@pytest.fixture
-def add_edit_input():
-    return {
-        'SourceTable': 'AHJInspection',
-        'SourceRow': 76,
-        'SourceColumn': 'AHJInspectionName',
-        'NewValue': 'NewName',
-        'OldValue': 'Inspection1',
-        'User': user,
-        'EditType': 'U'
-    }
-
-@pytest.fixture
-def add_edit_return_json():
-    return {
-        'SourceTable': 'AHJInspection',
-        'SourceRow': 76,
-        'SourceColumn': 'AHJInspectionName',
-        'NewValue': 'NewName',
-        'OldValue': 'Inspection1',
-        'User': user,
-        'EditType': 'U'
-    }
-
-"""@pytest.mark.django_db
-def test_add_edit(create_user, add_edit_input, add_edit_return_json):
-    user = create_user(Username='someone')
-    edit = add_edit(edit_obj)
-    for field, value in edit:
-        print(field)"""
-
 @pytest.mark.django_db
 def test_edit_review__normal_use(generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
@@ -140,7 +109,6 @@ def test_edit_deletion__normal_use(ahj_obj, generate_client_with_webpage_credent
         'Value': [ 
             inspection.InspectionID
     ]}, format='json')
-    print(response.data)
     assert response.status_code == 200
     edit = Edit.objects.get(AHJPK=ahj_obj.AHJPK)
     assert edit.EditType == 'D'
