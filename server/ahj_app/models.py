@@ -453,9 +453,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     def get_email_field_name(self=None):
-        if self is None:
-            return None
-        return self.Email
+        return 'Email'
 
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
