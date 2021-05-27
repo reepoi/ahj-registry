@@ -390,7 +390,27 @@ def test_ahj_geo_location__valid_location_ob_format(client_with_credentials, val
     assert response.status_code == 200
 
 @pytest.mark.django_db
-def test_ahj_geo_location__missing_lat_or_long(client_with_credentials):
+def test_ahj_geo_location__valid_location_format(client_with_credentials):
+    url = reverse('ahj-geo-location')
+    response = client_with_credentials.post(url, { 'Latitude': { 'Value': '25' }, 'Longitude': { 'Value': '25' }}, format='json')
+    assert response.status_code == 200
+    response = client_with_credentials.post(url, {'Location': { 'Latitude': { 'Value': '25' }, 'Longitude': { 'Value': '25' }}}, format='json')
+    assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_ahj_geo_location__empty_lat_lon(client_with_credentials):
+    url = reverse('ahj-geo-location')
+    response = client_with_credentials.post(url, {'Location': { 'Latitude': { 'Value': '' }, 'Longitude': { 'Value': '' }}}, format='json')
+    assert response.status_code == 400
+
+@pytest.mark.django_db
+def test_ahj_geo_location__invalid_values_lat_lon(client_with_credentials):
+    url = reverse('ahj-geo-location')
+    response = client_with_credentials.post(url, {'Location': { 'Latitude': { 'Value': 'a' }, 'Longitude': { 'Value': 'a' }}}, format='json')
+    assert response.status_code == 400
+
+@pytest.mark.django_db
+def test_ahj_geo_location__missing_lat_or_lon(client_with_credentials):
     url = reverse('ahj-geo-location')
     response = client_with_credentials.post(url, {'Location': { 'Latitude': { 'Value': '25' }}}, format='json')
     assert response.status_code == 400
