@@ -3,7 +3,10 @@ from django.apps import AppConfig
 
 
 class AhjAdminConfig(AdminConfig):
-    default_site = 'ahj_app.admin.AHJRegistryAdminSite'
+    """
+    Custom admin config to point Django to the custom admin site.
+    """
+    default_site = 'ahj_app.admin.admin.AHJRegistryAdminSite'
 
 
 class AhjConfig(AppConfig):
