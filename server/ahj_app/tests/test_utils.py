@@ -255,7 +255,7 @@ def test_dictfetchall(create_user):
 
 @pytest.fixture
 def ahj_filter_location():
-    return 'POINT(25, 25)'
+    return 'POINT(25.0, 25.0)'
 
 @pytest.fixture
 def empty_request_obj():
@@ -296,12 +296,12 @@ def ahj_filter_ahjs():
 @pytest.mark.django_db
 def test_filter_ahjs__no_search_parameters(ahj_filter_ahjs):
     ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
-    assert len(filter_ahjs(BuildingCode=[], ElectricCode=[], FireCode=[], ResidentialCode=[], WindCode=[])) == 5 # returns all ahjs if no filtering is done. 
+    assert len(filter_ahjs()) == 5 # returns all ahjs if no filtering is done. 
 
 @pytest.mark.django_db
 def test_filter_ahjs__only_location_search(ahj_filter_ahjs, ahj_filter_location):
     ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
-    ahj_list = filter_ahjs(location=ahj_filter_location, BuildingCode=[], ElectricCode=[], FireCode=[], ResidentialCode=[], WindCode=[])
+    ahj_list = filter_ahjs(location=ahj_filter_location)
 
     assert len(ahj_list) == 1
     assert int(ahj_list[0].AHJID) == ahj3.AHJID
@@ -309,7 +309,7 @@ def test_filter_ahjs__only_location_search(ahj_filter_ahjs, ahj_filter_location)
 @pytest.mark.django_db
 def test_filter_ahjs__only_polygon_search(ahj_filter_ahjs, ahj_filter_polygon):
     ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
-    ahj_list = filter_ahjs(polygon=ahj_filter_polygon, BuildingCode=[], ElectricCode=[], FireCode=[], ResidentialCode=[], WindCode=[])
+    ahj_list = filter_ahjs(polygon=ahj_filter_polygon)
 
     assert len(ahj_list) == 2 # polygon should overlap with AHJs 1 and 2
     assert all(x in [int(ahj_list[0].AHJID), int(ahj_list[1].AHJID)] for x in [ahj1.AHJID, ahj2.AHJID])
