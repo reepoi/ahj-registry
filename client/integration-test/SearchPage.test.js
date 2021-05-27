@@ -1,11 +1,12 @@
 import 'expect-puppeteer';
 import { executablePath } from 'puppeteer';
+import * as settings from './test_settings.js';
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 describe('AHJ Page Tests', () => {
     beforeAll(async () => {
-        await page.goto('http://localhost:8080/#/ahj-search');
+        await page.goto(settings.host + 'ahj-search');
         let xButton = await page.$(".introjs-skipbutton");
         await xButton.click();
     });

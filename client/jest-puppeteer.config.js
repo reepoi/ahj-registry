@@ -11,7 +11,8 @@ module.exports = {
       isLandscape: true,
       isMobile: false
     },
-    args: ["--window-size=1600,800"]
+    args: ["--window-size=1600,800", '--no-sandbox',
+    '--disable-setuid-sandbox']
   },
   browserContext: 'default',
 }

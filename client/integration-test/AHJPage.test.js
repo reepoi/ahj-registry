@@ -1,11 +1,12 @@
 import 'expect-puppeteer';
 import { executablePath } from 'puppeteer';
+import * as settings from './test_settings.js';
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 describe('AHJPage Puppeteer tests', () => {
     beforeAll(async () => {
-        await page.goto('http://localhost:8080/#/view-ahj/2118');
+        await page.goto(settings.host + 'view-ahj/2118');
     });
     it('Page loads',async () => {
         await new Promise(r => setTimeout(r, 2000));
