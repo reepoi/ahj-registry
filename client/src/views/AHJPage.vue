@@ -920,7 +920,7 @@
                             <td v-if="!isEditing" style="width:49%">{{ this.AHJInfo ? ahjCodeFormatter(this.AHJInfo.BuildingCode.Value) : "Loading" }}</td>
                             <td v-on:click.stop="" v-else>
                                 <!-- If user is editing display dropdown -->
-                                <b-form-select size="sm" v-model="Edits.BuildingCode" :options="consts.CHOICE_FIELDS.AHJ.BuildingCode" style="width:155px;"></b-form-select>
+                                <b-form-select id="BCSelector" size="sm" v-model="Edits.BuildingCode" :options="consts.CHOICE_FIELDS.AHJ.BuildingCode" style="width:155px;"></b-form-select>
                             </td>
                             <td style="min-width:10px;width:1%;"><i id="BCNotesChev" class="fa fa-chevron-down"></i></td>
                         </tr>

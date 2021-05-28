@@ -62,4 +62,21 @@ describe('AHJPage Puppeteer tests', () => {
         await expect(page).toMatchElement('.fa.fa-plus');
         await expect(page).toMatchElement('.fa.fa-minus');
     });
+    it('Make an edit', async () => {
+        await page.select('select#BCSelector',"2021IBC");
+        let textDiv = await page.$('div#text');
+        let submit = await textDiv.$('a[style="margin: 0px 10px 0px 0px; padding: 0px; text-decoration: underline; cursor: pointer;"]');
+        await submit.click();
+        let edits = await page.$('div#confirm-edits');
+        let editObjs = await edits.$$('i.fas.fa-minus');
+        expect(editObjs.length).toBe(1);
+        await new Promise(r => setTimeout(r, 1000));
+    });
+    it('Submit an edit', async () => {
+        let edits = await page.$('div#confirm-edits');
+        let submit = await edits.$('a[style="margin: 0px 10px 0px 0px; padding: 0px; text-decoration: underline;"]');
+        await submit.click();
+        await expect(page).toMatchElement('div#confirm-edits', { visible: false }); 
+        await new Promise(r => setTimeout(r, 2000));
+    });
 });

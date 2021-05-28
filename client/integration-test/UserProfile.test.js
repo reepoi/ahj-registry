@@ -23,7 +23,7 @@ describe('User Profile tests', () => {
         let xButton = await page.$(".introjs-skipbutton");
         await xButton.click();
         expect(true).toBeTruthy();
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 5000));
     });
     it('Navigate to User Profile', async () => {
         let dropD = await page.$('a[href="#"]');
@@ -52,12 +52,13 @@ describe('User Profile tests', () => {
         await apiButton.click();
         while( await page.waitForXPath('//*[contains(text(), "Loading")]', { hidden: true }) !== null){}
         await expect(page).toMatch("Generate New Token");
-        await new Promise(r => setTimeout(r, 8000));
+        await new Promise(r => setTimeout(r, 1000));
     });
     it('Generate new token', async () => {
         let tokenButton = await page.$('#generate-token-button');
         await tokenButton.click();
         while( await page.waitForXPath('//*[contains(text(), "Generating Token")]', { hidden: true }) !== null){}
         await expect(page).toMatch('Your new API token');
+        await new Promise(r => setTimeout(r, 2000));
     });
 });
