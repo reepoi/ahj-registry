@@ -4,7 +4,7 @@ from django.apps import apps
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 
-from .actions import user_reset_password, user_generate_api_token
+from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token
 
 USER_DATA_MODELS = {
     'AHJUserMaintains',
@@ -82,6 +82,22 @@ Tell Django to use our custom admin site.
 admin.site = AHJRegistryAdminSite()
 
 
+def is_char_field(model_field):
+    """
+    Checks if a model field is a char field.
+    """
+    class_name = model_field.__class__.__name__
+    return class_name == 'CharField'
+
+
+def is_related_field(model_field):
+    """
+    Checks if a model field is a related field.
+    """
+    class_name = model_field.__class__.__name__
+    return class_name == 'ForeignKey' or class_name == 'OneToOneField'
+
+
 def get_default_model_admin_class(model, geo=False):
     """
     For a given model, returns a default admin model with:
@@ -90,20 +106,18 @@ def get_default_model_admin_class(model, geo=False):
     - Turned-off dropdown selection of related models in the model detail view.
     If geo=True, then creates a OSMGeoAdmin for a nicer view of the GIS features.
     """
-    model_fields = [field for field in model._meta.get_fields()]
+    model_fields = [field for field in model._meta.fields]
     if geo:
         class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin):
-            search_fields = [field.name for field in model_fields if field.__class__.__name__ == 'CharField']
-            list_display = [model._meta.pk.name] + search_fields
-            raw_id_fields = [field.name for field in model_fields
-                             if field.__class__.__name__ == 'ForeignKey' or field.__class__.__name__ == 'OneToOneField']
+            search_fields = [field.name for field in model_fields if is_char_field(field)]
+            list_display = [field.name for field in model_fields if not is_related_field(field)]
+            raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
         return DefaultPolygonAdmin
     else:
         class DefaultAdmin(admin.ModelAdmin):
-            search_fields = [field.name for field in model_fields if field.__class__.__name__ == 'CharField']
-            list_display = [model._meta.pk.name] + search_fields
-            raw_id_fields = [field.name for field in model_fields
-                             if field.__class__.__name__ == 'ForeignKey' or field.__class__.__name__ == 'OneToOneField']
+            search_fields = [field.name for field in model_fields if is_char_field(field)]
+            list_display = [field.name for field in model_fields if not is_related_field(field)]
+            raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
         return DefaultAdmin
 
 
@@ -147,7 +161,6 @@ def get_attr_info_dict(name, dotted_path, admin_order_field, short_description):
 
 api_token_admin_model = model_admin_dict['APIToken']['admin_model']
 admin_attrs_to_add = []
-model_attrs_to_add = ['created']
 admin_attrs_to_add.append(get_attr_info_dict('get_user_email', 'user.Email', 'email', 'Email'))
 admin_attrs_to_add.append(get_attr_info_dict('get_user_company_affiliation', 'user.CompanyAffiliation', 'company_affiliation', 'Company Affiliation'))
 admin_attrs_to_add.append(get_attr_info_dict('get_user_is_ahj_official', 'user.is_ahj_official', 'ahj_official', 'Is AHJ Official'))
@@ -155,8 +168,6 @@ for attr in admin_attrs_to_add:
     setattr(api_token_admin_model, attr['name'],
             create_admin_get_attr_function(attr['name'], attr['dotted_path'], attr['admin_order_field'], attr['short_description']))
     api_token_admin_model.list_display.append(attr['name'])
-for field in model_attrs_to_add:
-    api_token_admin_model.list_display.append(field)
 
 
 def get_action_info_dict(name, function):
@@ -170,9 +181,16 @@ user_admin_model = model_admin_dict['User']['admin_model']
 admin_actions_to_add = []
 admin_actions_to_add.append(get_action_info_dict('user_reset_password', user_reset_password))
 admin_actions_to_add.append(get_action_info_dict('user_generate_api_token', user_generate_api_token))
+admin_actions_to_add.append(get_action_info_dict('user_delete_toggle_api_token', user_delete_toggle_api_token))
 for action in admin_actions_to_add:
     setattr(user_admin_model, action['name'], action['function'])
     user_admin_model.actions.append(action['name'])
+
+user_admin_model.list_display.remove('password')
+user_admin_model.list_display.insert(0, user_admin_model.list_display.pop(user_admin_model.list_display.index('UserID')))
+
+polygon_admin_model = model_admin_dict['Polygon']['admin_model']
+polygon_admin_model.list_display.remove('Polygon')
 
 
 for v in model_admin_dict.values():

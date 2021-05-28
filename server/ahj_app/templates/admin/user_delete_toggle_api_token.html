@@ -3,19 +3,33 @@
 {% block content %}
 <form action="" method="post">
   {% csrf_token %}
+  For each user, please select whether to delete or toggle on/off their API Token:
+  {% for tuple in formtuples %}
+    <h2><b>{{ tuple.0.Email }}</b></h2>
+    {{ tuple.1 }}
+  <input type="hidden" name="user_to_form" value="{{ tuple.0.pk }}.{{ tuple.1.prefix }}">
+    <input type="hidden" name="_selected_action" value="{{ tuple.0.pk }}">
+  {% endfor %}
+  {% if users_without_tokens.count > 0 %}
   <p>
-    Please enter a new password for this user ({{ user.Email }}):
+    These users do <b>NOT</b> have an API Token:
   </p>
-  {{ form }}
-  <input type="hidden" name="action" value="user_reset_password" />
-  <input type="hidden" name="_selected_action" value="{{ user.pk }}">
+  <ul>
+    {% for user in users_without_tokens %}
+    <li>
+      <a href="../apitoken/{{ user.api_token }}/" target="_blank">{{ user.Email }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <input type="hidden" name="action" value="user_delete_toggle_api_token" />
   <p style="padding-top: 1em; text-align: center">
   <span style="padding-right: 2em">
     <a href="{{ request.get_full_path }}">
       <input type="button" name="Cancel" value="Cancel">
     </a>
   </span>
-  <span>
+    <span>
     <input type="submit" name="apply" value="Confirm"/>
   </span>
   </p>
