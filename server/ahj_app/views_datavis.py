@@ -21,11 +21,11 @@ def data_map(request):
         with connection.cursor() as cursor:
             cursor.execute('SELECT ' + \
                            polygon_columns + ', ' + ahj_columns + ', ' + \
-                           'if(BuildingCode!="",1,0) as numBuildingCodes,' + \
-                           'if(ElectricCode!="",1,0) as numElectricCodes,' + \
-                           'if(FireCode!="",1,0) as numFireCodes,' + \
-                           'if(ResidentialCode!="",1,0) as numResidentialCodes,' + \
-                           'if(WindCode!="",1,0) as numWindCodes' + \
+                           'IF(BuildingCode IS NULL,0,1) as numBuildingCodes,' + \
+                           'IF(ElectricCode IS NULL,0,1) as numElectricCodes,' + \
+                           'IF(FireCode IS NULL,0,1) as numFireCodes,' + \
+                           'IF(ResidentialCode IS NULL,0,1) as numResidentialCodes,' + \
+                           'IF(WindCode IS NULL,0,1) as numWindCodes' + \
                            ' FROM Polygon JOIN (' \
                            'SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' + \
                            '%(statepolygonid)s' + \
