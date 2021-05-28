@@ -134,7 +134,10 @@ export default {
                 axios.post(constants.API_ENDPOINT + "auth/users/", {
                     "Email": this.Email,
                     "password": this.Password,
-                    "Username": this.Username
+                    "Username": this.Username}, {
+                    headers: {
+                        'Authorization': `${this.$store.getters.authToken}`
+                    }
                 }).then(() => {
                     this.submitStatus = 'OK';
                     document.getElementById("registration-form").reset();
@@ -146,12 +149,14 @@ export default {
                         },
                         {
                             headers: {
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
+                                'Authorization': `${this.$store.getters.authToken}`
                             }
                         }
                     )
                 })
                 .catch(error => {
+                    console.log(error)
                     this.submitStatus = 'ERROR';
                     if (error.response){
                         if (error.response.data.password){
@@ -173,7 +178,12 @@ export default {
                 params['Username'] = this.Username;
             else    
                 params['Email'] = this.Email;
-            return axios.get(constants.API_ENDPOINT + "auth/form-validator/",{ params }).catch(() => {return 'BACKEND ERROR'});
+            return axios.get(constants.API_ENDPOINT + "auth/form-validator/",{ 
+                    params,
+                    headers: {
+                        Authorization: `${this.$store.getters.authToken}`
+                    }}
+                    ).catch(() => {return 'BACKEND ERROR'});
         }
     },
     mounted() { 

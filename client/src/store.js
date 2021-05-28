@@ -115,7 +115,6 @@ export default new Vuex.Store({
             return;
           }
           state.resultsDownloading = true;
-          let that = this;
           let gatherAllObjects = function(url, searchPayload, ahjJSONObjs, offset) {
             if (url === null) {
               let filename = "results";
@@ -136,11 +135,11 @@ export default new Vuex.Store({
               axios
                 .post(url, searchPayload,{
                   headers: {
-                    Authorization: `${that.getters.authToken}`
+                    Authorization: constants.TOKEN_AUTH_PUBLIC_API
                   }
                 })
                 .then(response => {
-                  ahjJSONObjs = ahjJSONObjs.concat(response.data.results);
+                  ahjJSONObjs = ahjJSONObjs.concat(response.data['AuthorityHavingJurisdictions']);
                   offset += 20; // the django rest framework pagination configuration
                   state.downloadCompletionPercent = (offset / response.data.count * 100).toFixed();
                   gatherAllObjects(response.data.next, searchPayload, ahjJSONObjs, offset);
@@ -148,7 +147,14 @@ export default new Vuex.Store({
             }
           };
           let url = constants.API_ENDPOINT + "ahj/";
-          let searchPayload = state.searchedQuery;
+          let searchPayload = utils.value_to_ob_value_primitive(state.searchedQuery);
+          if (state.searchedQuery.Address) {
+              /* If an address was searched, the lat,lon coordinates are returned from callAPI.
+               * Replace the address searched with a Location of the lat,lon.
+               */
+              delete searchPayload.Address;
+              searchPayload['Location'] = state.apiData.results.Location;
+          }
           if (state.searchedGeoJSON) {
             searchPayload['FeatureCollection'] = state.searchedGeoJSON;
           }

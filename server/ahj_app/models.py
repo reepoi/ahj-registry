@@ -445,16 +445,6 @@ class CountySubdivisionPolygon(models.Model):
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    # eventually handle first name and last name into contact table, for now handles username and password
-    def _create_user(self, email, password, **extra_fields):
-        # save to user
-        ContactID = Contact.objects.create(Email=email)
-
-        User = User.objects.create()
-        # save to authuser
-        user = self.model(email=email, **extra_fields)
-        #user.set_password(password)
-
     def create_user(self, **extra_fields):
         Email = extra_fields.get('Email', '')
         Username = extra_fields.get('Username', '')
@@ -544,27 +534,33 @@ class AHJUserMaintains(models.Model):
         unique_together = (('AHJPK', 'UserID'),)
 
 class WebpageToken(rest_framework.authtoken.models.Token):
-     key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
-     created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
-     user = models.OneToOneField(on_delete=models.CASCADE, related_name='webpage_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+    key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
+    user = models.OneToOneField(on_delete=models.CASCADE, related_name='webpage_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
 
-     def get_user(self):
-         return self.user
+    def get_user(self):
+        return self.user
 
-     class Meta:
+    class Meta:
         verbose_name = 'Webpage Token'
         verbose_name_plural = 'Webpage Tokens'
 
-class APIToken(rest_framework.authtoken.models.Token):
-     key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
-     created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
-     expires = models.DateTimeField(verbose_name='Expires', default=None, null=True)
-     user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
-     is_active = models.BooleanField(default=True)
+    def __str__(self):
+        return f'WebpageToken({self.key})'
 
-     class Meta:
+class APIToken(rest_framework.authtoken.models.Token):
+    key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
+    expires = models.DateTimeField(verbose_name='Expires', default=None, null=True)
+    user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
         verbose_name = 'API Token'
         verbose_name_plural = 'API Tokens'
+
+    def __str__(self):
+        return f'APIToken({self.key})'
 
 class StateTemp(models.Model):
     GEOID = models.CharField(max_length=2)
@@ -646,6 +642,7 @@ class CityTemp(models.Model):
 class AHJCensusName(models.Model):
     AHJPK = models.OneToOneField('AHJ', on_delete=models.DO_NOTHING, db_column='AHJPK', primary_key=True)
     AHJCensusName = models.CharField(db_column='AHJCensusName', max_length=100)
+    StateProvince = models.CharField(db_column='StateProvince', max_length=2)
 
     class Meta:
         verbose_name = 'AHJ Census Name'

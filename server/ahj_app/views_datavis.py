@@ -1,13 +1,17 @@
 from django.db import connection
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
+from .authentication import WebpageTokenAuth
 from .models import Polygon
 from .serializers import DataVisAHJPolygonInfoSerializer, PolygonSerializer
 from .utils import dictfetchall
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def data_map(request):
     statepolygonid = request.query_params.get('StatePK', None)
     polygon_columns = 'Name, Polygon.PolygonID, InternalPLatitude, InternalPLongitude, Name'
@@ -17,11 +21,11 @@ def data_map(request):
         with connection.cursor() as cursor:
             cursor.execute('SELECT ' + \
                            polygon_columns + ', ' + ahj_columns + ', ' + \
-                           'if(BuildingCode!="",1,0) as numBuildingCodes,' + \
-                           'if(ElectricCode!="",1,0) as numElectricCodes,' + \
-                           'if(FireCode!="",1,0) as numFireCodes,' + \
-                           'if(ResidentialCode!="",1,0) as numResidentialCodes,' + \
-                           'if(WindCode!="",1,0) as numWindCodes' + \
+                           'IF(BuildingCode IS NULL,0,1) as numBuildingCodes,' + \
+                           'IF(ElectricCode IS NULL,0,1) as numElectricCodes,' + \
+                           'IF(FireCode IS NULL,0,1) as numFireCodes,' + \
+                           'IF(ResidentialCode IS NULL,0,1) as numResidentialCodes,' + \
+                           'IF(WindCode IS NULL,0,1) as numWindCodes' + \
                            ' FROM Polygon JOIN (' \
                            'SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' + \
                            '%(statepolygonid)s' + \
@@ -43,5 +47,7 @@ def data_map(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def data_map_get_polygon(request):
     return Response(PolygonSerializer(Polygon.objects.get(PolygonID=request.query_params.get('PolygonID', None))).data)

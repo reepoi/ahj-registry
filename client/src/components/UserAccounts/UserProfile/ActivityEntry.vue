@@ -1,8 +1,7 @@
 <template>
     <div class="activity-container">
         <div class="activity-header">
-            <img v-if="Photo !=null" class='user__image' v-bind:src="Photo" />
-            <img v-else class="user__image" src="../../../assets/images/profile-image-default.jpeg">
+            <img class="user__image" src="../../../assets/images/profile-image-default.jpeg">
             <span class="name">{{FullName}}</span>
             <b-icon icon="circle-fill" class="circle-icon"></b-icon> 
             <span class="date">{{this.dateText}}</span>

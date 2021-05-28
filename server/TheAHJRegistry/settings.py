@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'request_logging.middleware.LoggingMiddleware'
+    'ahj_app.middleware.LoggingMiddleware.SkipRequestLoggingMiddleware'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True # If this is used then `CORS_ORIGIN_WHITELIST` will not have any effect
@@ -133,7 +133,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
             'verbose': {
-                'format': '{levelname}\t{request.user}\t{asctime}\t{message}',
+                'format': '{levelname}\t{request.user}\t{request.auth}\t{asctime}\t{message}',
                 'style': '{',
             },
             'simple': {

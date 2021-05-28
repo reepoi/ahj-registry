@@ -3,8 +3,7 @@
         <h1 class="setting-title">Edit Profile</h1>
         <template v-if="this.profileInfoLoaded">
             <div class="header">
-                <img v-if="Photo !== null" class="user-photo" :src="Photo">
-                <img v-else class="user-photo" src="../../../assets/images/profile-image-default.jpeg">
+                <img class="user-photo" src="../../../assets/images/profile-image-default.jpeg">
                 <div class="header-user-identifiers" v-if="formFirstNameCapital !== ''">
                     <h2>{{`${formFirstNameCapital} ${formLastNameCapital}`}} </h2>
                 </div>
@@ -54,9 +53,6 @@
                     <label>Company Affiliation</label>
                     <b-form-input size="lg" class="form__input" type="text" placeholder="Company Affiliation" required v-model="userInfo.CompanyAffiliation" alt="CompanyAffiliation"></b-form-input>
                 </div>
-                <!--<b-form-checkbox class="form-spacing" v-model="userInfo.IsPeerReviewer" name="peerreview-checkbox" value="1" unchecked-value="0">
-                    Open to review other AHJ Registry User permit applications
-                </b-form-checkbox>-->
                 <b-button id="edit-profile-button" @click="UpdateDatabase" :disabled="this.SubmitStatus === 'PENDING'" block pill variant="primary">
                     Update Profile
                 </b-button>
@@ -115,12 +111,11 @@ export default {
                     URL: null,
                     Title: null,
                     CompanyAffiliation: null,
-                    IsPeerReviewer: 0,
                     WorkPhone: null,
                     PreferredContactMethod: null
                 },
                 Username: null,
-                Photo: null,
+                Photo: '../../../assets/images/profile-image-default.jpeg',
                 SubmitStatus: '',
                 profileInfoLoaded: false
             }
@@ -156,7 +151,7 @@ export default {
             this.userInfo.Title = StoreProfileData.ContactID['Title'].Value;
             this.userInfo.WorkPhone = StoreProfileData.ContactID['WorkPhone'].Value;
             this.userInfo.PreferredContactMethod = StoreProfileData.ContactID['PreferredContactMethod'].Value;
-            this.Photo = StoreProfileData['Photo'];
+            //this.Photo = StoreProfileData['Photo'];
             this.Username = StoreProfileData['Username'];
         }
       },
@@ -176,7 +171,8 @@ export default {
                 userInfo,
                 {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `${this.$store.getters.authToken}`
                     }
                 }
             )
