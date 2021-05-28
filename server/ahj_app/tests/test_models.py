@@ -449,7 +449,7 @@ def test_user_create_user():
 @pytest.mark.django_db
 def test_user_get_email_field_name(create_user):
     user = create_user(Email='a@a.com')
-    assert user.get_email_field_name() == user.Email 
+    assert user.get_email_field_name() == 'Email' 
 
 @pytest.mark.django_db
 def test_user_get_maintained_ahjs(create_user, two_ahjs):
