@@ -3,12 +3,7 @@
         <div class="user-page-container" v-if="userInfoLoaded">
                 <div class='user__header'>
                     <img class='banner__image' src="../assets/images/background-image.jpeg"/>
-                    <template v-if="photo !== null">
-                        <img class='user__image' v-bind:src="this.ProfileData['Photo']" /> 
-                    </template>
-                    <template v-else>
                         <img class='user__image' src="../assets/images/profile-image-default.jpeg" /> 
-                    </template>
                     <div class="header__content">
                         <div class="header__content__left">
                             <div class="multi__info__line">
@@ -202,12 +197,10 @@ export default {
             axios.get(query, {
                   params: {
                     'UserID': this.ProfileData.UserID
+                  },
+                  headers: {
+                    Authorization: `${this.$store.getters.authToken}`
                   }
-                },
-                {
-                    headers: {
-                        Authorization: `${this.$store.getters.authToken}`
-                    }
                 })
                 .then(response => {
                     this.gettingUserActivity = false;

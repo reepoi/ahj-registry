@@ -41,7 +41,6 @@ def ahj_list(request):
                 str_location = get_str_location(location=json_location)
     except TypeError:
         return Response('Invalid Address, all values must be strings', status=status.HTTP_400_BAD_REQUEST)
-
     ahjs = filter_ahjs(
         AHJName=get_ob_value_primitive(request.data, 'AHJName', throw_exception=False),
         AHJID=get_ob_value_primitive(request.data, 'AHJID', throw_exception=False),

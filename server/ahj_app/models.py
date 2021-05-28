@@ -405,16 +405,6 @@ class CountySubdivisionPolygon(models.Model):
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    # eventually handle first name and last name into contact table, for now handles username and password
-    def _create_user(self, email, password, **extra_fields):
-        # save to user
-        ContactID = Contact.objects.create(Email=email)
-
-        User = User.objects.create()
-        # save to authuser
-        user = self.model(email=email, **extra_fields)
-        #user.set_password(password)
-
     def create_user(self, **extra_fields):
         Email = extra_fields.get('Email', '')
         Username = extra_fields.get('Username', '')
@@ -461,12 +451,6 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'Email'
     objects = UserManager()
-
-    def has_perm(self, perm, obj=None):
-        return self.is_superuser
-
-    def has_module_perms(self, core):
-        return self.is_superuser
 
     def get_email_field_name(self=None):
         return 'Email'

@@ -1,13 +1,17 @@
 from django.db import connection
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
+from .authentication import WebpageTokenAuth
 from .models import Polygon
 from .serializers import DataVisAHJPolygonInfoSerializer, PolygonSerializer
 from .utils import dictfetchall
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def data_map(request):
     statepolygonid = request.query_params.get('StatePK', None)
     polygon_columns = 'Name, Polygon.PolygonID, InternalPLatitude, InternalPLongitude, Name'
@@ -43,5 +47,7 @@ def data_map(request):
 
 
 @api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def data_map_get_polygon(request):
     return Response(PolygonSerializer(Polygon.objects.get(PolygonID=request.query_params.get('PolygonID', None))).data)

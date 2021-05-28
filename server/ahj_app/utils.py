@@ -22,7 +22,7 @@ def get_ob_value_primitive(ob_json, field_name, throw_exception=True, exception_
             return values
         return ob_json[field_name]['Value']
     except (TypeError, KeyError):
-        if throw_exception and field_name in ob_json: # Throws exception if the json had the key but it was not in correct OB format
+        if throw_exception and field_name in ob_json: # Throws exception if the json had the key but it was not in correct OB format 
             raise ValueError(f'Missing \'Value\' key for Orange Button field \'{field_name}\'')
         return exception_return_value # returns empty string if the json didn't have the field name as a key
     
@@ -65,7 +65,7 @@ def get_location_gecode_address_str(address):
         }
     }
     geo_res = []
-    if address is not None:
+    if bool(address): # Check if address is non-falsey 
         geo_res = gmaps.geocode(address)
     if len(geo_res) != 0:
         latitude = geo_res[0]['geometry']['location']['lat']
@@ -90,7 +90,9 @@ def simple_sanitize(s: str):
     """
     Sanitize SQL string inputs simply by dropping ';' and '''
     """
-    return s.replace(';', '').replace('\'', '')
+    if s is not None:
+        return s.replace(';', '').replace('\'', '')
+    return None
 
 
 def get_name_query_cond(type: str, val: str, query_params: dict):
@@ -101,7 +103,7 @@ def get_name_query_cond(type: str, val: str, query_params: dict):
     if val is not None, otherwise it returns the
     empty string to represent no condition on type.
     """
-    if val is not None:
+    if val is not None and type is not None:
         query_params[type] = '%' + val + '%'
         return 'AHJ.' + type + ' LIKE %(' + type + ')s AND '
     return ''
@@ -113,7 +115,7 @@ def get_list_query_cond(type: str, val: list, query_params: dict):
     an SQL condition on the AHJ table of the form:
             (AHJ.`type` = 'val1' OR AHJ.`type` = 'val2' OR ... ) AND
     """
-    if len(val) != 0:
+    if val is not None and len(val) != 0:
         or_list = []
         for i in range(len(val)):
             param_name = f'{type}{i}'
@@ -216,10 +218,8 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     also requires extra logic because it will modify the
     query to also join on the Address table.
     """
-
     full_query_string = ''' SELECT * FROM AHJ '''
     query_params = {}
-
     if location is not None or polygon is not None:
         if polygon is not None:
             intersects = 'ST_INTERSECTS(Polygon, ST_GeomFromText(\'' + polygon + '\'))'
@@ -303,7 +303,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     # NOTE: we append a 'True' at the end to always make the query valid
     # because the get_x_query_cond appends an `AND` to the condition
     full_query_string += ' WHERE ' + where_clauses + ' True;'
-    # print(AHJ.objects.raw('EXPLAIN ' + full_query_string, query_params))
+    #print(AHJ.objects.raw('EXPLAIN ' + full_query_string, query_params))
     return AHJ.objects.raw(full_query_string, query_params)
 
 
