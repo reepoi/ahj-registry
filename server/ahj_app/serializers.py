@@ -266,6 +266,8 @@ class AHJSerializer(serializers.Serializer):
         return super().to_representation(ahj)
 
     def get_Polygon(self, instance):
+        if instance.PolygonID is None:
+            return None
         return PolygonSerializer(instance.PolygonID, context={'AHJID': instance.AHJID}).data
 
 class EditSerializer(serializers.Serializer):
