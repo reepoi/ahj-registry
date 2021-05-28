@@ -316,11 +316,11 @@ def dictfetchone(cursor):
 def get_polygons_in_state(statepolygonid):
     with connection.cursor() as cursor:
         cursor.execute('SELECT COUNT(*) as numAHJs,' + \
-                       'SUM(BuildingCode!="") as numBuildingCodes,' + \
-                       'SUM(ElectricCode!="") as numElectricCodes,' + \
-                       'SUM(FireCode!="") as numFireCodes,' + \
-                       'SUM(ResidentialCode!="") as numResidentialCodes,' + \
-                       'SUM(WindCode!="") as numWindCodes' + \
+                       'SUM(BuildingCode IS NOT NULL) as numBuildingCodes,' + \
+                       'SUM(ElectricCode IS NOT NULL) as numElectricCodes,' + \
+                       'SUM(FireCode IS NOT NULL) as numFireCodes,' + \
+                       'SUM(ResidentialCode IS NOT NULL) as numResidentialCodes,' + \
+                       'SUM(WindCode IS NOT NULL) as numWindCodes' + \
                        ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
                        + '%(statepolygonid)s' + \
                        ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
