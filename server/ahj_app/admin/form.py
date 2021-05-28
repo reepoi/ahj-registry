@@ -8,5 +8,6 @@ class UserResetPasswordForm(forms.Form):
 class UserDeleteToggleAPITokenForm(forms.Form):
     toggle = forms.ChoiceField(choices=[('DoNothing', 'Do Nothing'),
                                         ('On', 'On'),
-                                        ('Off', 'Off')], initial='Do Nothing')
+                                        ('Off', 'Off')], initial='Do Nothing',
+                               label='Toggle Token')
     delete_token = forms.BooleanField(initial=False)

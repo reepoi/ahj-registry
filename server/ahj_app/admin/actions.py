@@ -59,8 +59,8 @@ def user_generate_api_token(self, request, queryset):
             APIToken.objects.create(user=user)
         self.message_user(request, 'Success', level=messages.INFO)
         return HttpResponseRedirect(request.get_full_path())
-    users_with_tokens = queryset.exclude(api_token=None)
-    users_without_tokens = queryset.filter(api_token=None)
+    users_with_tokens = queryset.exclude(api_token=None).order_by('Email')
+    users_without_tokens = queryset.filter(api_token=None).order_by('Email')
     return render(request, 'admin/user_generate_api_token.html', context={
         'request': request,
         'users_without_tokens': users_without_tokens,
@@ -99,8 +99,8 @@ def user_delete_toggle_api_token(self, request, queryset):
                 user.api_token.delete()
         self.message_user(request, 'Success', level=messages.INFO)
         return HttpResponseRedirect(request.get_full_path())
-    users_with_tokens = queryset.exclude(api_token=None)
-    users_without_tokens = queryset.filter(api_token=None)
+    users_with_tokens = queryset.exclude(api_token=None).order_by('Email')
+    users_without_tokens = queryset.filter(api_token=None).order_by('Email')
     formset = formset_factory(UserDeleteToggleAPITokenForm, extra=queryset.count())()
     return render(request, 'admin/user_delete_toggle_api_token.html', context={
         'request': request,
