@@ -1146,7 +1146,11 @@ export default {
         },
         setPolygon() {
             let polygons = this.$store.state.apiData.results['ahjlist']
+                .filter(ahj => ahj.Polygon !== null)
                 .map(ahj => ahj.Polygon);
+            if (polygons.length === 0) {
+              return;
+            }
             this.polygonLayer = L.geoJSON(polygons, {
                 style: constants.MAP_PLYGN_SYTLE
             });

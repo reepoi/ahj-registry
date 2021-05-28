@@ -3,8 +3,8 @@
     <b-button-group>
       <b-button variant="outline-secondary" @click="callForPage(1)"><b-icon icon="chevron-double-left" font-scale="1"></b-icon></b-button>
       <b-button variant="outline-secondary" @click="callForPage(currentPage - 1)"><b-icon icon="chevron-left" font-scale="1"></b-icon></b-button>
-      <b-form-input list="pagination-list" @change="callForPage(currentPage)" v-model="currentPage" :options="pages" :state="pageNumValidation"></b-form-input>
-      <b-form-datalist id="pagination-list" @change="callForPage(currentPage)" :options="pages"></b-form-datalist>
+      <b-form-input list="pagination-list" @change="callForPage(userInputPage)" v-model="userInputPage" :options="pages" :state="pageNumValidation(Number(userInputPage))"></b-form-input>
+      <b-form-datalist id="pagination-list" @change="callForPage(userInputPage)" :options="pages"></b-form-datalist>
       <b-button variant="outline-secondary" @click="callForPage(currentPage + 1)"><b-icon icon="chevron-right" font-scale="1"></b-icon></b-button>
       <b-button variant="outline-secondary" @click="callForPage(pages[pages.length - 1])"><b-icon icon="chevron-double-right" font-scale="1"></b-icon></b-button>
     </b-button-group>
@@ -17,7 +17,8 @@ export default {
   data() {
     return {
       perPage: 20, // value from django rest framework pagination
-      currentPage: '',
+      userInputPage: '1',
+      currentPage: 1,
       pages: []
     };
   },
@@ -30,10 +31,13 @@ export default {
     },
     resetPagination() {
       this.pages = [];
-      this.currentPage = '';
+      this.currentPage = 1;
+      this.userInputPage = '1';
     },
     callForPage(pageNum) {
-      if (this.currentPage === '' || this.pageNumValidation === false) { // null is used for 'ok' input in validation so must check explicitly is false
+      // check new page is a valid page number and not the current page
+      pageNum = Number(pageNum);
+      if (this.currentPage === pageNum || this.pageNumValidation(pageNum) === false) { // null is used for 'ok' input in validation so must check explicitly is false
         return;
       }
       let currentQuery = this.$store.state.searchedQuery;
@@ -41,13 +45,12 @@ export default {
       let offset = (pageNum - 1) * limit;
       let paginationLimitOffset = `limit=${limit}&offset=${offset}&`;
       this.currentPage = pageNum;
+      this.userInputPage = pageNum;
       currentQuery['Pagination'] = paginationLimitOffset;
       this.$store.commit("callAPI", currentQuery);
-    }
-  },
-  computed: {
-    pageNumValidation() {
-      if (this.currentPage === '' || (this.currentPage >= 1 && this.currentPage <= this.pages[this.pages.length - 1])) {
+    },
+    pageNumValidation(pageNum) {
+      if (pageNum === 1 || (pageNum >= 1 && pageNum <= this.pages[this.pages.length - 1])) {
         return null; // return null instead of true to remove green checkmark
       }
       return false;

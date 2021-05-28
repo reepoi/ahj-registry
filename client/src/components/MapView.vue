@@ -69,13 +69,7 @@ export default {
     },
     // Replace map's existing polygons and markers with ones from the new search
     updateMap(ahjlist) {
-      ahjlist = ahjlist.filter(ahj => {
-        if (ahj.Polygon === null) {
-          return false;
-        } else {
-          return true;
-        }
-      });
+      ahjlist = ahjlist.filter(ahj => ahj.Polygon !== null);
       this.markerLayerGroup.clearLayers();
       this.addPolygonLayer(ahjlist);
       this.updateMapMarkers(ahjlist);

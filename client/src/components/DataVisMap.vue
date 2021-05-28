@@ -47,23 +47,32 @@ export default {
       this.getStatePoints();
     },
     getStatePoints() {
-      axios.get(constants.API_ENDPOINT + 'data-vis/data-map/')
-      .then(response => {
+      axios.get(constants.API_ENDPOINT + 'data-vis/data-map/', {
+          headers: {
+              Authorization: `${this.$store.getters.authToken}`,
+          }
+        },).then(response => {
         this.statePoints = response.data;
         this.setStateMarkers();
       });
     },
     getOtherPoints(state_pk) {
-      axios.get(constants.API_ENDPOINT + 'data-vis/data-map/?StatePK=' + state_pk)
-      .then(response => {
+      axios.get(constants.API_ENDPOINT + 'data-vis/data-map/?StatePK=' + state_pk, {
+          headers: {
+              Authorization: `${this.$store.getters.authToken}`,
+          }
+        }).then(response => {
         this.otherPoints = response.data;
         this.setOtherPoints();
      });
     },
     getPolygon(point) {
       this.clearSelectedPolygon();
-      axios.get(constants.API_ENDPOINT + 'data-vis/data-map/polygon/?PolygonID=' + point['PolygonID'])
-          .then(response => {
+      axios.get(constants.API_ENDPOINT + 'data-vis/data-map/polygon/?PolygonID=' + point['PolygonID'], {
+          headers: {
+              Authorization: `${this.$store.getters.authToken}`,
+          }
+        }).then(response => {
             this.selectedPolygon = L.geoJSON(response.data, {
               polygonData: point
             });

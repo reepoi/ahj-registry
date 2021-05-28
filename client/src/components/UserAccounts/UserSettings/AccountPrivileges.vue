@@ -40,6 +40,9 @@ export default {
                     {
                     params: {
                         'AHJPK': MaintainedAHJs[PKIndex]
+                    },
+                    headers: {
+                        Authorization: `${this.$store.getters.authToken}`
                     }
                     })
                     .then( (response) => {

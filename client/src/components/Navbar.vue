@@ -13,18 +13,14 @@
       <b-navbar-nav class="mr-auto navbar-background">
         <b-nav-item href="#/about">About</b-nav-item>
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
-        <!-- <b-nav-item href="#/ahj-search">API</b-nav-item> -->
         <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
-        <!-- <b-nav-item href="#/ahj-pdf-markup" v-if="loggedIn">PDF Editor</b-nav-item> -->
-        <!-- <b-nav-item href="#/leaderboard" v-if="loggedIn">Leaderboard</b-nav-item> -->
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto navbar-background">
         <b-nav-item href="#/login" v-if="!loggedIn">Login</b-nav-item>
         <b-nav-item href="#/register" v-if="!loggedIn">Register</b-nav-item>
         <b-nav-item-dropdown right v-if="loggedIn">
             <template #button-content>
-              <img v-if="Photo !== null" class="user-photo" :src="Photo">
-              <img v-else class="user-photo" src="../assets/images/profile-image-default.jpeg">
+              <img class="user-photo" src="../assets/images/profile-image-default.jpeg">
             </template>
             <b-dropdown-item :href="'#/user/' + Username"> 
               <b-icon icon="person"></b-icon>
