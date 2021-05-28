@@ -744,6 +744,12 @@
                 <div id="addr">
                     <h3> {{this.AddressString}}</h3>
                 </div>
+                <div>
+                    <h3>AHJID: {{ this.AHJInfo ? this.AHJInfo.AHJID.Value : 'Loading' }}</h3>
+                </div>
+                                
+                <div class="break"/>
+                <div style="width:10px;"/>
                 <div id="edit-buttons">
                     <a v-if="!isEditing" style="margin:0;padding:0;margin-right:10px;text-decoration: underline;" v-on:click="showBigDiv('edits')">Show Edits</a>
                     <a v-if="!isEditing" style="margin:0;padding:0;text-decoration: underline;" v-on:click="editing()">Edit This AHJ</a>
@@ -1926,7 +1932,7 @@ export default {
 <style scoped>
 #titleCard{
     position: relative;
-    height: 250px;
+    height: 275px;
     width: 75%;
     left: 12.5%;
     background-color: ghostwhite;
