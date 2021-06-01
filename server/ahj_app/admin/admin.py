@@ -121,18 +121,6 @@ def get_default_model_admin_class(model, geo=False):
         return DefaultAdmin
 
 
-model_admin_dict = {}
-for model in apps.all_models['ahj_app'].values():
-    if 'Polygon' in model.__name__:
-        admin_model = get_default_model_admin_class(model, geo=True)
-    else:
-        admin_model = get_default_model_admin_class(model)
-    model_admin_dict[model.__name__] = {
-        'model': model,
-        'admin_model': admin_model
-    }
-
-
 def create_admin_get_attr_function(name, dotted_path, admin_order_field, short_description):
     """
     Returns a function to be added to a class definition (an admin model) that takes
@@ -151,6 +139,9 @@ def create_admin_get_attr_function(name, dotted_path, admin_order_field, short_d
 
 
 def get_attr_info_dict(name, dotted_path, admin_order_field, short_description):
+    """
+    Returns a dict with keys named, dotted_path, admin_order_field, and short_description.
+    """
     return {
         'name': name,
         'dotted_path': dotted_path,
@@ -159,6 +150,38 @@ def get_attr_info_dict(name, dotted_path, admin_order_field, short_description):
     }
 
 
+def get_action_info_dict(name, function):
+    """
+    Returns a dict with keys name and function.
+    """
+    return {
+        'name': name,
+        'function': function
+    }
+
+
+"""
+Create default admin models for each model in ahj_app.
+"""
+model_admin_dict = {}
+for model in apps.all_models['ahj_app'].values():
+    if 'Polygon' in model.__name__:
+        admin_model = get_default_model_admin_class(model, geo=True)
+    else:
+        admin_model = get_default_model_admin_class(model)
+    model_admin_dict[model.__name__] = {
+        'model': model,
+        'admin_model': admin_model
+    }
+
+
+"""
+Customizing APIToken Admin Model:
+Added to list_display:
+ - The user's email.
+ - The user's company affiliation.
+ - If the user is an AHJ Official of any AHJ.
+"""
 api_token_admin_model = model_admin_dict['APIToken']['admin_model']
 admin_attrs_to_add = []
 admin_attrs_to_add.append(get_attr_info_dict('get_user_email', 'user.Email', 'email', 'Email'))
@@ -170,13 +193,15 @@ for attr in admin_attrs_to_add:
     api_token_admin_model.list_display.append(attr['name'])
 
 
-def get_action_info_dict(name, function):
-    return {
-        'name': name,
-        'function': function
-    }
-
-
+"""
+Customizing User Admin Model:
+Adding Admin Actions:
+ - Reset Password.
+ - Generate API Token.
+ - Delete/Toggle API Token.
+Removing from list_display:
+ - The user's hashed password.
+"""
 user_admin_model = model_admin_dict['User']['admin_model']
 admin_actions_to_add = []
 admin_actions_to_add.append(get_action_info_dict('user_reset_password', user_reset_password))
@@ -189,9 +214,18 @@ for action in admin_actions_to_add:
 user_admin_model.list_display.remove('password')
 user_admin_model.list_display.insert(0, user_admin_model.list_display.pop(user_admin_model.list_display.index('UserID')))
 
+
+"""
+Customizing Polygon Admin Model:
+Removing from list_display:
+ - The Polygon MULTIPOLYGON data field.
+"""
 polygon_admin_model = model_admin_dict['Polygon']['admin_model']
 polygon_admin_model.list_display.remove('Polygon')
 
 
+"""
+Register all the admin models to admin site.
+"""
 for v in model_admin_dict.values():
     admin.site.register(v['model'], v['admin_model'])
