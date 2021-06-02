@@ -1870,7 +1870,8 @@ export default {
                     .post(url, this.$children[i].AddCont,{
                         headers: {
                             Authorization: this.$store.getters.authToken
-                        }});
+                        }})
+                    .then(() => {});
                 }
             }
             //edit deletion url

@@ -203,7 +203,7 @@ state: {
         },
     },
     actions: {
-        async getUserInfo({getters, dispatch, commit}){ // get currently logged in user's info by their webpage auth token
+        async getUserInfo({getters, commit}){ // get currently logged in user's info by their webpage auth token
             let query = constants.API_ENDPOINT + "user/active/";
             await axios.get(query, {
                 headers: {
@@ -212,21 +212,8 @@ state: {
             })
                 .then(async (response) => {
                     let userInfo = response.data;
-                    userInfo.Photo = await dispatch('convertBinaryToPhoto', userInfo.Photo);
                     commit('changeCurrentUserInfo', userInfo);
                 });
-        },
-        convertBinaryToPhoto(context, binaryString) { // setup for displaying user's profile picture
-            var binary = atob(binaryString.replace(/\s/g, ''));
-            var len = binary.length;
-            var buffer = new ArrayBuffer(len);
-            var view = new Uint8Array(buffer);
-            for (var i = 0; i < len; i++) {
-                view[i] = binary.charCodeAt(i);
-            }
-            var blob = new Blob( [view], { type: "image/jpeg" });
-            let objURL = URL.createObjectURL(blob);
-            return objURL;
         },
     },
 });

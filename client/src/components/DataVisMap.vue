@@ -54,11 +54,10 @@ export default {
           headers: {
               Authorization: `${this.$store.getters.authToken}`,
           }
-        },)
-        .then(response => {
-          this.statePoints = response.data;
-          this.setStateMarkers();
-        });
+        },).then(response => {
+        this.statePoints = response.data;
+        this.setStateMarkers();
+      });
     },
     /**
      * Get and set the specific ahj markers with their individual stats
@@ -68,11 +67,10 @@ export default {
           headers: {
               Authorization: `${this.$store.getters.authToken}`,
           }
-        })
-        .then(response => {
-          this.otherPoints = response.data;
-          this.setOtherPoints();
-        });
+        }).then(response => {
+        this.otherPoints = response.data;
+        this.setOtherPoints();
+     });
     },
     /**
      * Get and display the polygon of a given 'other marker', not state marker
@@ -83,14 +81,13 @@ export default {
           headers: {
               Authorization: `${this.$store.getters.authToken}`,
           }
-        })
-        .then(response => {
-          this.selectedPolygon = L.geoJSON(response.data, {
-            polygonData: point
-          });
-          this.setPolygon();
-          this.selectedPolygon.addTo(this.leafletMap);
-        })
+        }).then(response => {
+            this.selectedPolygon = L.geoJSON(response.data, {
+              polygonData: point
+            });
+            this.setPolygon();
+            this.selectedPolygon.addTo(this.leafletMap);
+          })
     },
     /**
      * Place the state markers on the map

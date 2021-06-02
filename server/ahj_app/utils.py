@@ -1,11 +1,14 @@
 import json
+import re
 
 from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
 
 from .serializers import *
 import googlemaps
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 
+from .usf import get_enum_value_row
 
 gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_KEY)
 
@@ -19,9 +22,12 @@ def get_ob_value_primitive(ob_json, field_name, throw_exception=True, exception_
             return values
         return ob_json[field_name]['Value']
     except (TypeError, KeyError):
-        if throw_exception:
+        if throw_exception and field_name in ob_json: # Throws exception if the json had the key but it was not in correct OB format 
             raise ValueError(f'Missing \'Value\' key for Orange Button field \'{field_name}\'')
-        return exception_return_value
+        return exception_return_value # returns empty string if the json didn't have the field name as a key
+    
+def check_address_empty(address):
+    return re.search('[a-zA-Z0-9]', address) # If number or letter exists, then at least one address field has been provided
 
 
 def get_str_location(location):
@@ -36,13 +42,13 @@ def get_str_location(location):
 
 def get_str_address(address):
     return \
-        get_ob_value_primitive(address, 'AddrLine1', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'AddrLine2', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'AddrLine3', throw_exception=False, exception_return_value='') + ', ' + \
-        get_ob_value_primitive(address, 'City', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'County', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'StateProvince', throw_exception=False, exception_return_value='') + ' ' + \
-        get_ob_value_primitive(address, 'ZipPostalCode', throw_exception=False, exception_return_value='')
+        get_ob_value_primitive(address, 'AddrLine1', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'AddrLine2', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'AddrLine3', exception_return_value='') + ', ' + \
+        get_ob_value_primitive(address, 'City', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'County', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'StateProvince', exception_return_value='') + ' ' + \
+        get_ob_value_primitive(address, 'ZipPostalCode', exception_return_value='')
 
 
 def get_location_gecode_address_str(address):
@@ -69,6 +75,17 @@ def get_location_gecode_address_str(address):
     return location
 
 
+def get_enum_value_row_else_null(enum_field, enum_value):
+    try:
+        if enum_value is None:
+            return None
+        elif isinstance(enum_value, list):
+            return [get_enum_value_row_else_null(enum_field, v) for v in enum_value]
+        return get_enum_value_row(enum_field, enum_value)
+    except ObjectDoesNotExist:
+        return None
+
+
 def simple_sanitize(s: str):
     """
     Sanitize SQL string inputs simply by dropping ';' and '''
@@ -87,17 +104,18 @@ def get_name_query_cond(type: str, val: str, query_params: dict):
     empty string to represent no condition on type.
     """
     if val is not None and type is not None:
-        return 'AHJ.' + type + ' LIKE \'%%' + simple_sanitize(val) + '%%\' AND '
+        query_params[type] = '%' + val + '%'
+        return 'AHJ.' + type + ' LIKE %(' + type + ')s AND '
     return ''
 
 
-def get_list_query_cond(type: str, val: str, query_params: dict):
+def get_list_query_cond(type: str, val: list, query_params: dict):
     """
     Returns the entered list of strings as part of
     an SQL condition on the AHJ table of the form:
             (AHJ.`type` = 'val1' OR AHJ.`type` = 'val2' OR ... ) AND
     """
-    if val is not None:
+    if val is not None and len(val) != 0:
         or_list = []
         for i in range(len(val)):
             param_name = f'{type}{i}'
@@ -178,7 +196,7 @@ def get_multipolygon_wkt(multipolygon):
 
 
 def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode=None,
-                BuildingCode=None, ElectricCode=None, FireCode=None, ResidentialCode=None, WindCode=None,
+                BuildingCode=[], ElectricCode=[], FireCode=[], ResidentialCode=[], WindCode=[],
                 StateProvince=None, location=None, polygon=None):
     """
     Main Idea: This functional view uses raw SQL queries to
@@ -200,10 +218,8 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     also requires extra logic because it will modify the
     query to also join on the Address table.
     """
-
     full_query_string = ''' SELECT * FROM AHJ '''
     query_params = {}
-
     if location is not None or polygon is not None:
         if polygon is not None:
             intersects = 'ST_INTERSECTS(Polygon, ST_GeomFromText(\'' + polygon + '\'))'
@@ -277,17 +293,17 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     where_clauses += get_basic_query_cond('AHJID', AHJID, query_params)
     where_clauses += get_basic_query_cond('AHJPK', AHJPK, query_params)
     where_clauses += get_basic_query_cond('AHJCode', AHJCode, query_params)
-    where_clauses += get_basic_query_cond('AHJLevelCode', AHJLevelCode, query_params)
-    where_clauses += get_list_query_cond('BuildingCode', BuildingCode, query_params)
-    where_clauses += get_list_query_cond('ElectricCode', ElectricCode, query_params)
-    where_clauses += get_list_query_cond('FireCode', FireCode, query_params)
-    where_clauses += get_list_query_cond('ResidentialCode', ResidentialCode, query_params)
-    where_clauses += get_list_query_cond('WindCode', WindCode, query_params)
+    where_clauses += get_basic_query_cond('AHJLevelCode', getattr(get_enum_value_row_else_null('AHJLevelCode', AHJLevelCode), 'pk', None), query_params)
+    where_clauses += get_list_query_cond('BuildingCode', [e.pk for e in get_enum_value_row_else_null('BuildingCode', BuildingCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('ElectricCode', [e.pk for e in get_enum_value_row_else_null('ElectricCode', ElectricCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('FireCode', [e.pk for e in get_enum_value_row_else_null('FireCode', FireCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('ResidentialCode', [e.pk for e in get_enum_value_row_else_null('ResidentialCode', ResidentialCode) if e is not None], query_params)
+    where_clauses += get_list_query_cond('WindCode', [e.pk for e in get_enum_value_row_else_null('WindCode', WindCode) if e is not None], query_params)
 
     # NOTE: we append a 'True' at the end to always make the query valid
     # because the get_x_query_cond appends an `AND` to the condition
     full_query_string += ' WHERE ' + where_clauses + ' True;'
-    # print(AHJ.objects.raw('EXPLAIN ' + full_query_string, query_params))
+    #print(AHJ.objects.raw('EXPLAIN ' + full_query_string, query_params))
     return AHJ.objects.raw(full_query_string, query_params)
 
 def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):

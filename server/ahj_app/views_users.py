@@ -7,16 +7,12 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db import transaction
-from django.core.files.storage import default_storage
 from django.conf import settings
 
 from .authentication import WebpageTokenAuth
 from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, WebpageToken, PreferredContactMethod
 from .serializers import UserSerializer, ContactSerializer
 from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
-
-import base64
-from filetype import guess_extension
 
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
@@ -101,35 +97,6 @@ def user_update(request, username):
         return Response('Success', status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
-
-def user_update(request, username):
-    """
-    Update the user profile associated with `username` with all of the
-    { Key : Value } pairs send in the POST data.
-    """
-    changeableFields = ['Username', 'FirstName', 'LastName', 'PersonalBio', 'URL', 'CompanyAffiliation', 'WorkPhone', 'PreferredContactMethod', 'Title']
-    try:
-        user = User.objects.get(Username=username)
-        contact = user.ContactID
-        # request.data is an immutable QueryDict, so we must make a copy
-        data = request.data.copy()
-        with transaction.atomic():
-            for (key, value) in data.items():
-                if key in changeableFields:
-                    if key == 'PreferredContactMethod': # We must update enum fields seperately
-                        contactMethodID = PreferredContactMethod.objects.get(Value=value) # Find the matching preferredContactMethodID
-                        setattr(contact, 'PreferredContactMethod', contactMethodID)
-                    else:
-                        setattr(user, key, value)
-                        setattr(contact, key, value)
-                else:
-                    raise Exception("The "+ key +" field cannot be changed.")
-            user.save()
-            contact.save()
-        return Response('Success', status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['GET'])
 @authentication_classes([WebpageTokenAuth])

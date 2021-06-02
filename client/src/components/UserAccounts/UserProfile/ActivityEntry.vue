@@ -1,13 +1,10 @@
 <template>
     <div class="activity-container">
         <div class="activity-header">
-            <img v-if="Photo !=null" class='user__image' v-bind:src="Photo" />
-            <img v-else class="user__image" src="../../../assets/images/profile-image-default.jpeg">
-            <div class="activity-header-info">
-                <span class="name">{{FullName}}</span>
-                <b-icon icon="circle-fill" class="circle-icon"></b-icon> 
-                <span class="date">{{this.dateText}}</span>
-            </div>
+            <img class="user__image" src="../../../assets/images/profile-image-default.jpeg">
+            <span class="name">{{FullName}}</span>
+            <b-icon icon="circle-fill" class="circle-icon"></b-icon> 
+            <span class="date">{{this.dateText}}</span>
         </div>
         <div class="activity-body">
             <!-- Upvote/ downvote section. At the moment, div serves as indentation. -->

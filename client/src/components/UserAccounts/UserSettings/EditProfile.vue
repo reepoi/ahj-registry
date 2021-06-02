@@ -3,7 +3,7 @@
         <h1 class="setting-title">Edit Profile</h1>
         <template v-if="this.profileInfoLoaded">
             <div class="header">
-                <img class="user-photo" :src="Photo">
+                <img class="user-photo" src="../../../assets/images/profile-image-default.jpeg">
                 <div class="header-user-identifiers" v-if="formFirstNameCapital !== ''">
                     <h2>{{`${formFirstNameCapital} ${formLastNameCapital}`}} </h2>
                 </div>
@@ -12,9 +12,6 @@
                 </div>
             </div>
             <form @submit.prevent id="registration-form">
-                <label for="image-picker">Update profile picture:</label>
-                <!-- Update currently selected photo if user adds a photo.-->
-                <input type="file" id="image-picker" name="image-picker" @change="UpdatePhoto()">
 
                 <div class="form-spacing">
                     <label>Name</label>
@@ -69,7 +66,7 @@
                     <label>Company Affiliation</label>
                     <b-form-input size="lg" class="form__input" type="text" placeholder="Company Affiliation" required v-model="userInfo.CompanyAffiliation" alt="CompanyAffiliation"></b-form-input>
                 </div>
-                <b-button id="edit-profile-button" @click="UpdateProfile" :disabled="this.SubmitStatus === 'PENDING' || usernameCheckPending || !this.usernameIsUnique" block pill variant="primary">
+                <b-button id="edit-profile-button" @click="UpdateDatabase" :disabled="this.SubmitStatus === 'PENDING' || usernameCheckPending || !this.usernameIsUnique" block pill variant="primary">
                     Update Profile
                 </b-button>
                 <h4 class="api-status-text" v-if="this.SubmitStatus === 'PENDING'"> Updating profile... </h4>
@@ -141,13 +138,12 @@ export default {
                 URL: null,
                 Title: null,
                 CompanyAffiliation: null,
-                IsPeerReviewer: 0,
                 WorkPhone: null,
                 PreferredContactMethod: null,
                 Username: null,
             },
             OriginalUsername: null,
-            Photo: null,
+            Photo: '../../../assets/images/profile-image-default.jpeg',
             SubmitStatus: '',
             profileInfoLoaded: false,
             usernameIsUnique: true,
@@ -167,12 +163,18 @@ export default {
                     else if (StoreProfileData['ContactID'][key])
                         that.userInfo[key] = StoreProfileData['ContactID'][key].Value;
                 });
-                this.Photo = StoreProfileData['Photo'];
+                this.userInfo.FirstName = StoreProfileData.ContactID['FirstName'].Value;
+                this.userInfo.LastName = StoreProfileData.ContactID['LastName'].Value;
+                this.userInfo.URL = StoreProfileData.ContactID['URL'].Value;
+                this.userInfo.Title = StoreProfileData.ContactID['Title'].Value;
+                this.userInfo.WorkPhone = StoreProfileData.ContactID['WorkPhone'].Value;
+                this.userInfo.PreferredContactMethod = StoreProfileData.ContactID['PreferredContactMethod'].Value;
+                this.Username = StoreProfileData['Username'];
                 this.OriginalUsername = StoreProfileData['Username'];
             }
         },
         // Query the database with the new data inputted into the form.
-        UpdateProfile() {
+        UpdateDatabase(){
             // We don't want to mark fields as incorrect until the user has tried each one. Touching the $v object will
             // make it so that if any validations fail, then we now mark those fields as incorrect.
             this.$v.$touch();
@@ -185,10 +187,6 @@ export default {
 
                 // Put all data we want to send to the server into a FormData object
                 let fd = new FormData();
-                var imageToRead = document.getElementById("image-picker");
-                // If user uploaded a photo, append it to the FormData object 
-                if (imageToRead.files.length > 0)
-                    fd.append('Photo', imageToRead.files[0]);
                 for (let userAttr in this.userInfo){
                     // If the user attribute is non-empty, add to FormData object
                     if (this.userInfo[userAttr])
@@ -239,14 +237,16 @@ export default {
             axios.get(constants.API_ENDPOINT + "auth/form-validator/",{
                     params,
                     headers: {
-                        Authorization: `${this.$store.getters.authToken}`
+                        'Content-Type': 'application/json',
+                        'Authorization': `${this.$store.getters.authToken}`
                     }
                 })
                 .then(response => {
                     if (this.usernameCheckPending){
                         this.usernameCheckPending = false;
+
                         if (this.userInfo.Username !== this.OriginalUsername){
-                            this.usernameIsUnique = !response.data.Username;
+                            this.usernameIsUnique = !response.data.UsernameExists;
                         }
                         else {
                             this.usernameIsUnique = true;

@@ -237,16 +237,47 @@ def test_comment_get_replies(two_ahjs, three_users):
     assert len(comment1.get_replies()) == 2
     assert len(comment2.get_replies()) == 1
 
+"""    
+    Contact Model
+"""
+@pytest.fixture
+def contact_obj():
+    return  Contact.objects.create(ContactID=1)
+
+@pytest.mark.django_db
+def test_contact_create_relation_to__valid_param(ahj_inspection, contact_obj):
+    response = contact_obj.create_relation_to(ahj_inspection)
+    assert contact_obj.ContactStatus == None
+    assert contact_obj.ParentTable == 'AHJInspection'
+    assert response == contact_obj
+
+@pytest.mark.django_db
+def test_contact_create_relation_to__invalid_param(ahj_obj, contact_obj):
+    with pytest.raises(ValueError):
+        contact_obj.create_relation_to(Contact.objects.create())
+
+@pytest.mark.django_db
+def test_contact_get_relation_status_field(contact_obj):
+    assert contact_obj.get_relation_status_field() == 'ContactStatus'
+
 """
     AHJInspection Model
 """
-
-@pytest.mark.django_db
-def test_ahj_inspection_get_contacts(two_ahjs, three_users):
+@pytest.fixture
+def two_inspections(two_ahjs, three_users):
     ahj1, ahj2 = two_ahjs
     user1, user2, user3 = three_users
     inspection1 = AHJInspection.objects.create(AHJPK=ahj1, AHJInspectionName='Inspection1', TechnicianRequired=1, InspectionStatus=True)
     inspection2 = AHJInspection.objects.create(AHJPK=ahj1, AHJInspectionName='Inspection2', TechnicianRequired=1, InspectionStatus=True)
+    return inspection1, inspection2
+
+@pytest.fixture
+def ahj_inspection(ahj_obj):
+    return  AHJInspection.objects.create(AHJPK=ahj_obj, AHJInspectionName='Inspection', TechnicianRequired=1, InspectionStatus=True)
+
+@pytest.mark.django_db
+def test_ahj_inspection_get_contacts(two_inspections):
+    inspection1, inspection2 = two_inspections
     assert len(inspection1.get_contacts()) == 0
     Contact.objects.create(ParentTable='AHJInspection', ParentID=inspection1.InspectionID, ContactStatus=True) 
     Contact.objects.create(ParentTable='AHJInspection', ParentID=inspection1.InspectionID, ContactStatus=True)
@@ -256,11 +287,8 @@ def test_ahj_inspection_get_contacts(two_ahjs, three_users):
     assert len(inspection1.get_contacts()) == 2
 
 @pytest.mark.django_db
-def test_ahj_inspection_get_unconfirmed_contacts(two_ahjs, three_users):
-    ahj1, ahj2 = two_ahjs
-    user1, user2, user3 = three_users
-    inspection1 = AHJInspection.objects.create(AHJPK=ahj1, AHJInspectionName='Inspection1', TechnicianRequired=1, InspectionStatus=True)
-    inspection2 = AHJInspection.objects.create(AHJPK=ahj1, AHJInspectionName='Inspection2', TechnicianRequired=1, InspectionStatus=True)
+def test_ahj_inspection_get_unconfirmed_contacts(two_inspections):
+    inspection1, inspection2 = two_inspections
     assert len(inspection1.get_uncon_con()) == 0
     Contact.objects.create(ParentTable='AHJInspection', ParentID=inspection1.InspectionID, ContactStatus=None) 
     Contact.objects.create(ParentTable='AHJInspection', ParentID=inspection1.InspectionID, ContactStatus=None)
@@ -269,12 +297,93 @@ def test_ahj_inspection_get_unconfirmed_contacts(two_ahjs, three_users):
     Contact.objects.create(ParentTable='AHJInspection', ParentID=inspection2.InspectionID, ContactStatus=None)
     assert len(inspection1.get_uncon_con()) == 2
 
+@pytest.mark.django_db
+def test_ahj_inspection_create_relation_to__valid_param(ahj_obj, ahj_inspection):
+    response = ahj_inspection.create_relation_to(ahj_obj)
+    assert ahj_inspection.InspectionStatus == None
+    assert response == ahj_inspection
+
+@pytest.mark.django_db
+def test_ahj_inspection_create_relation_to__invalid_param(ahj_obj, ahj_inspection):
+    with pytest.raises(ValueError):
+        ahj_inspection.create_relation_to(Contact.objects.create())
+
+@pytest.mark.django_db
+def test_ahj_inspection_get_relation_status_field(ahj_inspection):
+    assert ahj_inspection.get_relation_status_field() == 'InspectionStatus'
+
+""" 
+    Fee Structure Model
+"""
+@pytest.fixture
+def fee_structure(ahj_obj):
+    return FeeStructure.objects.create(AHJPK=ahj_obj, FeeStructureName='name')
+
+@pytest.mark.django_db
+def test_fee_structure_create_relation_to__valid_param(ahj_obj, fee_structure):
+    response = fee_structure.create_relation_to(ahj_obj)
+    assert fee_structure.FeeStructureStatus == None
+    assert response == fee_structure
+
+@pytest.mark.django_db
+def test_fee_structure_create_relation_to__invalid_param(ahj_obj, fee_structure):
+    with pytest.raises(ValueError):
+        fee_structure.create_relation_to(Contact.objects.create())
+
+@pytest.mark.django_db
+def test_fee_structure_get_relation_status_field(fee_structure):
+    assert fee_structure.get_relation_status_field() == 'FeeStructureStatus'
+
+"""
+    EngineeringReviewRequirement Model
+"""
+@pytest.fixture
+def engineering_review_requirement(ahj_obj):
+    return EngineeringReviewRequirement.objects.create(AHJPK=ahj_obj)
+
+@pytest.mark.django_db
+def test_engineering_review_requirement_create_relation_to__valid_param(ahj_obj, engineering_review_requirement):
+    response = engineering_review_requirement.create_relation_to(ahj_obj)
+    assert engineering_review_requirement.EngineeringReviewRequirementStatus == None
+    assert response == engineering_review_requirement
+
+@pytest.mark.django_db
+def test_engineering_review_requirement_create_relation_to__invalid_param(ahj_obj, engineering_review_requirement):
+    with pytest.raises(ValueError):
+        engineering_review_requirement.create_relation_to(Contact.objects.create())
+
+@pytest.mark.django_db
+def test_engineering_review_requirement_get_relation_status_field(engineering_review_requirement):
+    assert engineering_review_requirement.get_relation_status_field() == 'EngineeringReviewRequirementStatus'
+
+
+"""
+    DocumentSubmissionMethod Model
+"""
+@pytest.fixture
+def document_submission_method():
+    return DocumentSubmissionMethod.objects.create(Value='Email')
+
+@pytest.mark.django_db
+def test_document_submission_method_create_relation_to__valid_param(ahj_obj, document_submission_method):
+    document_submission_method.create_relation_to(ahj_obj)
+    assert len(AHJDocumentSubmissionMethodUse.objects.all()) == 1 # A valid AHJDocumentSubmissionMethodUse object should be created as a result
+
+@pytest.mark.django_db
+def test_document_submission_method_create_relation_to__invalid_param(ahj_obj, document_submission_method):
+    with pytest.raises(ValueError):
+        document_submission_method.create_relation_to(Contact.objects.create())
+
+@pytest.mark.django_db
+def test_document_submission_method_get_relation_status_field(document_submission_method):
+    assert document_submission_method.get_relation_status_field() == 'MethodStatus'
+
 """
     AHJDocumentSubmissionMethodUse Model
 """
 
 @pytest.mark.django_db
-def test_document_submission_method_use_get_value(two_ahjs, document_submission_methods):
+def test_ahj_document_submission_method_use_get_value(two_ahjs, document_submission_methods):
     ahj1, ahj2 = two_ahjs
     method1, method2, method3 = document_submission_methods
     doc_method1 = AHJDocumentSubmissionMethodUse.objects.create(AHJPK=ahj1, DocumentSubmissionMethodID=method1, MethodStatus=1)
@@ -282,12 +391,33 @@ def test_document_submission_method_use_get_value(two_ahjs, document_submission_
     doc_method2 = AHJDocumentSubmissionMethodUse.objects.create(AHJPK=ahj1, DocumentSubmissionMethodID=method2, MethodStatus=1)
     assert doc_method2.get_value() == method2.Value
 
+@pytest.mark.django_db
+def test_ahj_document_submission_method_use_get_relation_status_field(two_ahjs, document_submission_methods):
+    ahj1, ahj2 = two_ahjs
+    method1, method2, method3 = document_submission_methods
+    doc_method = AHJDocumentSubmissionMethodUse.objects.create(AHJPK=ahj1, DocumentSubmissionMethodID=method1, MethodStatus=1)
+    assert doc_method.get_relation_status_field() == 'MethodStatus'
+
 """
     PermitIssueMethod Model
 """
-    @pytest.mark.django_db
-    def test_permit_issue_method_get_relation_status_field():
-        assert PermitIssueMethod.objects.create(Value='SolarApp').get_relation_status_field() == 'MethodStatus'
+@pytest.fixture
+def permit_issue_method():
+    return PermitIssueMethod.objects.create(Value='SolarApp')
+
+@pytest.mark.django_db
+def test_permit_issue_method_create_relation_to__valid_param(ahj_obj, permit_issue_method):
+    permit_issue_method.create_relation_to(ahj_obj)
+    assert len(AHJPermitIssueMethodUse.objects.all()) == 1 # A valid PermitIssueMethodUse object should be created as a result
+
+@pytest.mark.django_db
+def test_permit_issue_method_create_relation_to__invalid_param(ahj_obj, permit_issue_method):
+    with pytest.raises(ValueError):
+        permit_issue_method.create_relation_to(Contact.objects.create())
+
+@pytest.mark.django_db
+def test_permit_issue_method_get_relation_status_field(permit_issue_method):
+    assert permit_issue_method.get_relation_status_field() == 'MethodStatus'
 
 """
     AHJPermitIssueMethodUse Model
@@ -319,7 +449,7 @@ def test_user_create_user():
 @pytest.mark.django_db
 def test_user_get_email_field_name(create_user):
     user = create_user(Email='a@a.com')
-    assert user.get_email_field_name() == user.Email 
+    assert user.get_email_field_name() == 'Email' 
 
 @pytest.mark.django_db
 def test_user_get_maintained_ahjs(create_user, two_ahjs):
@@ -346,10 +476,25 @@ def test_user_get_API_token__token_does_not_exist(create_user):
     WebpageToken Model
 """
 @pytest.mark.django_db
-def test_token_get_user(create_user):
+def test_WebpageToken_get_user(create_user):
     user = create_user(Email='a@a.com')
     token = WebpageToken.objects.create(user=user)
     assert token.get_user() == user
+
+@pytest.mark.django_db
+def test_WebpageToken_str(create_user):
+    user = create_user(Email='a@a.com')
+    token = WebpageToken.objects.create(user=user)
+    assert str(token) == 'WebpageToken(' + token.key + ')'
+
+"""
+    APIToken Model
+"""
+@pytest.mark.django_db
+def test_APIToken_str(create_user):
+    user = create_user(Email='a@a.com')
+    token = APIToken.objects.create(user=user)
+    assert str(token) == 'APIToken(' + token.key + ')'
 
 """
     Shapefile Models

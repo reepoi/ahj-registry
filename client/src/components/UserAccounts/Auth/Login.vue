@@ -81,7 +81,7 @@ export default {
                 axios.post(constants.API_ENDPOINT + "auth/token/login/", {
                     "Email": this.Email,
                     "password": this.Password
-                }, {
+                    }, {
                     headers: {
                         'Authorization': `${this.$store.getters.authToken}`
                     }

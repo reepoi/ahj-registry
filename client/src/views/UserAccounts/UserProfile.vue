@@ -12,9 +12,7 @@
                             </div>
                         </div>
                     </div>
-                    <template v-if="photo !== null">
-                        <img id='user-image' v-bind:src="this.ProfileData['Photo']" /> 
-                    </template>
+                    <img id='user-image' src="../../assets/images/profile-image-default.jpeg" />
                     <div id="header-content">
                         <div id="header-content-left">
                             <div>
@@ -157,7 +155,7 @@ export default {
             return this.ProfileData['CommunityScore'];
         },
         apiCalls(){
-            return this.ProfileData['APICalls'];
+            return 0; // Change when we begin tracking API calls with new schema
         },
         personalBio(){
             return this.ProfileData['PersonalBio'];

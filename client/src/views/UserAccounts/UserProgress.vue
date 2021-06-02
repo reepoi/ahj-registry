@@ -69,7 +69,7 @@ export default {
             return this.$store.state.currentUserInfo.CommunityScore;
         },
         apiCalls(){
-            return this.$store.state.currentUserInfo.APICalls;
+            return 0; // Change when we begin tracking API calls with new schema
         },
         acceptedEditsBoundaries(){
             return constants.ACCEPTED_EDITS_BADGE_BOUNDARIES;

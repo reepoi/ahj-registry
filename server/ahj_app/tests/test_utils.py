@@ -150,7 +150,7 @@ def test_simple_sanitize(input, expected_output):
        (None, None, ''),
        ('AHJName', None, ''),
        (None, 'Test', ''),
-       ('AHJName', 'Test', 'AHJ.AHJName LIKE \'%%Test%%\' AND '),\
+       ('AHJName', 'Test', 'AHJ.AHJName LIKE %(AHJName)s AND '),\
    ]
 )
 def test_get_name_query_cond(type, val, expected_output):
@@ -255,7 +255,7 @@ def test_dictfetchall(create_user):
 
 @pytest.fixture
 def ahj_filter_location():
-    return 'POINT(25, 25)'
+    return 'POINT(25.0, 25.0)'
 
 @pytest.fixture
 def empty_request_obj():
@@ -282,11 +282,11 @@ def ahj_filter_ahjs():
     ahjLevel1 = AHJLevelCode.objects.create(AHJLevelCodeID=1, Value=AHJ_LEVEL_CODE_CHOICES[0][0])
     ahjLevel2 = AHJLevelCode.objects.create(AHJLevelCodeID=2, Value=AHJ_LEVEL_CODE_CHOICES[1][0])
     ahjLevel3 = AHJLevelCode.objects.create(AHJLevelCodeID=3, Value=AHJ_LEVEL_CODE_CHOICES[2][0])
-    buildingCode = AHJLevelCode.objects.create(AHJLevelCodeID=3, Value=BUILDING_CODE_CHOICES[2][0])
-    electricCode = AHJLevelCode.objects.create(AHJLevelCodeID=3, Value=ELECTRIC_CODE_CHOICES)
+    buildingCode = BuildingCode.objects.create(BuildingCodeID=1, Value=BUILDING_CODE_CHOICES[0][0])
+    electricCode = ElectricCode.objects.create(ElectricCodeID=1, Value=ELECTRIC_CODE_CHOICES[0][0])
 
     ahj1 = ahj_filter_create_ahj(1, 1, ((0, 0), (0, 10), (10, 10), (10, 0), (0,0)), ahjLevel1) # AHJs 1 and 2 are in the same polygon as ahj_filter_polygon
-    ahj2 = ahj_filter_create_ahj(2, 2, ((0, 3), (0, 13), (10, 13), (10, 3), (0, 3)), ahjLevel2)
+    ahj2 = ahj_filter_create_ahj(2, 2, ((0, 3), (0, 13), (10, 13), (10, 3), (0, 3)), ahjLevel3)
     ahj3 = ahj_filter_create_ahj(3, 3, ((20, 20), (20, 30), (30, 30), (30, 20), (20,20)), ahjLevel3) # AHJ 3's polygon is over ahj_filter_location
 
     ahj4 = ahj_filter_create_ahj(4, 4, ((100, 100), (100, 110), (110, 110), (110, 100), (100, 100)), ahjLevel1, buildingCode, electricCode) # AHJ 4 and 5 are found through the request 
@@ -299,7 +299,7 @@ def test_filter_ahjs__no_search_parameters(ahj_filter_ahjs):
     assert len(filter_ahjs()) == 5 # returns all ahjs if no filtering is done. 
 
 @pytest.mark.django_db
-def test_filter_ahjs__only_point_search(ahj_filter_ahjs, ahj_filter_location):
+def test_filter_ahjs__only_location_search(ahj_filter_ahjs, ahj_filter_location):
     ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
     ahj_list = filter_ahjs(location=ahj_filter_location)
 
@@ -317,6 +317,20 @@ def test_filter_ahjs__only_polygon_search(ahj_filter_ahjs, ahj_filter_polygon):
 @pytest.mark.django_db
 def test_filter_ahjs__only_search_filters(ahj_filter_ahjs, ahj_filter_location):
     ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
-    ahj_list = filter_ahjs(BuildingCode='2018IBC', ElectricCode='2018NEC')
-    assert len(ahj_list) == 2
+    ahj_list = filter_ahjs(BuildingCode=['2021IBC'], ElectricCode=['2020NEC'])
+    assert len(ahj_list) == 2 
+    assert ahj_list[0].AHJPK == 4 and ahj_list[1].AHJPK == 5
 
+@pytest.mark.django_db
+def test_filter_ahjs__search_filters_and_polygon(ahj_filter_ahjs, ahj_filter_polygon):
+    ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
+    ahj_list = filter_ahjs(AHJLevelCode='040', polygon=ahj_filter_polygon)
+    assert len(ahj_list) == 1
+    assert ahj_list[0].AHJPK == 1
+
+@pytest.mark.django_db
+def test_filter_ahjs__search_filters_and_location(ahj_filter_ahjs, ahj_filter_location):
+    ahj1, ahj2, ahj3, ahj4, ahj5 = ahj_filter_ahjs
+    ahj_list = filter_ahjs(AHJLevelCode='061', location=ahj_filter_location)
+    assert len(ahj_list) == 1
+    assert ahj_list[0].AHJPK == 3

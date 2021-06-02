@@ -14,7 +14,6 @@
         <!-- show links around the site -->
         <b-nav-item href="#/about">About</b-nav-item>
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
-        <!-- <b-nav-item href="#/ahj-search">API</b-nav-item> -->
         <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto navbar-background">
@@ -22,11 +21,12 @@
         <b-nav-item href="#/login" v-if="!loggedIn">Login</b-nav-item>
         <b-nav-item href="#/register" v-if="!loggedIn">Register</b-nav-item>
         <b-nav-item-dropdown right v-if="loggedIn">
-            <!-- Show users or default photo -->
-            <img v-if="Photo !== null" class="user-photo" :src="Photo">
-            <img v-else class="user-photo" src="../assets/images/profile-image-default.jpeg">
+            <template #button-content>
+              <div class="format"> 
+                <img class="user-photo" src="../assets/images/profile-image-default.jpeg">
+              </div>
+            </template>
             <b-dropdown-item class='dropdown-item' :href="'#/user/' + Username"> 
-            <!-- go to profile -->
               <b-icon class='icon' icon="person"></b-icon>
               Profile
             </b-dropdown-item>

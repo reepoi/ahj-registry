@@ -29,14 +29,13 @@ def test_data_map__empty_param(client_with_webpage_credentials):
 
     url = reverse('data-map')
     response = client_with_webpage_credentials.get(url) # Get all the polygons that are a StatePolygon
-    print('after get')
     assert len(response.data) == 3 # Should be only 3 polygons that are state polygons, 1 is not a StatePolygon
     assert response.status_code == 200
 
 @pytest.mark.django_db
 def test_data_map__normal_call(client_with_webpage_credentials):
     polyArr = []
-    # generate 5 polygons that we can use for the below polygon types
+    # generate 4 polygons that we can use for the below polygon types
     for i in range(1,5):
         polyArr.append(poly_obj(i))
     statePolygon = StatePolygon.objects.create(PolygonID=polyArr[0])
@@ -62,7 +61,6 @@ def test_data_map_get_polygon__normal_call(client_with_webpage_credentials):
 def test_data_map_get_polygon__no_param_passed(client_with_webpage_credentials):
     url = reverse('data-map-polygon')
     response = client_with_webpage_credentials.get(url)
-    print(response.data)
     assert response.status_code == 400
 
 @pytest.mark.django_db

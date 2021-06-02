@@ -55,7 +55,6 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
     for field in Contact._meta.get_fields():
         if field.name in newUserData:
             if field.name == 'PreferredContactMethod':
-                print(getattr(ContactID, 'PreferredContactMethod'))
                 assert getattr(ContactID, 'PreferredContactMethod').Value == newUserData[field.name]
             else:
                 assert getattr(ContactID, field.name) == newUserData[field.name]
@@ -167,4 +166,4 @@ def test_remove_ahj_maintainer__invalid_params(generate_client_with_webpage_cred
     userData = {'Username': 'someone', 'AHJPK': 999999999}
     url = reverse('ahj-remove-maintainer')
     response = client.post(url, userData)
-    assert response.status_code == 400 
+    assert response.status_code == 400
