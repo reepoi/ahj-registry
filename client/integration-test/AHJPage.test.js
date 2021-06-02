@@ -77,7 +77,7 @@ describe('AHJPage Puppeteer tests', () => {
         let selects = await page.$$('select.custom-select.custom-select-sm');
         await selects[14].select("2011NEC");
         let textDiv = await page.$('div#text');
-        let submit = await textDiv.$('a[style="margin: 0px 10px 0px 0px; padding: 0px; text-decoration: underline;"]');
+        let submit = await textDiv.$('a');
         await submit.click();
         let edits = await page.$('div#confirm-edits');
         await new Promise(r => setTimeout(r, 1000));
