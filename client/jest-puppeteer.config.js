@@ -14,5 +14,5 @@ module.exports = {
     args: ["--window-size=1600,800", '--no-sandbox',
     '--disable-setuid-sandbox']
   },
-  browserContext: 'default',
+  browserContext: 'incognito',
 }

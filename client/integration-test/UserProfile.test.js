@@ -2,13 +2,13 @@ import 'expect-puppeteer';
 import { executablePath } from 'puppeteer';
 import * as settings from './test_settings.js';
 
-jest.setTimeout(60000);
+jest.setTimeout(600000);
 
 describe('User Profile tests', () => {
     beforeAll(async () => {
         await page.goto(settings.host + 'ahj-search');
-        let xButton = await page.$(".introjs-skipbutton");
-        await xButton.click();
+        // let xButton = await page.$(".introjs-skipbutton");
+        // await xButton.click();
         let loginButton = await page.$('a[href="#/login"]');
         await loginButton.click();
     });
@@ -20,8 +20,8 @@ describe('User Profile tests', () => {
         let loginButton = await page.$('#login-button');
         await loginButton.click();
         await page.waitForNavigation({ waitUntil: 'networkidle0' });
-        let xButton = await page.$(".introjs-skipbutton");
-        await xButton.click();
+        // let xButton = await page.$(".introjs-skipbutton");
+        // await xButton.click();
         expect(true).toBeTruthy();
         await new Promise(r => setTimeout(r, 5000));
     });
@@ -45,7 +45,7 @@ describe('User Profile tests', () => {
         let [editButton] = await page.$x('//button[contains(.,"Edit Profile")]');
         await editButton.click();
         while( await page.waitForXPath('//*[contains(text(), "Loading")]', { hidden: true }) !== null){}
-        await expect(page).toMatch('Update profile picture');
+        await expect(page).toMatch('Recommended phone format: 123-456-7890');
     });
     it('Navigate to API', async () => {
         let apiButton = await page.$('#api-button');

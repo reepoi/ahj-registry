@@ -2,10 +2,20 @@ import 'expect-puppeteer';
 import { executablePath } from 'puppeteer';
 import * as settings from './test_settings.js';
 
-jest.setTimeout(60000);
+jest.setTimeout(600000);
 
 describe('AHJPage Puppeteer tests', () => {
     beforeAll(async () => {
+        await page.goto(settings.host + 'ahj-search');
+        let loginButton = await page.$('a[href="#/login"]');
+        await loginButton.click();
+        let email = await page.$('input[placeholder="Email"]');
+        await email.type(settings.email, { delay: 100 });
+        let password = await page.$('input[placeholder="Password"]');
+        await password.type(settings.password, { delay: 100 });
+        loginButton = await page.$('#login-button');
+        await loginButton.click();
+        await page.waitForNavigation({ waitUntil: 'networkidle0' });
         await page.goto(settings.host + 'view-ahj/2118');
     });
     it('Page loads',async () => {
@@ -54,7 +64,7 @@ describe('AHJPage Puppeteer tests', () => {
     });
     it('Edit this AHJ Button', async () => {
         let [editButton] = await page.$x('//a[contains(.,"Edit This AHJ")]');
-        await expect(page).not.toMatchElement('[id^=__BVID__]', {visible: true});
+        //await expect(page).not.toMatchElement('[id^=__BVID__]', {visible: true});
         await editButton.click();
         await expect(page).toMatch("Cancel");
         await expect(page).toMatch("Submit Edits");
@@ -63,14 +73,16 @@ describe('AHJPage Puppeteer tests', () => {
         await expect(page).toMatchElement('.fa.fa-minus');
     });
     it('Make an edit', async () => {
-        await page.select('select#BCSelector',"2021IBC");
+        //await page.select('select#BCSelector',"2021IBC");
+        let selects = await page.$$('select.custom-select.custom-select-sm');
+        await selects[14].select("2011NEC");
         let textDiv = await page.$('div#text');
-        let submit = await textDiv.$('a[style="margin: 0px 10px 0px 0px; padding: 0px; text-decoration: underline; cursor: pointer;"]');
+        let submit = await textDiv.$('a[style="margin: 0px 10px 0px 0px; padding: 0px; text-decoration: underline;"]');
         await submit.click();
         let edits = await page.$('div#confirm-edits');
+        await new Promise(r => setTimeout(r, 1000));
         let editObjs = await edits.$$('i.fas.fa-minus');
         expect(editObjs.length).toBe(1);
-        await new Promise(r => setTimeout(r, 1000));
     });
     it('Submit an edit', async () => {
         let edits = await page.$('div#confirm-edits');

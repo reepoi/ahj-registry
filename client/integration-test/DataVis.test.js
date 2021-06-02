@@ -2,7 +2,7 @@ import 'expect-puppeteer';
 import { executablePath } from 'puppeteer';
 import * as settings from './test_settings.js';
 
-jest.setTimeout(60000);
+jest.setTimeout(600000);
 
 describe('Data vis tests', () => {
     beforeAll(async () => {

@@ -2,16 +2,16 @@ import 'expect-puppeteer';
 import { executablePath } from 'puppeteer';
 import * as settings from './test_settings.js';
 
-jest.setTimeout(60000);
+jest.setTimeout(600000);
 
-describe('AHJ Page Tests', () => {
+describe('Select Page Tests', () => {
     beforeAll(async () => {
-        await page.goto(settings.host + 'ahj-search');
-        let xButton = await page.$(".introjs-skipbutton");
-        await xButton.click();
+        await page.goto(settings.host + 'ahj-search/');
+        // let xButton = await page.$(".introjs-skipbutton");
+        // await xButton.click();
     });
     it('Check page loads', async () => {
-        await expect(page).toMatch('AHJ Registry');
+        await expect(page).toMatch('Search by Address or');
     });
     it('Search in Searchbar', async () => {
         let el = await page.$('#search-bar-input');
