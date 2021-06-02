@@ -46,10 +46,6 @@ state: {
     // Controls interface for downloading results
     resultsDownloading: false, // Enables or disables download results button
     downloadCompletionPercent: 0, // Updates downloading progress of results
-
-    // Chat related fields
-    pubnub: null, // An instance of the PubNub chat management service
-    rooms: [] // The current chat rooms a user is participating in
 },
     getters: {
         apiData: state => state.apiData,
@@ -204,52 +200,6 @@ state: {
             state.currPolyInd = null;
             state.apiLoading = true;
             state.mapViewCenter = [34.05, -118.24];
-        },
-        setRooms(state){ // add chat rooms for user, new or saved
-            state.pubnub.unsubscribeAll();
-            state.pubnub.subscribe({channels: [ "control" ],withPresence: true});
-            for(let i = 0; i < state.currentUserInfo.ChatRooms.length; i++){
-                state.pubnub.subscribe({channels: [ state.currentUserInfo.ChatRooms[i].ChannelID ]})
-            }
-            let channelsWithTimes = [];
-            if(state.currentUserInfo.ChatRooms.length === 0){
-                return;
-            }
-
-            // get number of unread messages in the chat
-            state.pubnub.messageCounts({
-                channels: state.currentUserInfo.ChatRooms.map(c => c.ChannelID),
-                channelTimetokens: state.currentUserInfo.ChatRooms.map(c => {return c.LastReadToken}) // TODO: set to real value
-            }).then((response) => {
-                channelsWithTimes = state.currentUserInfo.ChatRooms.map(c => {
-                    let result = JSON.parse(JSON.stringify(c));
-                    result['NumberUnread'] = response.channels[result.ChannelID];
-                    return result;
-                });
-
-                // get the last sent message in the chat, if it exits
-                state.pubnub.fetchMessages({
-                        channels: state.currentUserInfo.ChatRooms.map(c => c.ChannelID),
-                        count: 1
-                    },
-                    (status, response) => {
-                        if(response === null){
-                            let rooms = channelsWithTimes.map(c => utils.getRoomObject(c,state.currentUserInfo.Username));
-                            state.rooms = rooms;
-                            return;
-                        }
-                        for (let c of channelsWithTimes) {
-                            if(response.channels[c.ChannelID]){
-                                c['lastMessage'] = response.channels[c.ChannelID][0];
-                            }
-                        }
-                        let rooms = channelsWithTimes.map(c => utils.getRoomObject(c,state.currentUserInfo.Username));
-                        state.rooms = rooms;
-                    });
-            }).catch(() => {
-                    // handle error
-                }
-            );
         },
     },
     actions: {

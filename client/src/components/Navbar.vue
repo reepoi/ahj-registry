@@ -22,17 +22,9 @@
         <b-nav-item href="#/login" v-if="!loggedIn">Login</b-nav-item>
         <b-nav-item href="#/register" v-if="!loggedIn">Register</b-nav-item>
         <b-nav-item-dropdown right v-if="loggedIn">
-            <template #button-content>
-              <!-- if user has inread messages, display small number -->
-              <div class="format"> 
-                <div v-if="totalUnreadMessages > 0" class="dot">
-                  <h3>{{totalUnreadMessages}}</h3>
-                </div>
-                <!-- Show users or default photo -->
-                <img v-if="Photo !== null" class="user-photo" :src="Photo">
-                <img v-else class="user-photo" src="../assets/images/profile-image-default.jpeg">
-              </div>            
-              </template>
+            <!-- Show users or default photo -->
+            <img v-if="Photo !== null" class="user-photo" :src="Photo">
+            <img v-else class="user-photo" src="../assets/images/profile-image-default.jpeg">
             <b-dropdown-item class='dropdown-item' :href="'#/user/' + Username"> 
             <!-- go to profile -->
               <b-icon class='icon' icon="person"></b-icon>
@@ -47,11 +39,6 @@
             <!-- account setting page -->
               <b-icon class='icon' icon="gear"></b-icon>
               Account Settings
-            </b-dropdown-item>
-            <!-- open chat and tell parent -->
-            <b-dropdown-item class='dropdown-item' @click="$emit('event-open-modal')">
-            <b-icon class='icon' icon="chat"></b-icon>
-              Chat
             </b-dropdown-item>
             <b-dropdown-item class='dropdown-item' href="#/logout">
             <!-- Logout -->
@@ -70,14 +57,6 @@ export default {
     event: 'event-open-modal'
   },
   computed: {
-    totalUnreadMessages() {
-      //get total num of unread messages
-      let val = 0;
-      for (let r of this.$store.state.rooms) {
-        val += r.unreadCount;
-      }
-      return val;
-    },
     loggedIn() {
       return this.$store.getters.loggedIn;
     },

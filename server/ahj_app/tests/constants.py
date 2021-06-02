@@ -24,8 +24,6 @@ webpageTokenUrls= [
     ('user-create', {}), 
     ('user-login', {}),
     ('user-logout', {}),
-    ('create-chat-room', {}), 
-    ('adjust-timestamp', {}),
 ]
 
 apiTokenUrls = [

@@ -30,6 +30,4 @@ urlpatterns = [
     path('auth/token/logout/',            views_users.LogoutUser.as_view(),                        name='user-logout'),
     path('auth/',                         include('djoser.urls')),
     path('auth/',                         include('djoser.urls.authtoken')),
-    path('create-chatroom/',              views_misc.create_chat_room,                             name='create-chat-room'),
-    path('adjust-timestamp/',             views_misc.reset_last_read,                              name='adjust-timestamp'),
 ]

@@ -53,9 +53,6 @@
                                 <b-button v-if="this.$store.getters.loggedIn && username === this.$store.getters.currentUserInfo.Username" class="button" @click="$router.push({ name: 'settings'})" pill variant="primary">
                                     Edit Profile
                                 </b-button>
-                                <b-button v-if="this.$store.getters.loggedIn && username !== this.$store.getters.currentUserInfo.Username" class="button button-icon" @click="sendToMessaging()" pill variant="primary">
-                                    Message
-                                </b-button>
                             </div>
                         </div>
                     </div>
@@ -249,39 +246,6 @@ export default {
                     this.gettingUserActivity = false;
                     this.activities = response.data;
                 });
-        },
-        // Opens a messaging module on the page.
-        sendToMessaging(){
-          if (!this.$store.getters.loggedIn) {
-            alert("Please log in to message this person.");
-            return;
-          }
-            var that = this.$store.state.currentUserInfo.ChatRooms;
-            var found = false;
-            for(let i = 0; i < that.length; i++){
-                for(let j = 0; j < that[i].Users.length; j++){
-                    if(that[i].Users[j].Username === this.ProfileData.Username){
-                        found = true;
-                        this.$emit("event-open-modal");
-                    }
-                }
-            }
-            if(!found){
-                let url = constants.API_ENDPOINT + 'create-chatroom/';
-                let payload = {Messager: this.$store.state.currentUserInfo.Username,Messagees:[this.ProfileData.Username]}
-                let pn = this.$store.state.pubnub
-                axios.post(url,payload,{
-                        headers: {
-                            Authorization: `${this.$store.getters.authToken}`
-                        }
-                    }).then(response => {
-                        that.push(response.data);
-                        //pn.subscribe({channels:[id]});
-                        pn.publish({channel: "control", message: {user: this.ProfileData.Username, data: response.data}});
-                        this.$emit("event-open-modal");
-                    })
-
-            }
         },
         // Driver which calls getBadge for each type of badge we want to display
         getBadges(){

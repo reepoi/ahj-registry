@@ -63,26 +63,3 @@ export function jsonToCSV(json) {
   return csv;
 }
 
-// constructs the object that represents a room for the vue-advanced-chat
-export function getRoomObject(channel,username) {
-  let result = {};
-  result['roomId'] = channel.ChannelID;
-  result['roomName'] = channel.Users.filter(u => u.Username !== username).map(u => u.Username).join(', ');
-  result['avatar'] = null; // set to Photo path?
-  result['unreadCount'] = channel.NumberUnread;
-  result['users'] = channel.Users.map(u => { return { _id: u.Username, username: u.Username, avatar: u.Photo }; });
-  if(channel.lastMessage){
-    result['lastMessage'] = getMessageObject(channel.lastMessage);
-  }
-  return result;
-}
-
-// constructs the object that represents a message in a chat room for the vue-advanced-chat
-export function getMessageObject(pubnubMessage) {
-  let result = {seen:true};
-  result['content'] = pubnubMessage.message.text;
-  result['senderId'] = pubnubMessage.uuid;
-  result['username'] = pubnubMessage.uuid;
-  result['timetoken'] = pubnubMessage.timetoken;
-  return result;
-}

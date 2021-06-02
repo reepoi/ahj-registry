@@ -443,7 +443,6 @@ class User(AbstractBaseUser):
     AcceptedEdits = models.IntegerField(db_column='NumAcceptedEdits', default=0)
     SubmittedEdits = models.IntegerField(db_column='NumSubmittedEdits', default=0)
     CommunityScore = models.IntegerField(db_column='CommunityScore', default=0)
-    APICalls = models.IntegerField(db_column='NumAPICalls', default=0)
     SecurityLevel = models.IntegerField(db_column='SecurityLevel', default=3)
 
     USERNAME_FIELD = 'Email'
@@ -456,9 +455,6 @@ class User(AbstractBaseUser):
 
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
-    
-    def get_subscribed_channels(self):
-        return [channel for channel in SubscribedChannels.objects.filter(UserID=self)]
 
     def get_API_token(self):
         api_token = APIToken.objects.filter(user=self).first()
@@ -554,14 +550,3 @@ class CityTemp(models.Model):
 
     def __str__(self):
         return self.NAMELSAD
-
-class SubscribedChannels(models.Model):
-    UserID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='UserID')
-    ChannelID = models.UUIDField(default=uuid.uuid4, editable=False)
-    LastReadToken = models.CharField(max_length=255)
-
-    def get_participating_users(self):
-        return [{'Username': user.UserID.Username, 'UserID': user.UserID.UserID, 'Photo': user.UserID.Photo} for user in SubscribedChannels.objects.filter(ChannelID=self.ChannelID)]
-
-    class Meta:
-        unique_together = (('UserID', 'ChannelID'),)

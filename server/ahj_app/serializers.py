@@ -201,17 +201,6 @@ class RecursiveField(serializers.Serializer):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
-
-class SubscribedChannelsSerializer(serializers.Serializer):
-    """
-    Serializes SubscribedChannel to OrderedDict
-    """
-    RoomID = serializers.IntegerField(source='id')
-    ChannelID = serializers.CharField()
-    LastReadToken = serializers.CharField()
-    Users = serializers.ListField(source="get_participating_users")
-
-
 class UserSerializer(serializers.Serializer):
     """
     Serializes User to OrderedDict
@@ -228,11 +217,9 @@ class UserSerializer(serializers.Serializer):
     AcceptedEdits = serializers.IntegerField()
     SubmittedEdits = serializers.IntegerField()
     CommunityScore = serializers.IntegerField()
-    APICalls = serializers.IntegerField()
     SignUpDate = serializers.DateField()
     MaintainedAHJs = serializers.ListField(source='get_maintained_ahjs')
     APIToken = serializers.CharField(source='get_API_token')
-    ChatRooms = SubscribedChannelsSerializer(source="get_subscribed_channels", many=True)
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -242,7 +229,7 @@ class UserCreateSerializer(UserCreateSerializer):
     """
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = ('UserID', 'ContactID', 'Username', 'password', 'Email', 'is_staff', 'is_active', 'SignUpDate', 'PersonalBio', 'URL', 'CompanyAffiliation', 'Photo', 'IsPeerReviewer', 'NumReviewsDone', 'CommunityScore', 'APICalls', 'SecurityLevel')
+        fields = ('UserID', 'ContactID', 'Username', 'password', 'Email', 'is_staff', 'is_active', 'SignUpDate', 'PersonalBio', 'URL', 'CompanyAffiliation', 'Photo', 'IsPeerReviewer', 'NumReviewsDone', 'CommunityScore', 'SecurityLevel')
 
 
 class CommentSerializer(serializers.Serializer):
