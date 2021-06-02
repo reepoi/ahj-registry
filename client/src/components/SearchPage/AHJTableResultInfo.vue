@@ -1,6 +1,6 @@
 <template>
-  <div class="table-info" id="search-results-table">
-    <b-dropdown text="Download Results" class="m-md-2">
+  <div class="table-info">
+    <b-dropdown text="Download Results" class="m-md-2" :disabled="ahjCount === 0">
       <template #button-content>
         <span v-if="resultsDownloading">
           Downloading... (<b-spinner small class="text-center" />

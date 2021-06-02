@@ -894,6 +894,12 @@
                 <div id="addr">
                     <h3> {{this.AddressString}}</h3>
                 </div>
+                <div>
+                    <h3>AHJID: {{ this.AHJInfo ? this.AHJInfo.AHJID.Value : 'Loading' }}</h3>
+                </div>
+                                
+                <div class="break"/>
+                <div style="width:10px;"/>
                 <div id="edit-buttons">
                     <!-- OPen window to display edits on this page -->
                     <a v-if="!isEditing" style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;" v-on:click="showBigDiv('edits')">Show Edits</a>
@@ -1441,8 +1447,11 @@ export default {
         setPolygon() {
             //find this AHJs polygons
             let polygons = this.$store.state.apiData.results['ahjlist']
+                .filter(ahj => ahj.Polygon !== null)
                 .map(ahj => ahj.Polygon);
-                //create the polygon layer
+            if (polygons.length === 0) {
+              return;
+            }
             this.polygonLayer = L.geoJSON(polygons, {
                 style: constants.MAP_PLYGN_SYTLE
             });
@@ -2348,7 +2357,7 @@ export default {
 <style scoped>
 #titleCard{
     position: relative;
-    height: 250px;
+    height: 275px;
     width: 75%;
     left: 12.5%;
     background-color: ghostwhite;

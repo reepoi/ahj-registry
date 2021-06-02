@@ -116,58 +116,55 @@ state: {
             state.showTable = payload;
         },
         exportSearchResultsJSONCSV(state, fileType) {
-            // Don't try to download if already downloading or no results yet
-            if (state.resultsDownloading || state.selectedAHJ === null) {
-                return;
+          // Don't try to download if already downloading or no results yet
+          if (state.resultsDownloading || state.selectedAHJ === null) {
+            return;
+          }
+          state.resultsDownloading = true;
+          let gatherAllObjects = function(url, searchPayload, ahjJSONObjs, offset) {
+            if (url === null) {
+              let filename = "results";
+              let fileToExport = null;
+              if (fileType === "application/json") {
+                fileToExport = JSON.stringify(ahjJSONObjs, null, 2);
+                filename += ".json";
+              } else if (fileType === "text/csv") {
+                fileToExport = utils.jsonToCSV(ahjJSONObjs);
+                filename += ".csv";
+              }
+              FileSaver.saveAs(new Blob([fileToExport], {
+                type: fileType
+              }), filename);
+              state.resultsDownloading = false;
+              state.downloadCompletionPercent = 0;
+            } else {
+              axios
+                .post(url, searchPayload,{
+                  headers: {
+                    Authorization: constants.TOKEN_AUTH_PUBLIC_API
+                  }
+                })
+                .then(response => {
+                  ahjJSONObjs = ahjJSONObjs.concat(response.data['AuthorityHavingJurisdictions']);
+                  offset += 20; // the django rest framework pagination configuration
+                  state.downloadCompletionPercent = (offset / response.data.count * 100).toFixed();
+                  gatherAllObjects(response.data.next, searchPayload, ahjJSONObjs, offset);
+                });
             }
-            state.resultsDownloading = true;
-
-            // function to repeatedly call api with user's search, iterating through each page of results
-            let gatherAllObjects = function(url, searchPayload, ahjJSONObjs, offset) {
-                if (url === null) {
-                    let filename = "results";
-                    let fileToExport = null;
-
-                    // prepare to download json
-                    if (fileType === "application/json") {
-                        fileToExport = JSON.stringify(ahjJSONObjs, null, 2);
-                        filename += ".json";
-                    } else if (fileType === "text/csv") { // prepare to download csv
-                        fileToExport = utils.jsonToCSV(ahjJSONObjs);
-                        filename += ".csv";
-                    }
-
-                    // save the file
-                    FileSaver.saveAs(new Blob([fileToExport], {
-                        type: fileType
-                    }), filename);
-                    state.resultsDownloading = false;
-                    state.downloadCompletionPercent = 0;
-                } else {
-                    axios
-                        .post(url, searchPayload,{
-                            headers: {
-                                Authorization: `Token ${constants.TOKEN_AUTH_PUBLIC_API}`
-                            }
-                        })
-                        .then(response => {
-                            ahjJSONObjs = ahjJSONObjs.concat(response.data.results);
-                            offset += 20; // the django rest framework pagination configuration
-                            state.downloadCompletionPercent = (offset / response.data.count * 100).toFixed();
-                            gatherAllObjects(response.data.next, searchPayload, ahjJSONObjs, offset);
-                        });
-                }
-            };
-            let url = constants.API_ENDPOINT + "ahj/"; // calling public api endpoint to not include extra info in download
-            let searchPayload = state.searchedQuery;
-
-            // include searched region when downloading resutls
-            if (state.searchedGeoJSON) {
-                searchPayload['FeatureCollection'] = state.searchedGeoJSON;
-            }
-
-            // begin the iterative api calls
-            gatherAllObjects(url, searchPayload, [], 0);
+          };
+          let url = constants.API_ENDPOINT + "ahj/";
+          let searchPayload = utils.value_to_ob_value_primitive(state.searchedQuery);
+          if (state.searchedQuery.Address) {
+              /* If an address was searched, the lat,lon coordinates are returned from callAPI.
+               * Replace the address searched with a Location of the lat,lon.
+               */
+              delete searchPayload.Address;
+              searchPayload['Location'] = state.apiData.results.Location;
+          }
+          if (state.searchedGeoJSON) {
+            searchPayload['FeatureCollection'] = state.searchedGeoJSON;
+          }
+          gatherAllObjects(url, searchPayload, [], 0);
         },
         changeAuthToken(state, authToken) {
             state.authToken = authToken;

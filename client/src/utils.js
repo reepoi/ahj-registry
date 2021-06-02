@@ -63,3 +63,24 @@ export function jsonToCSV(json) {
   return csv;
 }
 
+/**
+ * Given JSON, returns new JSON with every non-array and non-object
+ * field replaced with this object:
+ * '<field_name>': {
+ *     'Value': <field_value>
+ * }
+ * @param item
+ * @returns {{Value}|{}|*}
+ */
+export function value_to_ob_value_primitive(item) {
+  if (Array.isArray(item)) {
+    return item.map(a => value_to_ob_value_primitive(a));
+  } else if (typeof item === 'object' && item !== null) {
+    return Object.keys(item).reduce((result, k) => {
+      result[k] = value_to_ob_value_primitive(item[k]);
+      return result;
+    }, {})
+  } else {
+    return { Value: item }
+  }
+}
