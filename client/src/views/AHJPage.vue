@@ -739,7 +739,7 @@
                             <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-a-${err.UseID}`">
                                 <div v-if="e.SourceRow == err.UseID && e.EditType==='A'">
-                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>
@@ -755,7 +755,7 @@
                             <div v-if="e.SourceTable ==='AHJDocumentSubmissionMethodUse'">
                             <div v-for="err in allDSM" v-bind:key="`DSM-d-${err.UseID}`">
                                 <div v-if="e.SourceRow == err.UseID && e.EditType==='D'">
-                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <h2 :ref="`DSM-a-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`DSM-a-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`DSM-a-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>
@@ -847,7 +847,7 @@
                             <div v-if="e.SourceTable ==='AHJPermitIssueMethodUse'">
                             <div v-for="err in allPIM" v-bind:key="`PIM-e-${err.UseID}`">
                                 <div v-if="e.SourceColumn==='MethodStatus' && e.SourceRow == err.UseID && e.EditType==='A'">
-                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`PIM-e-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`PIM-e-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>
@@ -863,7 +863,7 @@
                             <div v-if="e.SourceTable ==='AHJPermitIssueMethodUse'">
                             <div v-for="err in allPIM" v-bind:key="`PIM-e-d-${err.UseID}`">
                                 <div v-if="e.SourceRow == err.UseID && e.EditType==='D'">
-                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? 'green' : e.ReviewStatus==='R' ? 'red' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
+                                <h2 :ref="`PIM-e-${err.UseID}`" v-bind:style="{backgroundColor: e.ReviewStatus==='A' ? '#B7FFB3' : e.ReviewStatus==='R' ? '#FFBEBE' : 'white'}"  class="pmdsm"> {{err.Value}} </h2>
                                 <i style="margin-right:10px" v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Accept',eID:e.EditID});e.ReviewStatus = 'A';changeStatus(`PIM-e-${err.UseID}`,'A');" class="fa fa-check"></i>
                                 <i v-if="isManaged && e.ReviewStatus==='P'" v-on:click="handleOfficial({Type:'Reject',eID:e.EditID});e.ReviewStatus='R';changeStatus(`PIM-e-${err.UseID}`,'R');" class="fa fa-thumbs-down"></i>
                                 </div>

@@ -138,10 +138,10 @@ export default {
             // is this is an edit object, change status on rejection / acceptance
             if(this.eID >= 0){
                 if(this.editStatus === 'A'){
-                    this.$refs.insp.style.backgroundColor = "green";
+                    this.$refs.insp.style.backgroundColor = "#B7FFB3";
                 }
                 if(this.editStatus === 'R'){
-                    this.$refs.insp.style.backgroundColor = "red";
+                    this.$refs.insp.style.backgroundColor = "#FFBEBE";
                 }
             
             }
