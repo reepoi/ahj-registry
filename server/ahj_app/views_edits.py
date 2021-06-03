@@ -245,6 +245,8 @@ def edit_update(request):
 
                 if e['SourceColumn'] in ENUM_FIELDS and old_value is None:
                     e['OldValue'] = ''
+                elif e['SourceColumn'] in ENUM_FIELDS:
+                    e['OldValue'] = old_value.Value
                 else:
                     e['OldValue'] = old_value
 
