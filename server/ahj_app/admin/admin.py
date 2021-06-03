@@ -5,9 +5,9 @@ from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 
 from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token
+from .form import UserChangeForm
 
 USER_DATA_MODELS = {
-    'AHJUserMaintains',
     'APIToken',
     'Comment',
     'Edit',
@@ -213,6 +213,18 @@ for action in admin_actions_to_add:
 
 user_admin_model.list_display.remove('password')
 user_admin_model.list_display.insert(0, user_admin_model.list_display.pop(user_admin_model.list_display.index('UserID')))
+user_admin_model.form = UserChangeForm
+
+
+"""
+Customizing Contact Admin Model:
+Removing from list_display:
+ - ParentTable
+ - ParentID
+"""
+contact_admin_model = model_admin_dict['Contact']['admin_model']
+contact_admin_model.list_display.remove('ParentTable')
+contact_admin_model.list_display.remove('ParentID')
 
 
 """
