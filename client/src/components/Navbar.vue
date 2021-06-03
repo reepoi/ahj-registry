@@ -15,6 +15,7 @@
         <b-nav-item href="#/about">About</b-nav-item>
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
         <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
+        <b-nav-item href="#/ahj-search/?tutorial=1">Tutorial</b-nav-item>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto navbar-background">
         <!-- if logged in show pfp, else show login button -->

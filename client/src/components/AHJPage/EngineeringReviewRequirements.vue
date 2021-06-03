@@ -110,12 +110,12 @@ export default {
             if(this.eID >= 0){
                 if(this.editStatus === 'A'){
                     if(this.$refs.err){
-                        this.$refs.err.style.backgroundColor = "green";
+                        this.$refs.err.style.backgroundColor = "#B7FFB3";
                     }
                 }
                 if(this.editStatus === 'R'){
                     if(this.$refs.err){
-                        this.$refs.err.style.backgroundColor = "red";
+                        this.$refs.err.style.backgroundColor = "#FFBEBE";
                     }
                 }
             

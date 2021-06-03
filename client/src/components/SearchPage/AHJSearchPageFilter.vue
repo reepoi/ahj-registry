@@ -142,9 +142,8 @@ export default {
     this.$nextTick(() => {
       window.addEventListener('resize', this.onResize);
     })
-
     // Check if a search was given in the query params; if so, search by it
-    if (Object.keys(this.$route.query).length !== 0) {
+    if (this.$route.params.tutorial && Object.keys(this.$route.query).length !== 0) {
       Object.keys(this.parameters)
           .filter(a => a !== 'callerID') // this should not be changed by the user
           .forEach(key => {

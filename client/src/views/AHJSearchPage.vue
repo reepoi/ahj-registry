@@ -37,18 +37,21 @@ export default {
     // hide the search results table on page load
     this.$store.commit("setShowTable", false);
   },
+  mounted() {
+    if (this.$route.query.tutorial == 1){
+      this.StartTutorial();
+    }
+  },
   beforeDestroy() {
     if (this.runningTour) {
       this.tutorial.exit();
     }
   },
-  /**
-   * Gets user info
-   *
-   * Also runs tutorial for the page
-   */
-  mounted() {
-    // get the user info on page load
+  methods: {
+    ToggleSearchFilter(isToggled) {
+      this.filterToggled = isToggled;
+    },
+    StartTutorial() {
     let that = this;
     // attach click listener for the tour
     let clickEventLister = () => window.dispatchEvent(new Event(('resize')));
@@ -150,10 +153,6 @@ export default {
           that.runningTour = false;
         })
         .start();
-  },
-  methods: {
-    ToggleSearchFilter(isToggled) {
-      this.filterToggled = isToggled;
     }
   },
   components: {

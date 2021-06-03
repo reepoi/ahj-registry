@@ -98,10 +98,10 @@ export default {
             //change rejection / acceptance status if this is an edit
             if(this.eID >= 0){
                 if(this.editStatus === 'A'){
-                    this.$refs.fs.style.backgroundColor = "green";
+                    this.$refs.fs.style.backgroundColor = "#B7FFB3";
                 }
                 if(this.editStatus === 'R'){
-                    this.$refs.fs.style.backgroundColor = "red";
+                    this.$refs.fs.style.backgroundColor = "#FFBEBE";
                 }
             
             }
