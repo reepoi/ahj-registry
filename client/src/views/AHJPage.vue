@@ -894,6 +894,11 @@
                 <div id="addr">
                     <h3> {{this.AddressString}}</h3>
                 </div>
+                <div>
+                    <h3>AHJID: {{ this.AHJInfo ? this.AHJInfo.AHJID.Value : 'Loading' }}</h3>
+                </div>
+                                
+                <div class="break"/>
                 <div id="edit-buttons">
                     <!-- OPen window to display edits on this page -->
                     <a v-if="!isEditing" style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;" v-on:click="showBigDiv('edits')">Show Edits</a>
