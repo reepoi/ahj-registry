@@ -64,7 +64,7 @@ def user_generate_api_token(self, request, queryset):
     return render(request, 'admin/user_generate_api_token.html', context={
         'request': request,
         'users_without_tokens': users_without_tokens,
-        'users_with_tokens': users_with_tokens
+        'user_token_tuples': zip(users_with_tokens, users_with_tokens.values_list('api_token', flat=True))
     })
 
 
@@ -82,7 +82,6 @@ def user_delete_toggle_api_token(self, request, queryset):
         """
         The form has been filled out and submitted.
         """
-        print(request.POST)
         user_to_form_pairs = [pair.split('.') for pair in request.POST.getlist('user_to_form')]
         for user_id, form_prefix in user_to_form_pairs:
             user = User.objects.get(UserID=user_id)

@@ -14,18 +14,16 @@
       </li>
       {% endfor %}
     </ul>
-  {% if users_with_tokens.count > 0 %}
   <p>
     API Tokens will <b>NOT</b> be generated for the following users because they already have API tokens:
   </p>
-    <ul>
-      {% for user in users_with_tokens %}
-      <li>
-        <a href="../apitoken/{{ user.api_token }}/" target="_blank">{{ user.Email }}</a>
-      </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  <ul>
+    {% for tuple in user_token_tuples %}
+    <li>
+      <a href="../apitoken/{{ tuple.1 }}/" target="_blank">{{ tuple.0.Email }}</a>
+    </li>
+    {% endfor %}
+  </ul>
   <input type="hidden" name="action" value="user_generate_api_token" />
   <p style="padding-top: 1em; text-align: center">
   <span style="padding-right: 2em">
