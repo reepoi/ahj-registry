@@ -436,8 +436,7 @@ class User(AbstractBaseUser):
     PersonalBio = models.CharField(db_column='PersonalBio', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=255, blank=True, null=True)
     CompanyAffiliation = models.CharField(db_column='CompanyAffiliation', max_length=255, blank=True)
-    Photo = models.CharField(db_column='Photo', max_length=255,
-                             null=False, default=settings.DEFAULT_USER_IMG)
+    Photo = models.CharField(db_column='Photo', max_length=255, null=False, default='')
     IsPeerReviewer = models.IntegerField(db_column='IsPeerReviewer', null=True, default=False)
     NumReviewsDone = models.IntegerField(db_column='NumReviewsDone', default=0)
     AcceptedEdits = models.IntegerField(db_column='NumAcceptedEdits', default=0)

@@ -113,7 +113,6 @@
 import axios from "axios";
 import constants from "../../constants.js";
 import ActivityEntry from "../../components/UserAccounts/UserProfile/ActivityEntry.vue";
-import BinaryToPhoto from "../../mixins/BinaryConversionMixin";
 
 export default {
     // Computed properties relevant to a user profile for easy access in the above template.
@@ -304,8 +303,7 @@ export default {
     },
     components: {
     "activity-entry": ActivityEntry
-  },
-  mixins: [BinaryToPhoto]
+  }
 
 }
 

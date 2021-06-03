@@ -26,7 +26,6 @@
 <script>
 import Edit from "./Edit.vue";
 import Comment from "./Comment.vue";
-import BinaryToPhoto from "../../../mixins/BinaryConversionMixin";
 export default {
     props: ['UserData', 'ActivityType', 'ActivityData', 'Photo'],
     computed: {
@@ -51,7 +50,6 @@ export default {
           this.score += value;
       }
   },
-  mixins: [BinaryToPhoto]
 }
 </script>
 
