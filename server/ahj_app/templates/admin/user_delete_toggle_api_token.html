@@ -9,7 +9,7 @@
   <br>
   <label>
     Toggle All Tokens:
-    <select onchange="toggleAll(this)">
+    <select onchange="AdminUserDeleteToggleAPIToken.toggleAll(this)">
       <option value="DoNothing">Do Nothing</option>
       <option value="On">On</option>
       <option value="Off">Off</option>
@@ -17,7 +17,7 @@
   </label>
   <label>
       Delete All Tokens:
-    <input type="checkbox" onclick="checkAll(this)">
+    <input type="checkbox" onclick="AdminUserDeleteToggleAPIToken.checkAll(this)">
   </label>
   <br>
   {% for tuple in formtuples %}
@@ -53,14 +53,15 @@
   </p>
 </form>
 <script>
-    function toggleAll(source) {
+  AdminUserDeleteToggleAPIToken = {
+    toggleAll: function (source) {
       for (let i = 0; i < "{{ users_with_tokens.count }}"; i++) {
         let toggle_id = "id_form-" + i + "-toggle";
         let toggle = document.getElementById(toggle_id);
         toggle.value = source.value;
       }
-    }
-    function checkAll(source) {
+    },
+    checkAll: function (source) {
       for (let i = 0; i < "{{ users_with_tokens.count }}"; i++) {
         let checkbox_id = "id_form-" + i + "-delete_token";
         let checkbox = document.getElementById(checkbox_id);
@@ -68,5 +69,6 @@
       }
 
     }
+  }
 </script>
 {% endblock %}
