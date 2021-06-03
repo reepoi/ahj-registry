@@ -28,7 +28,10 @@ export default {
      * @param count number of ahjs that match search query
      */
     setPagination(count) {
-      let numPages = Math.floor(count / this.perPage) + 1;
+      let numPages = Math.floor(count / this.perPage);
+      if(Math.floor(count / this.perPage) != count / this.perPage){
+        numPages += 1;
+      }
       for (let i = 1; i <= numPages; i++) {
         this.pages.push(i);
       }

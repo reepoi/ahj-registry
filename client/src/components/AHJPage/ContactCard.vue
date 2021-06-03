@@ -126,72 +126,79 @@ export default {
         changeStatus(){
             //if this is an edit object, change to allow rejection / acceptance
             if(this.eID >= 0){
-                if(this.editstatus === 'A'){
+                if(this.editStatus === 'A'){
                     this.$refs.cc.style.backgroundColor = "green";
                 }
-                if(this.editstatus === 'R'){
+                if(this.editStatus === 'R'){
                     this.$refs.cc.style.backgroundColor = "red";
                 }
             
             }
         },
         formatAddress(Address){
-                //if line1, add to address string
-                if(Address.AddrLine1 !== null){
+                this.AddressString = "";
+            this.CityCountyState = "";
+            //if no first values, address string is empty
+            if(Address.AddrLine1.Value === "" && Address.AddrLine2.Value === "" && Address.AddrLine3.Value === ""){
+                this.AddressString = "";
+            }
+            else{
+                //add line 1
+                if(Address.AddrLine1.Value !== ""){
                     this.AddressString += Address.AddrLine1.Value;
                 }
-                //add line2 and comma if necessary
-                if(Address.AddrLine2 !== null){
+                //add line 2, and comma if needed
+                if(Address.AddrLine2.Value !== ""){
                     if(this.AddressString !== ""){
                         this.AddressString += ', ';
                     }
                     this.AddressString += Address.AddrLine2.Value;
-                }
-                //line3 and comma if necessary
-                if(Address.AddrLine3 !== null){
+                }//add line 3 and comma if needed
+                if(Address.AddrLine3.Value !== ""){
                     if(this.AddressString !== ""){
                         this.AddressString += ', '
                     }
                     this.AddressString += Address.AddrLine3.Value;
                 }
                 this.CityCountyState = "";
-                //comma for city
-            if(this.AddressString !== ""){
-                this.CityCountyState += ', ';
             }
+            // add comma before city county state fields, if necessary
             //add city
-            if(Address.City.Value !== null){
+            if(Address.City.Value !== ""){
+                if(this.AddressString !== ""){
+                    this.CityCountyState += ', ';
+                }
                 this.CityCountyState += Address.City.Value;
             }
-            //add county and comma, if necessary
-            if(Address.County !== null){
-                if(Address.City.Value !== ""){
-                    this.CityCountyState += ", "
+            //add county and comma if necessary
+            if(Address.County.Value !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
+                    this.CityCountyState += ", ";
                 }
                 this.CityCountyState += Address.County.Value;
             }
             //add state and comma if necessary
-            if(Address.StateProvince !== null){
-                if(Address.County.Value !== ""){
+            if(Address.StateProvince.Value !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
                     this.CityCountyState += ", "
                 }
                 this.CityCountyState += Address.StateProvince.Value;
             }
-            //add country and comma if necessary
-            if(Address.Country !== null){
-                if(Address.StateProvince.Value !== ""){
+            //add country andf comma if necessary
+            if(Address.Country.Value !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
                     this.CityCountyState += ", "
                 }
                 this.CityCountyState += Address.Country.Value;
             }
             //add zip code and comma if necessary
-            if(Address.ZipPostalCode !== null){
-                if(Address.Country.Value !== ""){
+            if(Address.ZipPostalCode.Value !== ""){
+                if(this.CityCountyState !== "" || this.AddressString !== ''){
                     this.CityCountyState += ", "
                 }
                 this.CityCountyState += Address.ZipPostalCode.Value;
             }
-            //set address string
+            //add city/county/state to toal address
             this.AddressString = this.AddressString + this.CityCountyState;
         },
         clearEdits(){

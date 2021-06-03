@@ -109,9 +109,10 @@ export default {
         }
     },
     mounted(){
+        this.$nextTick(() => {
         this.AddCont.ParentID = this.data.InspectionID.Value;
         this.ID = this.data.InspectionID.Value;
-        this.AddCont.AHJPK = this.$parent.AHJInfo.AHJPK.Value;
+        this.AddCont.AHJPK = this.AHJPK;
         let k = Object.keys(this.Edits);
         for(let i = 0; i < k.length; i++){
             if(this.data[k[i]]){
@@ -123,6 +124,7 @@ export default {
         //set inspection ID in deleted object
         this.Deleted.InspectionID = this.data.InspectionID.Value;
         this.changeStatus();
+        });
     },
     components: {
         "contact-card": ContactCard,
@@ -135,10 +137,10 @@ export default {
         changeStatus(){
             // is this is an edit object, change status on rejection / acceptance
             if(this.eID >= 0){
-                if(this.editstatus === 'A'){
+                if(this.editStatus === 'A'){
                     this.$refs.insp.style.backgroundColor = "green";
                 }
-                if(this.editstatus === 'R'){
+                if(this.editStatus === 'R'){
                     this.$refs.insp.style.backgroundColor = "red";
                 }
             

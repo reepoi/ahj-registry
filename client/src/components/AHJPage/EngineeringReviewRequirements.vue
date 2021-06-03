@@ -108,12 +108,12 @@ export default {
         changeStatus(){
             //change status to accepted / rejected
             if(this.eID >= 0){
-                if(this.editstatus === 'A'){
+                if(this.editStatus === 'A'){
                     if(this.$refs.err){
                         this.$refs.err.style.backgroundColor = "green";
                     }
                 }
-                if(this.editstatus === 'R'){
+                if(this.editStatus === 'R'){
                     if(this.$refs.err){
                         this.$refs.err.style.backgroundColor = "red";
                     }

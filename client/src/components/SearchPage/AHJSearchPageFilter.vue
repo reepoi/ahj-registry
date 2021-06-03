@@ -255,6 +255,7 @@ export default {
       if (queryString) {
         currentURL += '?' + queryString;
       }
+      currentURL = currentURL.slice(0,-1);
       return currentURL;
     },
     /**
