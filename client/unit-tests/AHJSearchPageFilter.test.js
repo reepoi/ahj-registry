@@ -16,7 +16,7 @@ var s;
 
 
 beforeAll(async () => {
-    s = await mount(AHJSearchPageFilter, { localVue, store, mocks: { $route: { query: "" }} });
+    s = await mount(AHJSearchPageFilter, { localVue, store, mocks: { $route: { query: {} }} });
 });
 
 describe('Mount tests', () => {

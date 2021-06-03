@@ -29,7 +29,7 @@ describe('Method Tests', () => {
     it('Change Status', async () => {
         await i.setProps({ data: {...objects.Inspection}, eID: 2, editStatus: "R" , AHJPK: 1  })
         i.vm.changeStatus();
-        expect(i.vm.$refs.insp.style.backgroundColor).toEqual("red");
+        expect(i.vm.$refs.insp.style.backgroundColor).toEqual("rgb(255, 190, 190)");
     });
     it('Clear Edits', () => {
         i.vm.Edits.AHJInspectionName = "New Name";

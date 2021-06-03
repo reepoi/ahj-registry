@@ -27,7 +27,7 @@ describe('Method Tests', () => {
     it('Change Status', async () => {
         await f.setProps({ data: {...objects.FS}, eID: 2, editStatus: "R"  })
         f.vm.changeStatus();
-        expect(f.vm.$refs.fs.style.backgroundColor).toEqual("red");
+        expect(f.vm.$refs.fs.style.backgroundColor).toEqual("rgb(255, 190, 190)");
     });
     it('Clear Edits', () => {
         f.vm.Edits.FeeStructureName = "New Name";

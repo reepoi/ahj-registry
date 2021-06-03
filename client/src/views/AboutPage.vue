@@ -16,18 +16,6 @@
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/d8Fwy-3aR50" frameborder="0" allowfullscreen></iframe>
             </div>
         </div> 
-        <hr style="width:30%;">
-        <h5 class="about-section-description">
-            Obtaining a building permit is no easy feat. Companies and individuals with construction project plans alike face the challenging 
-            questions of which office to send an application to and what the requirements for a permit are. An Authority Having Jurisdiction (AHJ) 
-            is a government entity that issues construction permits in a specified region. On the AHJ Registry website, users can easily find the AHJ, 
-            or AHJs, that have jurisdiction over an address. Private individuals, solar installers, 
-            and construction companies will have access to all of the information needed to get their permit application approved. 
-            <span class="about-section-description-extended"> The AHJ Registry provides many features which simplify the application process for users: an address to AHJ office search tool, a crowd-sourced editing system for permit 
-            requirements and AHJ information, a messaging system for registered users to communicate, a data analysis page showing a heat-map of data completion 
-            in the country, and much more.
-            </span>
-        </h5>
     </div>
 
     <!-- Client Section -->

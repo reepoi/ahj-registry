@@ -27,7 +27,7 @@ describe('Method Tests', () => {
     it('Change Status', async () => {
         await err.setProps({ data: {...objects.ERR}, eID: 2, editStatus: "R"  })
         err.vm.changeStatus();
-        expect(err.vm.$refs.err.style.backgroundColor).toEqual("red");
+        expect(err.vm.$refs.err.style.backgroundColor).toEqual("rgb(255, 190, 190)");
     });
     it('Clear Edits', () => {
         err.vm.Edits.RequirementLevel = "New Name";

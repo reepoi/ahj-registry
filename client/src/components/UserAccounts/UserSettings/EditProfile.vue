@@ -48,7 +48,7 @@
                 </div>
                 <div class="form-spacing">
                     <label>Preferred Contact Method</label>
-                    <b-form-select v-model="userInfo.PreferredContactMethod" class="search-input" :options="['Email', 'Phone']" />
+                    <b-form-select v-model="userInfo.PreferredContactMethod" class="search-input" :options="['Email', 'WorkPhone']" />
                 </div>
                 <div class="form-spacing">
                     <label>Bio</label>

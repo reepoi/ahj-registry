@@ -27,7 +27,7 @@ describe('Method Tests', () => {
     it('Change Status', async () => {
         await c.setProps({ data: {...objects.Contact}, eID: 2, editStatus: "R"  })
         c.vm.changeStatus();
-        expect(c.vm.$refs.cc.style.backgroundColor).toEqual("red");
+        expect(c.vm.$refs.cc.style.backgroundColor).toEqual("rgb(255, 190, 190)");
     });
     it('Clear Edits', () => {
         c.vm.Edits.Title = "New title";
