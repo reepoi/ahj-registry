@@ -307,8 +307,6 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
     return AHJ.objects.raw(full_query_string, query_params)
 
 def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
-    for ahj in ahj_list:
-        print(ahj.AHJLevelCode is not None)
     ahj_list.sort(key=lambda ahj: int(ahj.PolygonID.LandArea) if ahj.PolygonID is not None else 0) # Sort first by landarea ascending
     ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode.Value) if ahj.AHJLevelCode is not None else 0) # Then sort by numerical value AHJLevelCode descending
     return ahj_list

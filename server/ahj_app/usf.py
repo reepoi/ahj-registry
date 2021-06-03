@@ -387,7 +387,6 @@ def create_admin_user():
 
 
 def load_ahj_data_csv():
-    create_admin_user()
     user = User.objects.get(Email=settings.ADMIN_ACCOUNT_EMAIL)
     with open(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
