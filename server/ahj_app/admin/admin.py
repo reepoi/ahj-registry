@@ -109,14 +109,14 @@ def get_default_model_admin_class(model, geo=False):
     model_fields = [field for field in model._meta.fields]
     if geo:
         class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin):
-            search_fields = [field.name for field in model_fields if is_char_field(field)]
             list_display = [field.name for field in model_fields if not is_related_field(field)]
+            search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
         return DefaultPolygonAdmin
     else:
         class DefaultAdmin(admin.ModelAdmin):
-            search_fields = [field.name for field in model_fields if is_char_field(field)]
             list_display = [field.name for field in model_fields if not is_related_field(field)]
+            search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
         return DefaultAdmin
 
