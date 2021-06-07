@@ -76,6 +76,11 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 
 ROOT_URLCONF = 'TheAHJRegistry.urls'
 
+# Throttle rates are per day
+SUNSPEC_MEMBER_API_THROTTLE_RATE = 80000
+
+DEFAULT_API_THROTTLE_RATE = 80000
+
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': {
         'django_filters.rest_framework.DjangoFilterBackend'
@@ -87,6 +92,9 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer'
     ],
+    'DEFAULT_THROTTLE_RATES': {
+        'member': f'{SUNSPEC_MEMBER_API_THROTTLE_RATE}/day'
+    },
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 20
@@ -186,6 +194,9 @@ DJOSER = {
         'user_create': 'ahj_app.serializers.UserCreateSerializer',
         'user': 'ahj_app.serializers.UserCreateSerializer',
         'token': 'ahj_app.serializers.WebpageTokenSerializer'
+    },
+    'EMAIL': {
+        'activation': 'ahj_app.email.ActivateUserEmail',
     }
 }
 

@@ -27,6 +27,7 @@ urlpatterns = [
     path('auth/users/',                   views_users.RegisterUser.as_view({'post': 'create'}),    name='user-create'),
     path('auth/token/login/',             views_users.LoginUser.as_view(),                         name='user-login'),
     path('auth/token/logout/',            views_users.LogoutUser.as_view(),                        name='user-logout'),
+    path('auth/users/activation/',        views_users.ActivateUser.as_view({'post': 'activation'}),                        name='user-activate'),
     path('auth/',                         include('djoser.urls')),
     path('auth/',                         include('djoser.urls.authtoken'))
 ]

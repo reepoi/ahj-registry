@@ -40,7 +40,6 @@ def client_with_credentials(db, create_user, api_client):
 @pytest.fixture
 def client_with_webpage_credentials(db, create_user, api_client):
    user = create_user()
-   #User.objects.filter(UserID=user.UserID).update(is_active = True)
    token = WebpageToken.objects.create(user=user)
    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
    return api_client
@@ -51,7 +50,6 @@ def generate_client_with_webpage_credentials(db, create_user, api_client):
         username = kwargs.pop('Username', None)
         email = kwargs.pop('Email', None)
         user = create_user(Username=username, Email=email)
-        #User.objects.filter(UserID=user.UserID).update(is_active = True)
         token = WebpageToken.objects.create(user=user)
         api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
         return api_client
@@ -60,7 +58,6 @@ def generate_client_with_webpage_credentials(db, create_user, api_client):
 @pytest.fixture
 def client_with_api_credentials(db, create_user, api_client):
    user = create_user()
-   #User.objects.filter(UserID=user.UserID).update(is_active = True)
    token = APIToken.objects.create(user=user)
    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
    return api_client
@@ -71,7 +68,6 @@ def generate_client_with_api_credentials(db, create_user, api_client):
         username = kwargs.pop('Username', None)
         email = kwargs.pop('Email', None)
         user = create_user(Username=username, Email=email)
-        #User.objects.filter(UserID=user.UserID).update(is_active = True)
         token = APIToken.objects.create(user=user)
         api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
         return api_client
@@ -84,7 +80,7 @@ def ahj_obj(db):
     mp = MultiPolygon(p1, p2)
     polygon = Polygon.objects.create(Polygon=mp, LandArea=1, WaterArea=1, InternalPLatitude=1, InternalPLongitude=1)
     address = Address.objects.create()
-    ahj = AHJ.objects.create(AHJPK=1, PolygonID=polygon, AddressID=address)
+    ahj = AHJ.objects.create(AHJPK=1, PolygonID=polygon, AddressID=address, AHJID='63e32327-7a31-4a0c-a715-20d46355cc9e')
     return ahj 
 
 

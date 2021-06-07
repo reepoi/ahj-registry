@@ -402,6 +402,20 @@ class CountySubdivisionPolygon(models.Model):
         managed = True
         db_table = 'CountySubdivisionPolygon'
 
+class SunspecAllianceMember(models.Model):
+    MemberID = models.AutoField(db_column='MemberID', primary_key=True)
+    MemberName = models.CharField(db_column='MemberName', max_length=254, unique=True)
+
+class SunspecAllianceMemberDomain(models.Model):
+    DomainID = models.AutoField(db_column='DomainID', primary_key=True)
+    MemberID = models.ForeignKey(SunspecAllianceMember, models.DO_NOTHING, db_column='MemberID')
+    Domain = models.CharField(max_length=254, db_column='Domain')
+
+class AHJOfficeDomain(models.Model):
+    DomainID = models.AutoField(db_column='DomainID', primary_key=True)
+    AHJID = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJID')
+    Domain = models.CharField(max_length=254, db_column='Domain')
+
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -435,6 +449,7 @@ class User(AbstractBaseUser):
     Username = models.CharField(db_column='Username', unique=True, max_length=254)
     password = models.CharField(max_length=128)
     Email = models.CharField(db_column='Email', unique=True, max_length=254)
+    MemberID = models.ForeignKey(SunspecAllianceMember, models.DO_NOTHING, db_column='MemberID', null=True)
     is_staff = models.BooleanField(db_column='IsStaff', default=False)
     is_active = models.BooleanField(db_column='IsActive', default=False)
     SignUpDate = models.DateField(db_column='SignUpDate', blank=True)

@@ -1,9 +1,10 @@
 from collections import OrderedDict
 
 from rest_framework import status
-from rest_framework.decorators import permission_classes, authentication_classes, api_view
+from rest_framework.decorators import permission_classes, authentication_classes, throttle_classes, api_view
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
+from .throttles import MemberRateThrottle
 from rest_framework.response import Response
 
 from .authentication import APITokenAuth
@@ -15,6 +16,7 @@ from .utils import order_ahj_list_AHJLevelCode_PolygonLandArea, filter_ahjs, get
 @api_view(['POST'])
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
+@throttle_classes([MemberRateThrottle])
 def ahj_list(request):
     """
     Functional view for the AHJList
@@ -75,6 +77,7 @@ def ahj_list(request):
 @api_view(['POST'])
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
+@throttle_classes([MemberRateThrottle])
 def ahj_geo_location(request):
     ahjs_to_search = request.data.get('ahjs_to_search', None)
 
@@ -105,6 +108,7 @@ def ahj_geo_location(request):
 @api_view(['POST'])
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
+@throttle_classes([MemberRateThrottle])
 def ahj_geo_address(request):
     ahjs_to_search = request.data.get('ahjs_to_search', None)
 

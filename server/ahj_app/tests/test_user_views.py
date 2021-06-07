@@ -1,11 +1,83 @@
 from django.urls import reverse
-from ahj_app.models import User, Contact, AHJUserMaintains, PreferredContactMethod
+from django.dispatch import receiver
+from ahj_app.models import User, Contact, AHJUserMaintains, PreferredContactMethod, SunspecAllianceMember, SunspecAllianceMemberDomain, AHJOfficeDomain
 from fixtures import *
+from ahj_app.signals import *
 import pytest
+import time
+
+token = ''
+uid = ''
+
+@pytest.fixture
+def sunspec_alliance_member():
+    member = SunspecAllianceMember.objects.create(MemberID=1, MemberName='Test')
+    SunspecAllianceMemberDomain.objects.create(DomainID=1, MemberID=member, Domain='test.abcd')
+
+@pytest.fixture
+def ahj_office_domain(ahj_obj):
+    AHJOfficeDomain.objects.create(DomainID=1, AHJID=ahj_obj, Domain='test.abcd')
+
+# waits for activation email's uid and token to be created abd assigns local token, uid variables
+@receiver(activation_email_sent)
+def user_activation_listener(sender, **kwargs):
+    global uid, token
+    uid = kwargs['uid']
+    token = kwargs['token']
+
+# creates a new user and returns the created uid and token sent in the activation email
+def get_activation_uid_and_token(client, userData):
+    url = reverse('user-create')
+    response = client.post(url, userData)
+    time.sleep(1) # wait some arbitrary time for signal receiver to get token and uid
+    return token, uid
 
 """
     User View Endpoints
 """
+@pytest.mark.django_db
+def test_activate_user__user_is_not_member(generate_client_with_webpage_credentials, sunspec_alliance_member):
+    client = generate_client_with_webpage_credentials(Email='f@f.femdosikf')
+    token, uid = get_activation_uid_and_token(client, {'Username': 'someone', 'Email': 'e@fneu.com', 'password': 'hfewdus34729'})
+    
+    url = reverse('user-activate')
+    response = client.post(url, {'uid': uid, 'token': token})
+    user = User.objects.get(Username='someone')
+    assert response.status_code == 204
+    assert user.MemberID == None
+
+@pytest.mark.django_db
+def test_activate_user__user_is_member(generate_client_with_webpage_credentials, sunspec_alliance_member):
+    client = generate_client_with_webpage_credentials(Email='f@f.femdosikf')
+    token, uid = get_activation_uid_and_token(client, {'Username': 'someone', 'Email': 'e@test.abcd', 'password': 'hfewdus34729'})
+    
+    url = reverse('user-activate')
+    response = client.post(url, {'uid': uid, 'token': token})
+    user = User.objects.get(Username='someone')
+    assert response.status_code == 204
+    assert user.MemberID.MemberID == 1
+
+@pytest.mark.django_db
+def test_activate_user__user_is_not_ahj_maintainer(generate_client_with_webpage_credentials, ahj_office_domain):
+    client = generate_client_with_webpage_credentials(Email='f@f.femdosikf')
+    token, uid = get_activation_uid_and_token(client, {'Username': 'someone', 'Email': 'e@fneu.com', 'password': 'hfewdus34729'})
+    
+    url = reverse('user-activate')
+    response = client.post(url, {'uid': uid, 'token': token})
+    user = User.objects.get(Username='someone')
+    assert response.status_code == 204
+    assert AHJUserMaintains.objects.filter(UserID=user.UserID).count() == 0
+
+@pytest.mark.django_db
+def test_activate_user__user_is_ahj_maintainer(generate_client_with_webpage_credentials, ahj_office_domain):
+    client = generate_client_with_webpage_credentials(Email='f@f.femdosikf')
+    token, uid = get_activation_uid_and_token(client, {'Username': 'someone', 'Email': 'e@test.abcd', 'password': 'hfewdus34729'})
+    
+    url = reverse('user-activate')
+    response = client.post(url, {'uid': uid, 'token': token})
+    user = User.objects.get(Username='someone')
+    assert response.status_code == 204
+    assert AHJUserMaintains.objects.filter(UserID=user.UserID).count() == 1
 
 @pytest.mark.django_db
 def test_get_single_user__user_exists(generate_client_with_webpage_credentials):
