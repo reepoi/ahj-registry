@@ -1,12 +1,17 @@
-const API_ENDPOINT = "http://localhost:8000/api/v1/";
-const AUTH_TOKEN = "Token ";
-const AUTH_TOKEN_PUBLIC_API = "Token ";
+/*
+ * Constants used throughout the application
+ */
+const API_ENDPOINT = "http://localhost:8000/api/v1/"; // Base Django API endpoint
+const AUTH_TOKEN = ""; // Webpage's Django webpage API token
+const AUTH_TOKEN_PUBLIC_API = ""; // Webpage's Django public API token
+const IP_GEOLOCATION_ENDPOINT = ""; // API endpoint for finding user's lat-lon by their ip; only 20,000 requests per month
 
 export default {
   API_ENDPOINT: API_ENDPOINT,
   TOKEN_AUTH: AUTH_TOKEN,
   TOKEN_AUTH_PUBLIC_API: AUTH_TOKEN_PUBLIC_API,
-  AHJ_FIELDS: {
+  IP_GEOLOCATION_ENDPOINT: IP_GEOLOCATION_ENDPOINT,
+  AHJ_FIELDS: { // Template for Orange Button AHJ object
     AHJCode: "",
     AHJName: "",
     BuildingCode: "",
@@ -35,7 +40,7 @@ export default {
     FeeStructures: [],
     PermitIssueMethods: []
   },
-  CONTACT_FIELDS: {
+  CONTACT_FIELDS: { // Template for Orange Button Contact object
     RecordID: "",
     FirstName: "",
     MiddleName: "",
@@ -52,7 +57,7 @@ export default {
     Description: "",
     Address: null
   },
-  ADDRESS_FIELDS: {
+  ADDRESS_FIELDS: { // Template for Orange Button Address object
     RecordID: "",
     AddrLine1: "",
     AddrLine2: "",
@@ -66,7 +71,7 @@ export default {
     Description: "",
     Location: null
   },
-  LOCATION_FIELDS: {
+  LOCATION_FIELDS: { // Template for Orange Button Location object
     RecordID: "",
     Altitude: "",
     Elevation: "",
@@ -76,7 +81,7 @@ export default {
     LocationDeterminationMethod: "",
     Description: ""
   },
-  ENGINEERINGREVIEWREQUIREMENTS_FIELDS: {
+  ENGINEERINGREVIEWREQUIREMENTS_FIELDS: { // Template for Orange Button EngineeringReviewRequirement object
     RecordID: "",
     EngineeringReviewType: "",
     RequirementLevel: "",
@@ -84,13 +89,13 @@ export default {
     StampType: "",
     Description: ""
   },
-  FEESTRUCTURE_FIELDS: {
+  FEESTRUCTURE_FIELDS: { // Template for Orange Button FeeStrucutre object
     RecordID: "",
     Description: "",
     FeeStructureName: "",
     FeeStructureType: ""
   },
-  AHJINSPECTION_FIELDS: {
+  AHJINSPECTION_FIELDS: { // Template for Orange Button AHJInspection object
     AHJInspectionName: "",
     AHJInspectionNotes: "",
     Description: "",
@@ -99,15 +104,15 @@ export default {
     TechnicianRequired: "",
     Contacts: []
   },
-  DOCUMENTSUBMISSIONMETHOD_FIELDS: {
+  DOCUMENTSUBMISSIONMETHOD_FIELDS: { // Template for Orange Button DocumentSubmisisonMethod object
     RecordID: "",
     DocumentSubmissionMethod: ""
   },
-  PERMITSUBMISSIONMETHOD_FIELDS: {
+  PERMITSUBMISSIONMETHOD_FIELDS: { // Template for Orange Button PermitSubmissionMethod object
     RecordID: "",
     PermitIssueMethod: ""
   },
-  CHOICE_FIELDS: {
+  CHOICE_FIELDS: { // Field enums for every choice field of Orange Button objects
     AHJ: {
       AHJLevelCode: [
         { value: "", text: "AHJ Level Code" },
@@ -277,11 +282,11 @@ export default {
       { value: "confirmed", text: "Confirmed Edits" }
     ]
   },
-  MAP_INIT_CENTER: [38, -98],
-  MAP_INIT_ZOOM: 4,
-  MAP_TILE_API_URL: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-  MAP_TILE_API_ATTR: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
-  MAP_PLYGN_SYTLE: function() {
+  MAP_INIT_CENTER: [38, -98], // Default map focus on page load
+  MAP_INIT_ZOOM: 4, // Default map zoom on page load
+  MAP_TILE_API_URL: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", // Map tile API endpoint
+  MAP_TILE_API_ATTR: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community", // Map title API endpoint attribution
+  MAP_PLYGN_SYTLE: function() { // Unselected map polygon style settings
     return {
       fillOpacity: 0.07,
       opacity: 0.3,
@@ -289,7 +294,7 @@ export default {
       weight: 2
     };
   },
-  MAP_PLYGN_SLCTD_SYTLE: function() {
+  MAP_PLYGN_SLCTD_SYTLE: function() { // Selected map polyogn style settings
     return {
       fillOpacity: 0.07,
       opacity: 1,
@@ -297,7 +302,7 @@ export default {
       eight: 2
     };
   },
-  MAP_PLYGN_CSTM_COLOR: function(rgba) {
+  MAP_PLYGN_CSTM_COLOR: function(rgba) { // Map polygon style with parameterized color
     return {
       fillOpacity: 0.07,
       opacity: 1,
@@ -305,9 +310,12 @@ export default {
       eight: 2
     };
   },
-  // Validators
+  // Validators for various fields
   VALID_EMAIL: (email) => /[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*[.][a-zA-Z]+/g.test(email),
   NUM_OR_SPECIAL_CHAR: (password) => /[0-9!@#$%^&*()_+\-=[\]{};':"\\,.<>/?]+/g.test(password),
   CONTAINS_LETTER: (password) => /[A-Za-z]+/g.test(password),
   VALID_PHONE: (phone) => /\(?\d{3}\)?[\s.-]?\d{3}[\s.-]\d{4}|\d{10}/g.test(phone),
+  API_USAGE_BADGE_BOUNDARIES: [50, 200, 500],
+  COMMUNITY_SCORE_BADGE_BOUNDARIES: [30, 150, 400],
+  ACCEPTED_EDITS_BADGE_BOUNDARIES: [3, 8, 15],
 };

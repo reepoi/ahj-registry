@@ -1,4 +1,5 @@
 import json
+import os
 
 from django.http import HttpResponse
 from rest_framework import status
@@ -6,12 +7,12 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db import transaction
+from django.conf import settings
 
 from .authentication import WebpageTokenAuth
-from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, PreferredContactMethod
-from .serializers import UserSerializer
+from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, WebpageToken, PreferredContactMethod
+from .serializers import UserSerializer, ContactSerializer
 from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
-
 
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
@@ -33,17 +34,30 @@ class LogoutUser(TokenDestroyView):
 @api_view(['GET'])
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
+def get_active_user(request):
+    """
+    Endpoint for getting the active user
+    through the authtoken
+    """
+    # Get authtoken from request header
+    authtoken = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
+    token = WebpageToken.objects.get(key=authtoken)
+    user = User.objects.get(UserID=token.user_id)
+    payload = UserSerializer(user, context={'fields_to_drop': []})
+    return Response(payload.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
 def get_single_user(request, username):
     """
-    Function view for getting a single user with the specified UserID = id
+    Function view for getting a single user with the specified Username = username
     """
     try:
         queryset = User.objects.get(Username=username)
-        serializer = UserSerializer
-        permissions = None
-        context = {'fields_to_drop': []}
-        payload = serializer(queryset, context=context)
-        return Response(payload.data)
+        payload = UserSerializer(queryset, context={'fields_to_drop': []})
+        return Response(payload.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -59,6 +73,11 @@ def user_update(request, username):
     changeableFields = ['Username', 'FirstName', 'LastName', 'PersonalBio', 'URL', 'CompanyAffiliation', 'WorkPhone', 'PreferredContactMethod', 'Title']
     try:
         user = User.objects.get(Username=username)
+        token = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
+        receivedToken = WebpageToken.objects.get(key=token)
+        # Check if the user requesting the user update is updating their own account
+        if (receivedToken.user.UserID not in [user.UserID, settings.WEBPAGE_TOKEN_CONSTANT]):
+            raise Exception("Provided token credentials do not match user being updated.")
         contact = user.ContactID
         # request.data is an immutable QueryDict, so we must make a copy
         data = request.data.copy()
@@ -79,16 +98,18 @@ def user_update(request, username):
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-
-
 @api_view(['GET'])
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
 def create_api_token(request):
-    user = request.user
-    APIToken.objects.filter(user=user).delete()
-    api_token = APIToken.objects.create(user=user)
-    return Response({'auth_token': api_token.key}, status=status.HTTP_201_CREATED)
+    try:
+        user = request.user
+        with transaction.atomic():
+            APIToken.objects.filter(user=user).delete()
+            api_token = APIToken.objects.create(user=user)
+        return Response({'auth_token': api_token.key}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

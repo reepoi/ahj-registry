@@ -2,6 +2,7 @@
   <div class="setting-page-container">
     <div class="settings-module">
       <div class="settings-sidebar">
+        <!-- Sidebar for all settings buttons that the user can use to navigate between settings modules. -->
           <b-button-group id="settings-button-group">
             <b-button class="settings-button selected-button" id="edit-profile-button" variant="outline-secondary" @click="ChangeSelectedComponent('EditProfile')"> Edit Profile </b-button>
             <b-button class="settings-button" id="change-password-button" variant="outline-secondary" @click="ChangeSelectedComponent('ChangePassword')"> Change Password </b-button>
@@ -9,6 +10,7 @@
             <b-button class="settings-button" id="api-button" variant="outline-secondary" @click="ChangeSelectedComponent('API')"> API </b-button>
           </b-button-group>
       </div>
+      <!-- active setting component -->
       <div class="settings-selected-component">
         <div class="component-form">
           <edit-profile v-if="this.selectedComponent==='EditProfile'"></edit-profile>
@@ -40,6 +42,7 @@ export default {
     "api": API
   },
   methods: {
+      // Changes the selected component variable (which changes the active settings module) and updates which button has the 'selected' css styling
       ChangeSelectedComponent(selectedComponent) {
         if (selectedComponent === this.selectedComponent)
             return;
@@ -65,8 +68,6 @@ export default {
         currSelectedButton.classList.add('selected-button');
       }
   },
-  mounted() {
-  }
 };
 </script>
 
