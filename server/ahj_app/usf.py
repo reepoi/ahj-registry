@@ -540,6 +540,215 @@ def load_ahj_data_csv():
             i += 1
 
 
+def update_location(address, location_dict):
+    """
+    Updates non-related fields on the Location model given a dict.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    """
+    update_messages = []
+    if location_dict is None:
+        return update_messages
+    if address.LocationID is None:
+        address.LocationID = Location.objects.create(**location_dict)
+        address.save()
+    else:
+        Location.objects.filter(LocationID=address.LocationID.LocationID).update(**location_dict)
+    return update_messages
+
+
+def update_address(parent, address_dict):
+    """
+    Updates non-related fields on the Address model given a dict.
+    If the contacts have an Location, the Location will also be updated.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    """
+    update_messages = []
+    if address_dict is None:
+        return update_messages
+    location_dict = address_dict.pop('Location', None)
+    if parent.AddressID is None:
+        parent.AddressID = Address.objects.create(**address_dict)
+        parent.save()
+    else:
+        Address.objects.filter(AddressID=parent.AddressID.AddressID).update(**address_dict)
+    update_messages += update_location(parent.AddressID, location_dict)
+    return update_messages
+
+
+def update_contacts(ahj, parent, contacts_dict_array):
+    """
+    Updates non-related fields on the Contact model given an array of dicts.
+    If the Contacts have an Address, the Address will also be updated.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    NOTE: Will update only if the AHJ has one contact.
+    """
+    update_messages = []
+    current_contacts = Contact.objects.filter(ParentTable=parent.__class__.__name__, ParentID=ahj.AHJPK)
+    if len(contacts_dict_array) > 1 or current_contacts.count() > 1:
+        update_messages.append(f'HAS MORE THAN ONE CONTACT: {ahj.AHJID}\n')
+    elif len(contacts_dict_array) == 1:
+        address = contacts_dict_array[0].pop('Address', None)
+        current_contacts.update(**contacts_dict_array[0])
+        update_messages += update_address(current_contacts.first(), address)
+    return update_messages
+
+
+def update_document_submission_methods(ahj, dsms_value_array):
+    """
+    Updates non-related fields on the PermitIssueMethod model given an array of values.
+    Returns an array of messages about the update.
+    """
+    update_messages = []
+    for dsm in dsms_value_array:
+        dsm_row = get_enum_value_row('DocumentSubmissionMethod', dsm)
+        AHJDocumentSubmissionMethodUse.objects.update_or_create(AHJ=ahj, DocumentSubmissionMethodID=dsm_row, MethodStatus=True)
+    return update_messages
+
+
+def update_permit_issue_methods(ahj, pim_value_array):
+    """
+    Updates non-related fields on the PermitIssueMethod model given an array of values.
+    Returns an array of messages about the update.
+    """
+    update_messages = []
+    for pim in pim_value_array:
+        pim_row = get_enum_value_row('PermitIssueMethod', pim)
+        AHJPermitIssueMethodUse.objects.update_or_create(AHJ=ahj, PermitIssueMethodID=pim_row, MethodStatus=True)
+    return update_messages
+
+
+def update_engineering_review_requirements(ahj, errs_dict_array):
+    """
+    Updates non-related fields on the EngineeringReviewRequirement model given an array of dicts.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    NOTE: Will update only if the AHJ has one engineering review requirement.
+    """
+    update_messages = []
+    current_errs = EngineeringReviewRequirement.objects.filter(AHJ=ahj)
+    if len(errs_dict_array) > 1 or current_errs.count() > 1:
+        update_messages.append(f'HAS MORE THAN ONE ENGINEERING REVIEW REQUIREMENT: {ahj.AHJID}\n')
+    else:
+        current_errs.update(**errs_dict_array[0])
+    return update_messages
+
+
+def update_fee_structures(ahj, fs_dict_array):
+    """
+    Updates non-related fields on the FeeStructure model given an array of dicts.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    NOTE: Does not update any fee structures.
+    """
+    update_messages = []
+    current_fs = FeeStructure.objects.filter(AHJ=ahj)
+    if len(fs_dict_array) > 0 or current_fs.count() > 0:
+        update_messages.append(f'HAS FEE STRUCTURES: {ahj.AHJID}\n')
+    return update_messages
+
+
+def update_ahj_inspections(ahj, ai_dict_array):
+    """
+    Updates non-related fields on the AHJInspection model given an array of dicts.
+    If the AHJInspections have a Contact, the Contact will also be updated.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    NOTE: Does not update any fee structures.
+    """
+    update_messages = []
+    current_ai = AHJInspection.objects.filter(AHJ=ahj)
+    if len(ai_dict_array) > 0 or current_ai.count() > 0:
+        update_messages.append(f'HAS AHJ INSPECTIONS: {ahj.AHJID}\n')
+    return update_messages
+
+
+def update_ahj_fields(ahj, ahj_field_dict):
+    """
+    Updates non-related fields on the AHJ model given a dict.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    """
+    update_messages = []
+    AHJ.objects.filter(AHJPK=ahj.AHJPK).update(**ahj_field_dict)
+    return update_messages
+
+
+def update_edits_for_data_source_comments(ahj, dsc):
+    """
+    Specialized method to create edits for the building code years an AHJ has
+    when the field DataSourceComments is provided.
+    The user attributed to creating and approving these edits is the admin user.
+    This assumes the DataSourceComments refers to the building code years.
+    Returns an array of messages about the update.
+    """
+    update_messages = []
+    if dsc is None:
+        return update_messages
+    edits = Edit.objects.filter(AHJPK=ahj, DataSourceComment=dsc)
+    if not edits.exists():
+        user = User.objects.get(Email=settings.ADMIN_ACCOUNT_EMAIL)
+        if ahj.BuildingCode is not None:
+            create_edit_objects(ahj, 'BuildingCode', user, dsc, ahj.BuildingCode.Value)
+
+        if ahj.FireCode is not None:
+            create_edit_objects(ahj, 'FireCode', user, dsc, ahj.FireCode.Value)
+
+        if ahj.ResidentialCode is not None:
+            create_edit_objects(ahj, 'ResidentialCode', user, dsc, ahj.ResidentialCode.Value)
+
+        if ahj.ElectricCode is not None:
+            create_edit_objects(ahj, 'ElectricCode', user, dsc, ahj.ElectricCode.Value)
+
+        if ahj.WindCode is not None:
+            create_edit_objects(ahj, 'WindCode', user, dsc, ahj.WindCode.Value)
+    return update_messages
+
+
+def update_ahj(ahj_dict):
+    """
+    Updates all fields on the AHJ model and related models given a dict.
+    The dict is expected to contain only the fields to be updated.
+    Returns an array of messages about the update.
+    """
+    update_messages = []
+    try:
+        ahj = AHJ.objects.get(AHJID=ahj_dict['AHJID'])
+        update_messages += update_address(ahj, ahj_dict.pop('Address', None))
+        update_messages += update_contacts(ahj, ahj, ahj_dict.pop('Contacts', []))
+        update_messages += update_engineering_review_requirements(ahj, ahj_dict.pop('EngineeringReviewRequirements', []))
+        update_messages += update_document_submission_methods(ahj, ahj_dict.pop('DocumentSubmissionMethods', []))
+        update_messages += update_permit_issue_methods(ahj, ahj_dict.pop('PermitIssueMethods', []))
+        update_messages += update_fee_structures(ahj, ahj_dict.pop('FeeStructures', []))
+        update_messages += update_ahj_inspections(ahj, ahj_dict.pop('AHJInspections', []))
+        update_messages += update_edits_for_data_source_comments(ahj, ahj_dict.pop('DataSourceComments', None))
+        update_messages += update_ahj_fields(ahj, ahj_dict)
+    except ObjectDoesNotExist:
+        update_messages.append(f'NEW AHJ (NO UPDATES MADE): {ahj_dict["AHJID"]}\n')
+    return update_messages
+
+
+def update_ahj_data_csv(csv_path=(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv')):
+    """
+    Given a path to a CSV containing AHJ data, updates all AHJs to match the data in the CSV.
+    If the data cannot be updated, it will write a message for manual review to a text file.
+    """
+    with open(csv_path) as file:
+        update_messages = []
+        i = 1
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        for row in reader:
+            ahj_dict = build_field_val_dict(row)
+            enum_values_to_primary_key(ahj_dict)
+            update_messages += update_ahj(ahj_dict)
+            print('AHJ {0}: {1}'.format(ahj_dict["AHJID"], i))
+            i += 1
+        with open(BASE_DIR + 'AHJRegistryData/ahj_data_manual_updates.txt', 'w') as manual_updates:
+            manual_updates.writelines(update_messages)
+
+
 def load_ahj_census_names_csv():
     """
     Save AHJ census names from a CSV with columns: (AHJID, AHJCensusName, StateProvince)
