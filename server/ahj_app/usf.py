@@ -4,6 +4,9 @@ from functools import lru_cache
 import datetime
 from django.apps import apps
 from django.contrib.gis.utils import LayerMapping
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import URLValidator
+
 from .models import *
 from .models_field_enums import *
 
@@ -360,6 +363,115 @@ def create_admin_user():
     api_token = APIToken.objects.create(user=admin)
     print(f'WEBPAGE API TOKEN: {webpage_api_token}')
     print(f'API TOKEN: {api_token}')
+
+
+def remove_non_orange_button_code_years(ahj_csv_row):
+    """
+    Helper method for the clean_ahj_data_csv method below.
+    It removes:
+     - Code years that do not fit Orange Button enumerations.
+    """
+    AHJ_CODE_YEAR_FIELDS = {
+        'BuildingCode',
+        'ElectricCode',
+        'FireCode',
+        'ResidentialCode',
+        'WindCode'
+    }
+    for field in AHJ_CODE_YEAR_FIELDS:
+        csv_value = ahj_csv_row[f'{field}.Value']
+        try:
+            get_enum_value_row(field, csv_value)
+        except ObjectDoesNotExist:
+            ahj_csv_row[f'{field}.Value'] = ''
+
+
+def fix_contact_title_field_from_csv_bug(ahj_csv_row):
+    """
+    Helper method for the clean_ahj_data_csv method below.
+    It removes:
+     - Fixes the Contact Title field that does not export correctly due to a bug in the csv export.
+    Only works if the AHJ has one Contact.
+    """
+    CSV_CONTACT_BUG_FIELD = 'Contacts[{0}].Title.Value'
+    CSV_CONTACT_BUG_AFFECTED_FIELDS = {
+        'Title': 'Contacts[{0}].Title.Value',
+        'PreferredContactMethod': 'Contacts[{0}].PreferredContactMethod.Value',
+        'URL': 'Contacts[{0}].URL.Value',
+        'DocumentSubmissionMethod': 'DocumentSubmissionMethods[0].Value',
+        'PermitIssueMethod': 'PermitIssueMethods[0].Value'
+    }
+    url_validator = URLValidator()
+    i = 0
+    while ahj_csv_row.get(CSV_CONTACT_BUG_FIELD.format(i), '') != '' and ahj_csv_row.get(CSV_CONTACT_BUG_FIELD.format(1), '') == '':
+        title_field = CSV_CONTACT_BUG_AFFECTED_FIELDS['Title'].format(i)
+        ahj_csv_row[title_field] = ahj_csv_row[title_field].strip()
+        # Check PreferredContactMethod is valid
+        pcm_field = CSV_CONTACT_BUG_AFFECTED_FIELDS['PreferredContactMethod'].format(i)
+        try:
+            if ahj_csv_row[pcm_field] == '' or get_enum_value_row('PreferredContactMethod', ahj_csv_row[pcm_field]) is not None:
+                i += 1
+                continue
+        except ObjectDoesNotExist:
+            ahj_csv_row[title_field] += f', {ahj_csv_row[pcm_field].strip()}'
+            ahj_csv_row[pcm_field] = ''
+        # Check URL is valid
+        url_field = CSV_CONTACT_BUG_AFFECTED_FIELDS['URL'].format(i)
+        try:
+            if ahj_csv_row[url_field] == '':
+                i += 1
+                continue
+            url_validator(ahj_csv_row[url_field])
+            i += 1
+            continue
+        except ValidationError:
+            ahj_csv_row[title_field] += f', {ahj_csv_row[url_field].strip()}'
+            ahj_csv_row[url_field] = ''
+        # Check DocumentSubmissionMethod is valid
+        dsm_field = CSV_CONTACT_BUG_AFFECTED_FIELDS['DocumentSubmissionMethod']
+        try:
+            if ahj_csv_row[dsm_field] == '' or get_enum_value_row('DocumentSubmissionMethod', ahj_csv_row[dsm_field]) is not None:
+                i += 1
+                continue
+        except ObjectDoesNotExist:
+            ahj_csv_row[title_field] += f', {ahj_csv_row[dsm_field].strip()}'
+            ahj_csv_row[dsm_field] = ''
+        # Check PermitIssueMethod is valid
+        pim_field = CSV_CONTACT_BUG_AFFECTED_FIELDS['PermitIssueMethod']
+        try:
+            if ahj_csv_row[pim_field] == '' or get_enum_value_row('PermitIssueMethod', ahj_csv_row[pim_field]) is not None:
+                i += 1
+                continue
+        except ObjectDoesNotExist:
+            ahj_csv_row[title_field] += f', {ahj_csv_row[pim_field].strip()}'
+            ahj_csv_row[pim_field] = ''
+        i += 1
+
+
+def clean_ahj_data_csv(csv_path=(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv')):
+    """
+    Specialized method to clean parts of a CSV with AHJ data.
+    It removes:
+     - Code years that do not fit Orange Button enumerations.
+     - Fixes the Contact Title field that does not export correctly due to a bug in the csv export.
+    """
+    result_rows = []
+    with open(csv_path) as file:
+        i = 1
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        for row in reader:
+            row = {k: v for k, v in row.items() if k is not None}
+            fix_contact_title_field_from_csv_bug(row)
+            remove_non_orange_button_code_years(row)
+            result_rows.append(row)
+            print('AHJ {0}: {1}'.format(row["AHJID.Value"], i))
+            i += 1
+    if len(result_rows) > 0:
+        with open(csv_path[:-4] + '_cleaned.csv', 'w') as file:
+            writer = csv.DictWriter(file, fieldnames=result_rows[0].keys())
+            for row in result_rows:
+                print(row)
+                writer.writerow(row)
 
 
 def load_ahj_data_csv():
