@@ -1,22 +1,16 @@
 <template>
   <div id="app">
-    <Navbar id="navbar" />
+    <Navbar id="navbar"/>
     <router-view id="router-v" />
   </div>
 </template>
 
 <script>
 import Navbar from "./components/Navbar.vue";
-
 export default {
   components: {
-    Navbar,
-  },
-  mounted() {
-    if (this.$store.getters.loggedIn) {
-      this.$store.dispatch('getUserInfo')
-    }
-  },
+    Navbar
+  }
 };
 </script>
 
@@ -31,6 +25,9 @@ export default {
   display: grid;
   grid-template-rows: 4.25em auto;
   height: 100vh;
+}
+
+#router-v {
 }
 
 #navbar {

@@ -8,7 +8,6 @@ from django.utils.timezone import now
 import rest_framework.authtoken.models
 from taggit.managers import TaggableManager
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-import uuid
 
 class AHJ(models.Model):
     AHJPK = models.AutoField(db_column='AHJPK', primary_key=True)
@@ -411,6 +410,7 @@ class UserManager(BaseUserManager):
         Username = extra_fields.get('Username', '')
         password = extra_fields.get('password', '')
         ContactID = Contact.objects.create(Email=Email, AddressID=Address.objects.create())
+
         user = self.model(
             Email=self.normalize_email(Email),
             ContactID=ContactID,
@@ -418,11 +418,16 @@ class UserManager(BaseUserManager):
             SignUpDate=datetime.date.today(),
         )
         user.set_password(password)
-        try:
-            user.save(using=self._db)
-        except Exception as e:
-            print(e)
+        user.save(using=self._db)
         return user
+
+    def create_superuser(self, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(**extra_fields)
 
 class User(AbstractBaseUser):
     UserID = models.AutoField(db_column='UserID', primary_key=True)
@@ -436,7 +441,7 @@ class User(AbstractBaseUser):
     PersonalBio = models.CharField(db_column='PersonalBio', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=255, blank=True, null=True)
     CompanyAffiliation = models.CharField(db_column='CompanyAffiliation', max_length=255, blank=True)
-    Photo = models.CharField(db_column='Photo', max_length=255, null=False, default='')
+    Photo = models.CharField(db_column='Photo', max_length=255, blank=True, null=True)
     IsPeerReviewer = models.IntegerField(db_column='IsPeerReviewer', null=True, default=False)
     NumReviewsDone = models.IntegerField(db_column='NumReviewsDone', default=0)
     AcceptedEdits = models.IntegerField(db_column='NumAcceptedEdits', default=0)
@@ -446,9 +451,9 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'Email'
     objects = UserManager()
-    
+
     def get_email_field_name(self=None):
-        return "Email"
+        return 'Email'
 
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]

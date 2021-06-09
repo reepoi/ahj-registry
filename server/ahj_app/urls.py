@@ -19,7 +19,6 @@ urlpatterns = [
     path('user/update/<str:username>/',   views_users.user_update,                                 name='user-update'),
     path('user/edits/',                   views_misc.user_edits,                                   name='user-edits'),
     path('user/comments/',                views_misc.user_comments,                                name='user-comments'),
-    path('user/active/',                  views_users.get_active_user,                             name='active-user-info'),
     path('user-one/<str:username>/',      views_users.get_single_user,                             name='single-user-info'),
     path('ahj/comment/submit/',           views_misc.comment_submit,                               name="comment-submit"),
     path('data-vis/data-map/',            views_datavis.data_map,                                  name='data-map'),
@@ -29,5 +28,5 @@ urlpatterns = [
     path('auth/token/login/',             views_users.LoginUser.as_view(),                         name='user-login'),
     path('auth/token/logout/',            views_users.LogoutUser.as_view(),                        name='user-logout'),
     path('auth/',                         include('djoser.urls')),
-    path('auth/',                         include('djoser.urls.authtoken')),
+    path('auth/',                         include('djoser.urls.authtoken'))
 ]

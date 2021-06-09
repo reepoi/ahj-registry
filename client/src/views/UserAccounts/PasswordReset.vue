@@ -42,7 +42,6 @@ import axios from "axios";
 import constants from "../../constants.js";
 import { required } from 'vuelidate/lib/validators';
 
-// Checks if inputted email is valid
 const ValidEmail = (email) => /[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*[.][a-zA-Z]+/g.test(email)
 
 export default {
@@ -53,7 +52,6 @@ export default {
         }
     },
     methods: {
-        // If email is correctly formatted, send a message to that email with a password reset link. 
         SendResetRequest() {
             this.$v.$touch();
             if (!this.$v.$invalid) {
