@@ -1,6 +1,3 @@
-/*
- * The entry point for running the webpage
- */
 import Vue from "vue";
 import App from "./App.vue";
 import store from "./store";
@@ -26,9 +23,6 @@ Vue.use(BootstrapVueIcons);
 Vue.use(AwesomeMarkers);
 Vue.use(LoadScript);
 
-Vue.loadScript("https://documentcloud.adobe.com/view-sdk/main.js");
-
-// Initialize Vue app
 new Vue({
   router,
   store,

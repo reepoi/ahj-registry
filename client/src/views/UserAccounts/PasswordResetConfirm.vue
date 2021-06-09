@@ -13,7 +13,6 @@
                             <label class="form-label">Password</label>
                             <b-form-input size="lg" class="form-input" type="password" v-model="NewPassword" placeholder="Password" :state="$v.NewPassword.$dirty ? (!$v.NewPassword.$error || backendPasswordError !== null) : null" alt="Password"></b-form-input>
                         </div>
-                        <!-- Display error message if the password misses any validations. Only displays when a user has tried to submit the form once. -->
                         <div v-if="$v.NewPassword.$dirty">
                             <div class="error" v-if="!$v.NewPassword.required">Password is required.</div>
                             <div class="error" v-if="!$v.NewPassword.minLength && NewPassword !== ''">Password must be at least {{ $v.NewPassword.$params.minLength.min }} characters.</div>
@@ -53,7 +52,7 @@ import axios from "axios";
 import constants from "../../constants.js";
 import { required, minLength, sameAs } from 'vuelidate/lib/validators';
 
-// Special constraints for the entered password to ensure password strength.
+
 const ContainsNumOrSpecialChar = constants.NUM_OR_SPECIAL_CHAR;
 const ContainsLetter = constants.CONTAINS_LETTER;
 
@@ -69,7 +68,6 @@ export default {
         }
     },
     methods: {
-        // Resets password if the entered passwords pass the validators
         ResetPassword() {
             this.$v.$touch();
             if (!this.$v.$invalid) {
@@ -88,7 +86,6 @@ export default {
                 .then(() => {
                     this.Loading = false;
                 }).catch(error => {
-                    // Catches error from the backend if password is too common (backend password validation) 
                     if (error.response.data.new_password){
                         this.backendPasswordError = error.response.data.new_password[0];
                     }

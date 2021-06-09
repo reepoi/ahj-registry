@@ -6,8 +6,6 @@
                 <label>Current Password</label>
                 <b-form-input size="lg" class="form__input" type="password" placeholder="Current Password" required v-model="CurrentPassword" :state="$v.CurrentPassword.$dirty ? (!$v.CurrentPassword.$error) : null" alt="Current Password"></b-form-input>
             </div>
-            <!-- If the user has tried to submit the form (validator object ($v) is dirty) and it does not pass validations for this field, 
-            show the corresponding error message -->
             <div v-if="$v.CurrentPassword.$dirty">
                 <div class="error" v-if="!$v.CurrentPassword.required">Current password is required.</div>
                 <div class="error" v-if="this.ErrorMessage === 'Invalid password.'">Invalid current password.</div>
@@ -53,7 +51,6 @@ import axios from "axios";
 import constants from "../../../constants.js";
 import { required, minLength, sameAs } from 'vuelidate/lib/validators';
 
-// validation checks the password must pass to be accepted.
 const ContainsNumOrSpecialChar = constants.NUM_OR_SPECIAL_CHAR;
 const ContainsLetter = constants.CONTAINS_LETTER;
 
@@ -69,9 +66,7 @@ export default {
         },
     methods: {
         ChangePassword(){
-            // Touch the validator object (now making it dirty) so now if any validations fail, the incorrcet fields will show error messages.
             this.$v.$touch();
-            // If any form field was invalid, don't call API. 
             if (!this.$v.$invalid) {
                 this.SubmitStatus = "PENDING";
                 axios.post(constants.API_ENDPOINT + "auth/users/set_password/", {
@@ -81,19 +76,17 @@ export default {
                     },
                     {
                     headers: {
-                        Authorization: this.$store.getters.authToken
+                        Authorization: this.$store.state.loginStatus.authToken
                     }
                     }).then(() => {
                         this.SubmitStatus = 'OK';
                     }).catch(error => {
-                        this.SubmitStatus = 'ERROR';
-                        // If current password was the problem, then the current password was incorrect
-                        if ("current_password" in error.response.data)
-                            this.ErrorMessage = error.response.data.current_password[0]
-                        // If the new password was the problem, then the password is too common
-                        else if ("new_password" in error.response.data)
-                            this.ErrorMessage = error.response.data.new_password[0]
-                    });
+                  this.SubmitStatus = 'ERROR';
+                  if ("current_password" in error.response.data)
+                    this.ErrorMessage = error.response.data.current_password[0]
+                  else if ("new_password" in error.response.data)
+                    this.ErrorMessage = error.response.data.new_password[0]
+                });
             }
         },
     },
