@@ -133,11 +133,11 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
             'verbose': {
-                'format': '{levelname}\t{request.user}\t{request.auth}\t{asctime}\t{message}',
+                'format': '{levelname} {request.user} {request.auth} {asctime} {message}',
                 'style': '{',
             },
             'simple': {
-                'format': '{request.user}\t{message}',
+                'format': '{request.user} {message}',
                 'style': '{',
             },
         },
@@ -145,7 +145,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/apilogs.log'),
+            'filename': os.path.join(BASE_DIR, 'logs/api.log'),
             'when': 'midnight',
             'backupCount': 14,
             'formatter': 'verbose'
