@@ -46,9 +46,6 @@ export default {
       this.addLegend();
       this.getStatePoints();
     },
-    /**
-     * Get and set the state markers with their overall ahj stats
-     */
     getStatePoints() {
       axios.get(constants.API_ENDPOINT + 'data-vis/data-map/', {
           headers: {
@@ -59,9 +56,6 @@ export default {
         this.setStateMarkers();
       });
     },
-    /**
-     * Get and set the specific ahj markers with their individual stats
-     */
     getOtherPoints(state_pk) {
       axios.get(constants.API_ENDPOINT + 'data-vis/data-map/?StatePK=' + state_pk, {
           headers: {
@@ -72,9 +66,6 @@ export default {
         this.setOtherPoints();
      });
     },
-    /**
-     * Get and display the polygon of a given 'other marker', not state marker
-     */
     getPolygon(point) {
       this.clearSelectedPolygon();
       axios.get(constants.API_ENDPOINT + 'data-vis/data-map/polygon/?PolygonID=' + point['PolygonID'], {
@@ -89,9 +80,6 @@ export default {
             this.selectedPolygon.addTo(this.leafletMap);
           })
     },
-    /**
-     * Place the state markers on the map
-     */
     setStateMarkers() {
       this.clearStateMarkers();
       for (let statePoint of this.statePoints) {
@@ -106,45 +94,29 @@ export default {
               255 - colorSaturation,
               colorSaturation
             ]) + '"><span>' + statePoint['numAHJs'] + '</span></div>', className: 'marker-cluster marker-cluster-large', iconSize: new L.Point(40, 40) })
-        }).on('click', function (e) { // Register handler for when user clicks on the state marker to retrieve other markers
+        }).on('click', function (e) {
           let markerData = e.sourceTarget.options.markerData;
-
-          // get the other markers
           that.getOtherPoints(markerData['PolygonID']);
-
-          // add the state marker of the previously selected state, if any
           if (that.selectedStateMarker) {
             that.leafletMap.addLayer(that.stateMarkers[that.selectedStateMarker]);
           }
-
-          // remove any polygons from another state, if any
           if (that.selectedPolygon) {
             that.selectedPolygon.removeFrom(that.leafletMap);
           }
-
-          // remove the state marker of the currently selected state
           that.selectedStateMarker = markerData['PolygonID'];
           that.leafletMap.removeLayer(that.stateMarkers[that.selectedStateMarker]);
         });
-
-        // add all the state markers to the map
         if (this.selectedStateMarker !== statePoint['PolygonID']) {
           this.leafletMap.addLayer(this.stateMarkers[statePoint['PolygonID']]);
         }
       }
     },
-    /**
-     * set the other points within a state on the map
-     */
     setOtherPoints() {
-      // remove the other points from a previously selected state, if any
       this.clearOtherMarkers();
       this.otherMarkerScale = d3.scaleLinear()
           .domain([0, 1])
           .range([0, 255]);
       let that = this;
-
-      // add the other markers to cluster groups to collect together on zoom-out
       this.selectedStateCluster = L.markerClusterGroup({
         chunkedLoading: true,
         iconCreateFunction: function(cluster) {
@@ -157,8 +129,6 @@ export default {
             ]) + '"><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-medium', iconSize: new L.Point(40, 40) })
         }
       });
-
-      // place all the other markers
       for (let otherPoint of this.otherPoints) {
         let colorSaturation = this.otherMarkerScale(this.getCodeNumbersAvg(otherPoint));
         let icon = otherPoint['AHJPK'] ? '<i class="fas fa-building"></i>' : '<i class="far fa-question-circle"></i>';
@@ -171,54 +141,39 @@ export default {
               colorSaturation
             ]) + '"><span>' + icon + '</span></div>'}),
           iconSize: new L.Point(40, 40)
-        }).on('click', function (e) { // retrieve the polygon of the other marker clicked
+        }).on('click', function (e) {
           let point = e.sourceTarget.options.markerData;
           that.getPolygon(point);
-        }).on('mouseover', function (e) { // open popup on hover
+        }).on('mouseover', function (e) {
           let marker = e.sourceTarget;
           marker.openPopup();
-        }).on('mouseout', function (e) { // close popup on off-hover
+        }).on('mouseout', function (e) {
           let marker = e.sourceTarget;
           marker.closePopup();
         }).bindPopup(`<div>${otherPoint['AHJName'] ? otherPoint['AHJName'] : 'No AHJ paired to this polygon'}</div>`));
       }
       this.leafletMap.addLayer(this.selectedStateCluster);
     },
-    /**
-     * Add the polygon of the other marker with the other marker's color
-     */
     setPolygon() {
       let colorSaturation = this.otherMarkerScale(this.getCodeNumbersAvg(this.selectedPolygon.options.polygonData));
       let polygonColor = this.getMarkerBackgroundColor([255 - colorSaturation, colorSaturation]);
       polygonColor = polygonColor.substring(polygonColor.indexOf(' ') + 1);
       this.selectedPolygon.setStyle(constants.MAP_PLYGN_CSTM_COLOR(polygonColor));
     },
-    /**
-     * Remove all saved state markers
-     */
     clearStateMarkers() {
       Object.keys(this.stateMarkers).forEach(key => { this.leafletMap.removeLayer(this.stateMarkers[key]) });
       this.stateMarkers = {};
     },
-    /**
-     * Remove all other markers
-     */
     clearOtherMarkers() {
       if (this.selectedStateMarker && this.selectedStateCluster) {
         this.leafletMap.removeLayer(this.selectedStateCluster);
       }
     },
-    /**
-     * Remove the polygon from the map
-     */
     clearSelectedPolygon() {
       if (this.selectedPolygon) {
         this.leafletMap.removeLayer(this.selectedPolygon);
       }
     },
-    /**
-     * Find the average number of codes an ahj has, where having a code is worth '1' point
-     */
     getCodeNumbersAvg(point) {
       let ratio = 0;
       if (this.selectedMapCategory === 'all') {
@@ -236,9 +191,6 @@ export default {
       }
       return ratio;
     },
-    /**
-     * Helper to returnn the color style attribute for each marker
-     */
     getMarkerBackgroundColor(values) {
       for (let i = values.length; i < 4; i++) {
         if (i === 3) {
@@ -249,12 +201,8 @@ export default {
       }
       return 'background-color: rgba(' + values.join(',') + ')';
     },
-    /**
-     * Add the legend to describe the marker color meaning
-     */
     addLegend() {
       let legend = L.control({position: 'bottomleft'});
-      // let that = this;
       legend.onAdd = function () {
         let div = L.DomUtil.create('div', 'info legend');
           div.innerHTML +=
@@ -270,9 +218,6 @@ export default {
     }
   },
   watch: {
-    /**
-     * Listener to change what statistic the map is displaying
-     */
     selectedMapCategory: function() {
       this.setStateMarkers();
       this.setOtherPoints();
@@ -293,6 +238,7 @@ export default {
 <style scoped>
 
 #mapdiv {
+  height: 92.5vh;
   width: 100%;
 }
 

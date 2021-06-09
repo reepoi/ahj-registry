@@ -7,13 +7,11 @@
             <span class="date">{{this.dateText}}</span>
         </div>
         <div class="activity-body">
-            <!-- Upvote/ downvote section. At the moment, div serves as indentation. -->
             <div class="activity-score">
-                <!-- <b-icon class="h4 mb-2 arrow-icon" icon="arrow-up"></b-icon>
+                <b-icon class="h4 mb-2 arrow-icon" icon="arrow-up"></b-icon>
                 <span class="score">{{this.score}}</span>
-                <b-icon class="h4 mb-2 arrow-icon" icon="arrow-down"></b-icon> -->
+                <b-icon class="h4 mb-2 arrow-icon" icon="arrow-down"></b-icon>
             </div>
-            <!-- displays either an edit or a comment depending on entry type-->
             <div class="activity-content" v-if="ActivityType === 'Edit'">
                 <edit v-bind:ActivityData="this.ActivityData"></edit>
             </div>
@@ -27,18 +25,19 @@
 import Edit from "./Edit.vue";
 import Comment from "./Comment.vue";
 export default {
-    props: ['UserData', 'ActivityType', 'ActivityData', 'Photo'],
+    props: ['UserData', 'ActivityType', 'ActivityData'],
     computed: {
         FullName(){
             return `${this.$props.UserData.ContactID.FirstName.Value} ${this.$props.UserData.ContactID.LastName.Value}`;
         },
+        Photo() {
+            return this.$props.UserData.Photo;
+        }
     },
     data() {
         return {
-            // display the date differently depending on if this is an edit entry or a comment entry.
             dateText: this.$props.ActivityType === 'Edit' ? `Submitted on: ${this.$props.ActivityData.DateRequested}` : this.$props.ActivityData.Date.Value.substring(0,10),
-            score: 0,
-            UserPhoto: ""
+            score: 0
         }
     },
     components: {
@@ -49,7 +48,7 @@ export default {
       UpdateScore(value){
           this.score += value;
       }
-  },
+  }
 }
 </script>
 
@@ -65,7 +64,7 @@ export default {
     align-items: center;
 }
 .activity-header img {
-    margin-left: 0.8em;
+    margin-left: 1.6em;
     margin-right: 1.3em;
 }
 .activity-body {
@@ -82,16 +81,12 @@ export default {
 .activity-content {
     flex: 13;
 }
-.activity-header-info {
-    display: flex;
-    align-items: center;
-}
 
 .user__image {
-    border-radius: 50px;
+    border-radius: 40px;
     border: 1.5px solid lightgray;
-    height: 50px;
-    width: 50px;
+    height: 40px;
+    width: 40px;
     object-fit: cover;
 }
 .score {
@@ -113,23 +108,5 @@ export default {
     height: 0.4em;
     width: 0.4em;
     margin-right: 0.5em;
-}
-@media (max-width: 1000px){
-    .activity-header-info {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .circle-icon {
-        display: none !important;
-    }
-    .activity-score {
-        margin-right: 1em;
-    }
-}
-
-@media (max-width: 600px){
-    .activity-header img {
-        margin-left: 0;
-    }
 }
 </style>
