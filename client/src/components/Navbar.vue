@@ -16,6 +16,8 @@
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
         <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
         <b-nav-item href="#/ahj-search/?tutorial=1">Tutorial</b-nav-item>
+        <b-nav-item v-b-modal.my-modal @click='ResetFeedbackForm'>Help</b-nav-item> 
+        <feedback-form ref="feedbackFormComponent"></feedback-form>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto navbar-background">
         <!-- if logged in show pfp, else show login button -->
@@ -53,6 +55,7 @@
 </template>
 
 <script>
+import FeedbackForm from "../components/FeedbackForm.vue";
 export default {
   model: {
     event: 'event-open-modal'
@@ -68,8 +71,14 @@ export default {
       return this.$store.getters.currentUserInfo ? this.$store.getters.currentUserInfo.Username : "";
     }
   },
-  watch: {
-  }
+  methods: {
+    ResetFeedbackForm(){
+      this.$refs.feedbackFormComponent.ResetModal();
+    }
+  },
+  components: {
+    "feedback-form": FeedbackForm,
+  },
 }
 </script>
 

@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .authentication import WebpageTokenAuth
 from .models import User, Comment, Edit
@@ -65,3 +67,20 @@ def user_edits(request):
     UserID = request.query_params.get('UserID', None)
     edits = Edit.objects.filter(ChangedBy=UserID)
     return Response(EditSerializer(edits, many=True).data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
+def send_support_email(request):
+    """
+    Endpoint to send mail to SunSpec's support email address.
+    """
+    try:
+        email = request.data.get('Email')
+        subject = request.data.get('Subject')
+        message = request.data.get('Message')
+        full_message = f'Sender: {email}\nMessage: {message}'
+        send_mail( subject, full_message, settings.EMAIL_HOST_USER, [settings.SUNSPEC_SUPPORT_EMAIL], fail_silently=False)
+        return Response(status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

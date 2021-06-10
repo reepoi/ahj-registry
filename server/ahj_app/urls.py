@@ -24,6 +24,7 @@ urlpatterns = [
     path('ahj/comment/submit/',           views_misc.comment_submit,                               name="comment-submit"),
     path('data-vis/data-map/',            views_datavis.data_map,                                  name='data-map'),
     path('data-vis/data-map/polygon/',    views_datavis.data_map_get_polygon,                      name='data-map-polygon'),
+    path('contact/',                      views_misc.send_support_email,                           name='send-support-email'),
     path('auth/form-validator/',          views_misc.form_validator,                               name='form-validator'),
     path('auth/users/',                   views_users.RegisterUser.as_view({'post': 'create'}),    name='user-create'),
     path('auth/token/login/',             views_users.LoginUser.as_view(),                         name='user-login'),

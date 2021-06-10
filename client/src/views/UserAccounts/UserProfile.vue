@@ -39,8 +39,8 @@
                         </div>
                         <div id="header-content-right">
                             <div id="header-buttons-right">
-                                <b-button v-b-modal.my-modal size="sm" class="contact-info-button" variant="outline-primary" busy="True">Contact Info</b-button>
-                                <b-modal id="my-modal">
+                                <b-button v-b-modal.user-modal size="sm" class="contact-info-button" variant="outline-primary" busy="True">Contact Info</b-button>
+                                <b-modal id="user-modal">
                                     <template #modal-title>
                                         {{`${fullName}'s Contact Info`}}
                                     </template>
