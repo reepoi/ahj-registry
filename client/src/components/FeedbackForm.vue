@@ -4,7 +4,6 @@
             <h1 class='modal-title'>{{`AHJ Registry Feedback Form`}}</h1>
         </template>
         <b-overlay :show="SubmitStatus == 'PENDING'" opacity="0.6">
-        
         <div v-if='SubmitStatus != `SUCCESS`'>
             <h4 class='feedback-form-top-text'>Have some feedback for us or need some help?</h4>
             <h4 class='feedback-form-bottom-text'>Email our team at support@sunspec.org or use the form below.</h4>
@@ -60,7 +59,6 @@
 import axios from "axios";
 import constants from "../constants.js";
 import { required } from 'vuelidate/lib/validators';
-
 const ValidEmail = constants.VALID_EMAIL;
 export default {
     data() {
@@ -121,27 +119,21 @@ export default {
   color: red;
   text-align: center;
 }
-
 .invisible {
   display: none;
 }
-
 .modal-body {
   padding: 3rem !important;
 }
-
 .modal-title {
   font-size: 1.8rem !important;
 }
-
 .modal-header {
   align-items: center !important;
 }
-
 .feedback-body {
   padding: 0.5em 2em;
 }
-
 #feedback-button {
   font-size: 1.2rem;
   font-weight: bold;
@@ -151,8 +143,6 @@ export default {
   background-color: #ff8c00 !important;
   box-shadow: 1px 3px 2px #888888
 }
-
-
 .feedback-form-top-text {
   text-align: center;
   margin-top: 0.5em;
@@ -162,20 +152,16 @@ export default {
   text-align: center;
   font-size: 1rem;
 }
-
 #my-modal___BV_modal_footer_ > *{
   justify-content: center !important;
   margin: auto;
 }
-
 .form-label {
   font-size: 1.2rem;
 }
-
 .form-spacing {
   margin-bottom: 0.8em;
 }
-
 #icon-container {
     margin-top: 2.5rem;
     margin-bottom: 2.5rem;
@@ -187,17 +173,14 @@ export default {
     animation-iteration-count: 1;
     animation-timing-function: ease-out;
 }
-
 #confirmation-text {
   text-align: center;
   font-size: 1.3rem;
 }
-
 #confirmation-title {
   text-align: center;
   font-size: 2.2rem;
 }
-
 @keyframes mailSent {
     0% {
         transform: rotate(0deg);
@@ -214,5 +197,4 @@ export default {
         transform: scale(1);
     }
 }
-
-</style>
+</style> 
