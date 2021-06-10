@@ -2,10 +2,17 @@ from django.urls import reverse
 from ahj_app.models import User, Contact, AHJUserMaintains, PreferredContactMethod
 from fixtures import *
 import pytest
+from django.conf import settings
 
 """
     User View Endpoints
 """
+
+@pytest.mark.django_db
+def test_get_active_user(client_with_webpage_credentials):
+    url = reverse('active-user-info')
+    response = client_with_webpage_credentials.get(url)
+    assert response.status_code == 200
 
 @pytest.mark.django_db
 def test_get_single_user__user_exists(generate_client_with_webpage_credentials):
@@ -22,7 +29,10 @@ def test_get_single_user__user_does_not_exist(generate_client_with_webpage_crede
     assert response.status_code == 400
 
 @pytest.mark.django_db
-def test_update_user__user_exists(generate_client_with_webpage_credentials):
+def test_update_user__user_exists(generate_client_with_webpage_credentials, create_user):
+    admin_user = create_user()
+    admin_token = WebpageToken.objects.create(user_id=admin_user.UserID)
+    settings.WEBPAGE_TOKEN_CONSTANT = admin_token.key
     PreferredContactMethod.objects.create(PreferredContactMethodID=1, Value='Email') # create a PreferredContactMethod so we can change that attr in the Contact model
     client = generate_client_with_webpage_credentials(Username='someone', Email='test@test.com')
     newUserData = {
@@ -39,6 +49,7 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
     # send update to user-update path 
     url = reverse('user-update', kwargs={'username': 'someone'})
     response = client.post(url, newUserData)
+    print(response.data)
     # Update contact and user objects
     user = User.objects.get(Username='username')
     ContactID = user.ContactID
@@ -54,6 +65,13 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
                 assert getattr(ContactID, field.name) == newUserData[field.name]
     
     assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_update_user__user_updating_another_user(create_user, client_with_webpage_credentials):
+    user2 = create_user(Username='test')
+    url = reverse('user-update', kwargs={'username': 'test'})
+    response = client_with_webpage_credentials.post(url, {'Username': 'usernamechange'})
+    assert response.status_code == 400
 
 @pytest.mark.django_db
 def test_update_user__unchangable_field_changed(generate_client_with_webpage_credentials):

@@ -15,6 +15,7 @@ webpageTokenUrls= [
     ('user-update', {'username':'test'}), 
     ('user-edits', {}), 
     ('user-comments', {}),
+    ('active-user-info', {}), 
     ('single-user-info', {'username': 'test'}), 
     ('comment-submit', {}), 
     ('data-map', {}), 
