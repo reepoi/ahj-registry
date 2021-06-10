@@ -49,6 +49,23 @@ class UserDeleteToggleAPITokenForm(forms.Form):
     delete_token = forms.BooleanField(initial=False)
 
 
+def assign_ahj_official_status(user, ahjs):
+    """
+    Updates AHJUserMaintains relations to make the user an AHJ Official
+    of only the given AHJs.
+    """
+    # The AHJPK of the AHJs the User is related to.
+    current_ahjpks = AHJUserMaintains.objects.filter(UserID=user).values_list('AHJPK', flat=True)
+    # Create relations for the newly added AHJs.
+    ahjs_to_save = [ahj for ahj in ahjs if ahj.AHJPK not in current_ahjpks]
+    AHJUserMaintains.objects.bulk_create([
+        AHJUserMaintains(UserID=user, AHJPK=ahj, MaintainerStatus=True) for ahj in ahjs_to_save
+    ])
+    # Delete relations of the removed AHJs.
+    ahjs_to_delete = AHJUserMaintains.objects.filter(UserID=user).exclude(AHJPK__in=ahjs)
+    ahjs_to_delete.delete()
+
+
 class UserChangeForm(forms.ModelForm):
     """
     Django User model admin change form with the 'IsAHJOfficialOf' field added.
@@ -75,16 +92,7 @@ class UserChangeForm(forms.ModelForm):
         if 'IsAHJOfficialOf' in self.changed_data:
             # The AHJs entered into the field.
             form_ahjs = self.cleaned_data['IsAHJOfficialOf']
-            # The AHJPK of the AHJs the User is related to.
-            current_ahjpks = AHJUserMaintains.objects.filter(UserID=instance).values_list('AHJPK', flat=True)
-            # Create relations for the newly added AHJs.
-            ahjs_to_save = [ahj for ahj in form_ahjs if ahj.AHJPK not in current_ahjpks]
-            AHJUserMaintains.objects.bulk_create([
-                AHJUserMaintains(UserID=instance, AHJPK=ahj, MaintainerStatus=True) for ahj in ahjs_to_save
-            ])
-            # Delete relations of the removed AHJs.
-            ahjs_to_delete = AHJUserMaintains.objects.filter(UserID=instance).exclude(AHJPK__in=form_ahjs)
-            ahjs_to_delete.delete()
+            assign_ahj_official_status(instance, form_ahjs)
         return instance
 
     IsAHJOfficialOf = forms.ModelMultipleChoiceField(queryset=AHJ.objects.all(),

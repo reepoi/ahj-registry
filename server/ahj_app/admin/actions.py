@@ -8,6 +8,14 @@ from ..models import User, APIToken
 from ..usf import dict_filter_keys_start_with
 
 
+def reset_password(user, raw_password):
+    """
+    Sets and saves a user's password.
+    """
+    user.set_password(raw_password)
+    user.save()
+
+
 def user_reset_password(self, request, queryset):
     """
     Admin action for the User model. The admin can set a new password
@@ -20,8 +28,7 @@ def user_reset_password(self, request, queryset):
         password = request.POST['password']
         user_id = request.POST['_selected_action']
         user = User.objects.get(UserID=user_id)
-        user.set_password(password)
-        user.save()
+        reset_password(user, password)
         self.message_user(request, 'Success', level=messages.INFO)
         return HttpResponseRedirect(request.get_full_path())
     if queryset.count() > 1:
@@ -39,6 +46,17 @@ def user_reset_password(self, request, queryset):
 
 
 user_reset_password.short_description = 'Reset password'
+
+
+def partition_by_field(queryset, field, value):
+    """
+    Returns two querysets from the queryset:
+     - queryset of rows whose field value matches the value
+     - queryset of rows whose field value does not match the value
+    """
+    with_field_value = queryset.filter(**{field: value})
+    without_field_value = queryset.exclude(**{field: value})
+    return with_field_value, without_field_value
 
 
 def user_generate_api_token(self, request, queryset):
@@ -59,8 +77,9 @@ def user_generate_api_token(self, request, queryset):
             APIToken.objects.create(user=user)
         self.message_user(request, 'Success', level=messages.INFO)
         return HttpResponseRedirect(request.get_full_path())
-    users_with_tokens = queryset.exclude(api_token=None).order_by('Email')
-    users_without_tokens = queryset.filter(api_token=None).order_by('Email')
+    users_without_tokens, users_with_tokens = partition_by_field(queryset, 'api_token', None)
+    users_with_tokens = users_with_tokens.order_by('Email')
+    users_without_tokens = users_without_tokens.order_by('Email')
     return render(request, 'admin/user_generate_api_token.html', context={
         'request': request,
         'users_without_tokens': users_without_tokens,
@@ -69,6 +88,65 @@ def user_generate_api_token(self, request, queryset):
 
 
 user_generate_api_token.short_description = 'Generate API token'
+
+
+def delete_toggle_api_token(user, toggle=None, delete=False):
+    """
+    Modifies a user's API token by either deleting it or toggling it on/off.
+    """
+    if not hasattr(user, 'api_token'):
+        return
+    if delete:
+        user.api_token.delete()
+        return
+    if toggle is not None:
+        user.api_token.is_active = toggle
+        user.api_token.save()
+
+
+def set_toggle(form_value):
+    """
+    Used with an HTML dropdown input with values:
+    'On', 'Off','DoNothing'
+    """
+    if form_value == 'On':
+        return True
+    elif form_value == 'Off':
+        return False
+    else:
+        return None
+
+
+def set_delete(form_value):
+    """
+    Return True if form_value is 'on'.
+    Used with an HTML checkbox input.
+    """
+    if form_value == 'on':
+        return True
+    return False
+
+
+def process_delete_toggle_api_token_data(post_data):
+    """
+    This expects the post_data to contain an array called 'user_to_form'.
+    Each item in this array is of the form:
+     - '<UserID>.<form_prefix>' (i.e. '1.form-0')
+    Each form then may add two form data key-value pairs:
+     - '<form_prefix>-toggle': '<On,Off,DoNothing>' (i.e. 'form-0-toggle': 'On')
+     - '<form_prefix>-delete_token': 'on' (i.e. 'form-0-delete_token': 'on')
+    """
+    user_to_form_pairs = [pair.split('.') for pair in post_data.getlist('user_to_form')]
+    user_form_data = []
+    for user_id, form_prefix in user_to_form_pairs:
+        user = User.objects.get(UserID=user_id)
+        form_data = dict_filter_keys_start_with(form_prefix, post_data)
+        toggle_api_token = form_data.get('toggle', '')
+        delete_api_token = form_data.get('delete_token', '')
+        user_form_data.append({'user': user,
+                               'toggle': set_toggle(toggle_api_token),
+                               'delete': set_delete(delete_api_token)})
+    return user_form_data
 
 
 def user_delete_toggle_api_token(self, request, queryset):
@@ -82,29 +160,19 @@ def user_delete_toggle_api_token(self, request, queryset):
         """
         The form has been filled out and submitted.
         """
-        user_to_form_pairs = [pair.split('.') for pair in request.POST.getlist('user_to_form')]
-        for user_id, form_prefix in user_to_form_pairs:
-            user = User.objects.get(UserID=user_id)
-            form_data = dict_filter_keys_start_with(form_prefix, request.POST)
-            toggle_api_token = form_data.get('toggle', '')
-            delete_api_token = form_data.get('delete_token', '')
-            if toggle_api_token == 'On':
-                user.api_token.is_active = True
-                user.api_token.save()
-            elif toggle_api_token == 'Off':
-                user.api_token.is_active = False
-                user.api_token.save()
-            if delete_api_token == 'on':
-                user.api_token.delete()
+        action_data = process_delete_toggle_api_token_data(request.POST)
+        for item in action_data:
+            delete_toggle_api_token(user=item['user'], toggle=item['toggle'], delete=item['delete'])
         self.message_user(request, 'Success', level=messages.INFO)
         return HttpResponseRedirect(request.get_full_path())
-    users_with_tokens = queryset.exclude(api_token=None).order_by('Email')
-    users_without_tokens = queryset.filter(api_token=None).order_by('Email')
+    users_without_tokens, users_with_tokens = partition_by_field(queryset, 'api_token', None)
+    users_with_tokens = users_with_tokens.order_by('Email')
+    users_without_tokens = users_without_tokens.order_by('Email')
     formset = formset_factory(UserDeleteToggleAPITokenForm, extra=queryset.count())()
     return render(request, 'admin/user_delete_toggle_api_token.html', context={
         'request': request,
         'users_without_tokens': users_without_tokens,
-        'formtuples': zip(users_with_tokens, formset),
+        'users_and_forms': zip(users_with_tokens, formset),
         'users_with_tokens': users_with_tokens
     })
 

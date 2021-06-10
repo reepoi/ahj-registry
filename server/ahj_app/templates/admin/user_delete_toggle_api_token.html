@@ -20,7 +20,7 @@
     <input type="checkbox" onclick="AdminUserDeleteToggleAPIToken.checkAll(this)">
   </label>
   <br>
-  {% for tuple in formtuples %}
+  {% for tuple in users_and_forms %}
     <h2><b>
       <a href="../apitoken/{{ tuple.0.api_token }}/" target="_blank">{{ tuple.0.Email }}</a>
     </b></h2>
