@@ -14,6 +14,8 @@
         <b-nav-item href="#/about">About</b-nav-item>
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
         <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
+        <b-nav-item v-b-modal.my-modal @click='ResetFeedbackForm'>Help</b-nav-item> 
+        <feedback-form ref="feedbackFormComponent"></feedback-form>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto navbar-background">
         <b-nav-item href="#/login" v-if="!loggedIn">Login</b-nav-item>
@@ -41,6 +43,7 @@
 </template>
 
 <script>
+import FeedbackForm from "../components/FeedbackForm.vue";
 export default {
   computed: {
     loggedIn() {
@@ -52,6 +55,14 @@ export default {
     Username() {
       return this.$store.state.loginStatus.Username;
     }
+  },
+  methods: {
+    ResetFeedbackForm(){
+      this.$refs.feedbackFormComponent.ResetModal();
+    }
+  },
+  components: {
+    "feedback-form": FeedbackForm,
   },
   watch: {
     "$store.state.loginStatus": function() {
