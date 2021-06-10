@@ -49,7 +49,6 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials, crea
     # send update to user-update path 
     url = reverse('user-update', kwargs={'username': 'someone'})
     response = client.post(url, newUserData)
-    print(response.data)
     # Update contact and user objects
     user = User.objects.get(Username='username')
     ContactID = user.ContactID
