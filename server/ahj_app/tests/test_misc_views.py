@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.conf import settings
 from ahj_app.models import User, Edit, Comment
 from fixtures import *
 import pytest
@@ -76,3 +77,10 @@ def test_user_edits__user_does_not_exist(client_with_webpage_credentials):
     response = client_with_webpage_credentials.get(url, {'UserID': 99999999})
     assert len(response.data) == 0 # no edits returned
     assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_send_support_email__valid_usage(client_with_webpage_credentials):
+    url = reverse('send-support-email')
+    settings.SUNSPEC_SUPPORT_EMAIL = 'ahjregistry@gmail.com'
+    response = client_with_webpage_credentials.post(url, {'Email': 'test@test.abcdef', 'Subject': 'A subject.', 'Message': 'A message.'})
+    assert response.status_code == 200 

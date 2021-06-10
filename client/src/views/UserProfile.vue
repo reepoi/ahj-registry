@@ -18,8 +18,8 @@
                             </div>
                             <hr>
                             <h4 v-if="companyAffiliation !== null">{{companyAffiliation}}</h4>
-                                <b-button v-b-modal.my-modal size="sm" class="contact-info-button" variant="outline-primary" busy="True">Contact Info</b-button>
-                                <b-modal id="my-modal">
+                                <b-button v-b-modal.user-modal size="sm" class="contact-info-button" variant="outline-primary" busy="True">Contact Info</b-button>
+                                <b-modal id="user-modal">
                                     <template #modal-title>
                                         {{`${username}'s Contact Info`}}
                                     </template>

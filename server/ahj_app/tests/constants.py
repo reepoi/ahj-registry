@@ -19,6 +19,7 @@ webpageTokenUrls= [
     ('comment-submit', {}), 
     ('data-map', {}), 
     ('data-map-polygon', {}), 
+    ('send-support-email', {}),
     ('form-validator', {}), 
     ('user-create', {}), 
     ('user-login', {}),
