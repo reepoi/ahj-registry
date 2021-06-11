@@ -1,10 +1,12 @@
+import datetime
+
 from django.core.checks import messages
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm
-from ..models import User, APIToken
+from ..models import User, APIToken, Edit
 from ..usf import dict_filter_keys_start_with
 
 
@@ -178,3 +180,29 @@ def user_delete_toggle_api_token(self, request, queryset):
 
 
 user_delete_toggle_api_token.short_description = 'Delete/Toggle API Token'
+
+
+def process_approve_edits_data(post_data):
+    """
+    This expects the post_data to contain an array called 'edit_to_form'.
+    Each item in this array is of the form:
+     - '<EditID>.<form_prefix>' (i.e. '1.form-0')
+    Each form then may add two form data key-value pairs:
+     - '<form_prefix>-date_effective': '<date>' (i.e. 'form-0-date_effective': '06-04-2021')
+    """
+    edit_to_form_pairs = [pair.split('.') for pair in post_data.getlist('edit_to_form')]
+    edit_form_data = []
+    for edit_id, form_prefix in edit_to_form_pairs:
+        edit = Edit.objects.get(EditID=edit_id)
+        form_data = dict_filter_keys_start_with(form_prefix, post_data)
+        date_effective = datetime.datetime.strptime(form_data.get('date_effective', ''), '%Y-%m-%d').date()
+        edit_form_data.append({'edit': edit,
+                               'date_effective': date_effective,
+                               'apply_now': date_effective == datetime.date.today()})
+    return edit_form_data
+
+
+def edit_approve_edits(self, request, queryset):
+    if 'apply' in request.POST:
+        pass
+    pass

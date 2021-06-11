@@ -190,3 +190,14 @@ def test_assign_ahj_official_status(num_existing, num_kept, num_new, ahj_obj_fac
         assert ahj.AHJPK in assigned_ahjs
     for ahj in (num_existing_ahjs[num_kept:] if num_kept < len(num_existing_ahjs) else []):
         assert ahj.AHJPK not in assigned_ahjs
+
+
+@pytest.mark.parametrize(
+    'date_effective', [
+        datetime.date.today(),
+        datetime.date(1, 1, 1)
+    ]
+)
+@pytest.mark.django_db
+def test_process_approve_edits_data(date_effective, create_user):
+    pass
