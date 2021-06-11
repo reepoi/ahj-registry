@@ -13,7 +13,7 @@
       <b-navbar-nav class="mr-auto navbar-background">
         <b-nav-item href="#/about">About</b-nav-item>
         <b-nav-item href="#/ahj-search">Search</b-nav-item>
-        <b-nav-item href="#/data-vis">Data Analytics</b-nav-item>
+        <b-nav-item href="#/data-vis">Coverage</b-nav-item>
         <b-nav-item v-b-modal.my-modal @click='ResetFeedbackForm'>Help</b-nav-item> 
         <feedback-form ref="feedbackFormComponent"></feedback-form>
       </b-navbar-nav>

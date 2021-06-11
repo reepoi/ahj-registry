@@ -1,45 +1,22 @@
 <template>
   <div class="landing-page-container">
-    <!-- Hero Section -->
-    <!-- <div id="hero-section" v-if="!LoggedIn">
-        <div id="hero-text">
-            <h1 id="hero-headline">Building permits made easy</h1>
-            <h3 id="hero-headline-support-text">The AHJ Registry makes finding AHJs simple 
-                through its search tools and API. <span id="lead-extra-text">Finding building 
-                code requirements has never been easier. </span>
-            </h3>
-            <b-button variant="primary" id="hero-section-button" size="md" @click="$router.push({ name: 'register' })">Create Account</b-button>
-            <div id="hero-email-section">
-                <b-form-input type="text" placeholder="Email" size="lg" id="hero-email-input" required v-model="Email"></b-form-input>
-                <b-button variant="primary" id="hero-email-button" @click="SendToRegisterPage">Get Started</b-button>
-            </div>
-            <div v-if="$v.Email.$dirty">
-                <div class="error" v-if="!$v.Email.required">Email is required.</div>
-                <div class="error" v-if="!$v.Email.ValidEmail && Email !== ''">Incorrect email format. Ex: example@example.com</div>
-            </div>
-        </div>
-    </div> -->
+
+      <!-- Client Section -->
+    <div id="client-section">
+        <img v-for="client in clientPhotos" :key="client" :src="require('@/assets/' + clientPhotoLocation + client + '')" />
+    </div>
+    <hr>
 
     <!-- About Section -->
      <div id="about-section">
         <h2 id="about-section-header">What is the AHJ Registry?</h2>
         <h4>The AHJ Registry contains the building permit and contact information for most 
             AHJs within the United States. The registry is founded upon a collection of data 
-            provided by NREL and is kept updated through crowd-sourced edits. <br> <br>
-            The registry has a 97% accuracy rate with building permit requirements.
+            provided by NREL and is kept updated through crowd-sourced edits. <br>
         </h4>
-         <!-- video section div to specify max height, videowrapper and iframe for responsiveness trick -->
-        <!-- <div id="video-section">
-            <div id="videowrapper">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/BrXDBxBssgU?start=325" frameborder="0" allowfullscreen></iframe>
-            </div>
-        </div> -->
     </div>
 
-    <!-- Client Section -->
-    <div id="client-section">
-        <img v-for="client in clientPhotos" :key="client" :src="require('@/assets/' + clientPhotoLocation + client + '')" />
-    </div>
+    <hr>
 
     <!-- Feature Sections -->
     <feature-section headerText="AHJ Map Search Tool" 
@@ -50,9 +27,7 @@
                     imgSrc="images/LandingPage/ComponentPictures/partial_map.png"
                     ></feature-section>
     <feature-section headerText="Our API" 
-                    paragraphText="Our API makes searching and filtering AHJs by location, AHJ ID, Building Code type, and many other attributes an easy process. Create an account to request an API token"
-                    buttonText="View Documentation"
-                    buttonPageLink="login"
+                    paragraphText="Our API makes searching and filtering AHJs by location, AHJ ID, Building Code type, and many other attributes an easy process. Contact support@sunspec.org for an API token."
                     pictureSide="left"
                     imgSrc="images/LandingPage/ComponentPictures/API_code.png"
                     ></feature-section>
@@ -102,8 +77,9 @@ export default {
     data() {
         return {
             Email: '',
-            clientPhotos: ['titan_solar.png', 'aurora.jpg', 'solar_app.png', 'raise_green.png', 
-            'ipsun_solar.jpg', 'solar_power_of_oklahoma.jpg', '17_terawatts.jpg', 'blue_banyan.jpg', 'sunspec_alliance.png'],
+            //clientPhotos: ['titan_solar.png', 'aurora.jpg', 'solar_app.png', 'raise_green.png', 
+            //'ipsun_solar.jpg', 'solar_power_of_oklahoma.jpg', '17_terawatts.jpg', 'blue_banyan.jpg', 'sunspec_alliance.png'],
+            clientPhotos: ['sunspec_alliance.png'],
             clientPhotoLocation: "images/LandingPage/clients/",
         }
     },
@@ -136,12 +112,22 @@ export default {
 
 <style scoped>
 
+hr {
+    margin: 0;
+    padding: 0;
+    font-size: 1.5em;
+}
+
 h1 {
-    font-size: 4.5rem;
+    font-size: 4rem;
 }
 
 h2 {
     font-size: 4rem;
+}
+
+h4 {
+    font-size: 1.8rem;
 }
 
 #hero-section {
@@ -204,18 +190,16 @@ h2 {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 40px 0px;
+    padding: 20px 0px;
     width: 92%;
     margin: auto;
 }
 
 #client-section > * {
-    max-height: 13vh;
-    max-width: 12.5vw;
+    max-height: 20vh;
+    max-width: 18vw;
     flex: 1;
     object-fit: contain; /* always keep the aspect ratio the same */
-    margin-right: 1vw;
-    margin-top: 2em;
     width: 100%;
 }
 
@@ -320,7 +304,7 @@ h2 {
     #client-section {
         flex-wrap: wrap;
         justify-content: center;
-        padding: 10px 0px;
+        padding: 0px;
     }
     #client-section > *{
         max-height: 130px;
@@ -382,8 +366,8 @@ h2 {
         margin-top: 10vh;
     }
     #client-section > *{
-        max-height: 100px;
-        max-width: 130px;
+        max-height: 150px;
+        max-width: 200px;
         margin-top: 5px;
     }
     #about-section h4 {

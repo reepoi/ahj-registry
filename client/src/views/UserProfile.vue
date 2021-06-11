@@ -9,8 +9,6 @@
                             <div class="multi__info__line">
                                 <template v-if="fullName !== ' '">
                                     <h2><b>{{fullName}}</b></h2>
-                                    <b-icon class="circle-icon" icon="circle-fill"></b-icon>
-                                    <h4 class="username-text">{{username}}</h4>
                                 </template>
                                 <template v-else>
                                     <h2><b>{{username}}</b></h2>
@@ -18,32 +16,24 @@
                             </div>
                             <hr>
                             <h4 v-if="companyAffiliation !== null">{{companyAffiliation}}</h4>
+                            <h6>Number of submitted edits: {{numSubmittedEdits}}</h6>
+                            <h6>Number of accepted edits: {{numAcceptedEdits}}</h6>
+                            <h6>Community Score: {{communityScore}}</h6>
+                        </div>
+                        <div id="header-content-right">
+                            <div id="header-buttons-right">
                                 <b-button v-b-modal.user-modal size="sm" class="contact-info-button" variant="outline-primary" busy="True">Contact Info</b-button>
                                 <b-modal id="user-modal">
                                     <template #modal-title>
-                                        {{`${username}'s Contact Info`}}
+                                        {{`${fullName}'s Contact Info`}}
                                     </template>
                                     {{`Email: ${email}`}} <br>
                                     {{`Phone: ${phone}`}} <br>
                                     {{`Preferred Contact Method: ${preferredContact}`}}
                                 </b-modal>
-                            <h6>Number of submitted edits: {{numSubmittedEdits}}</h6>
-                            <h6>Number of accepted edits: {{numAcceptedEdits}}</h6>
-                            <h6>Community Score: {{communityScore}}</h6>
-                        </div>
-                        <div class="header__content__right">
-                            <div class="header__buttons__right">
-                                <b-button v-if="username === this.$store.state.loginStatus.Username" class="button" @click="$router.push({ name: 'settings'})" pill variant="primary">
+                                <b-button v-if="this.$store.getters.loggedIn && username === this.$store.state.loginStatus.Username" class="button" @click="$router.push({ name: 'settings'})" pill variant="primary">
                                     Edit Profile
                                 </b-button>
-                                <b-button class="button button-icon" disabled @click="sendToMessaging" pill variant="primary">
-                                    Message
-                                </b-button>
-                                <b-nav-item-dropdown no-caret>
-                                    <template #button-content>
-                                        <b-icon class="h3 more-icon" icon="three-dots"></b-icon>
-                                    </template>
-                                </b-nav-item-dropdown>
                             </div>
                         </div>
                     </div>
@@ -327,6 +317,17 @@ li {
     flex: 0.3;
 }
 
+#header-buttons-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-right: 3em;
+}
+#header-buttons-right > button:first-child {
+    margin-right: 1em;
+    margin-bottom: 0;
+}
+
 .username-text {
     font-weight: 10;
 }
@@ -348,10 +349,17 @@ li {
 }
 
 .button {
-    flex: 0.5;
     min-width: 130px;
-    margin-right: 15px; 
-    align-items: center;
+    border: none;
+    background-color: #ff8c00 !important;
+}
+.btn-outline-primary {
+    color: #ff8c00 !important;
+    border-color: #ff8c00 !important;
+}
+.btn-outline-primary:hover {
+    color: white !important;
+    background-color: #ff8c00 !important;
 }
 
 .check-icon {
