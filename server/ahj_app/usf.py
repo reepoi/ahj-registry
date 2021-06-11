@@ -365,6 +365,22 @@ def create_admin_user():
     print(f'API TOKEN: {api_token}')
 
 
+def drop_related_id_columns(ahj_csv_row):
+    """
+    Helper method for the clean_ahj_data_csv method below.
+    It removes:
+     - The primary key columns of related objects such as
+    Address, Contact, and EngieeringReviewRequirement.
+    """
+    COLUMNS_TO_DROP = (
+        'AddressID.Value',
+        'ContactID.Value',
+        'EngineeringReviewRequirementID.Value',
+        'LocationID.Value'
+    )
+    return {k: v for k, v in ahj_csv_row.items() if not k.endswith(COLUMNS_TO_DROP)}
+
+
 def remove_non_orange_button_code_years(ahj_csv_row):
     """
     Helper method for the clean_ahj_data_csv method below.
@@ -381,7 +397,8 @@ def remove_non_orange_button_code_years(ahj_csv_row):
     for field in AHJ_CODE_YEAR_FIELDS:
         csv_value = ahj_csv_row[f'{field}.Value']
         try:
-            get_enum_value_row(field, csv_value)
+            if csv_value != '':
+                get_enum_value_row(field, csv_value)
         except ObjectDoesNotExist:
             ahj_csv_row[f'{field}.Value'] = ''
 
@@ -461,23 +478,27 @@ def clean_ahj_data_csv(csv_path=(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         for row in reader:
             row = {k: v for k, v in row.items() if k is not None}
+            row = drop_related_id_columns(row)
             fix_contact_title_field_from_csv_bug(row)
             remove_non_orange_button_code_years(row)
             result_rows.append(row)
             print('AHJ {0}: {1}'.format(row["AHJID.Value"], i))
             i += 1
     if len(result_rows) > 0:
-        with open(csv_path[:-4] + '_cleaned.csv', 'w') as file:
-            writer = csv.DictWriter(file, fieldnames=result_rows[0].keys())
+        column_names = result_rows[0].keys()
+        new_file_name = csv_path[:-4] + '_cleaned.csv'
+        column_names_dict = {k: k for k in column_names}
+        with open(new_file_name, 'w') as file:
+            writer = csv.DictWriter(file, fieldnames=column_names)
+            writer.writerow(column_names_dict)
             for row in result_rows:
-                print(row)
                 writer.writerow(row)
 
 
-def load_ahj_data_csv():
+def load_ahj_data_csv(csv_path=(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv')):
 #    create_admin_user()
     user = User.objects.get(Email=settings.ADMIN_ACCOUNT_EMAIL)
-    with open(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv') as file:
+    with open(csv_path) as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
         i = 1
         for row in reader:

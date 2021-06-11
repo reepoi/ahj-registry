@@ -5,7 +5,7 @@ import fixtures
 import pytest
 
 
-def csv_ahj_row_dict(custom_values_dict):
+def csv_ahj_row_dict(custom_values_dict=None):
     """
     Returns one row of what a csv.DictReader returns for AHJ data in a CSV file.
     NOTE: does not contain all of the possible fields!
@@ -69,8 +69,9 @@ def csv_ahj_row_dict(custom_values_dict):
         'EngineeringReviewRequirements[0].Description.Value': 'Description',
         'EngineeringReviewRequirements[0].EngineeringReviewType.Value': 'StructuralEngineer'
     }
-    for k, v in custom_values_dict.items():
-        ahj_csv_dict[k] = v
+    if custom_values_dict is not None:
+        for k, v in custom_values_dict.items():
+            ahj_csv_dict[k] = v
     return ahj_csv_dict
 
 
@@ -106,6 +107,29 @@ def add_enum_values():
         model = apps.get_model('ahj_app', field)
         model.objects.all().delete()
         model.objects.bulk_create([model(Value=choice[0]) for choice in model._meta.get_field('Value').choices])
+
+
+@pytest.mark.parametrize(
+    'ahj_csv_row, expected_output', [
+        (csv_ahj_row_dict({'Address.AddressID.Value': 123}), csv_ahj_row_dict()),
+        (csv_ahj_row_dict({'Contacts[0].Address.AddressID.Value': 123}), csv_ahj_row_dict()),
+        (csv_ahj_row_dict({'Address.Location.LocationID.Value': 123}), csv_ahj_row_dict()),
+        (csv_ahj_row_dict({'Contacts[0].Address.Location.LocationID.Value': 123}), csv_ahj_row_dict()),
+        (csv_ahj_row_dict({'Contacts[0].ContactID.Value': 123}), csv_ahj_row_dict()),
+        (csv_ahj_row_dict({'EngineeringReviewRequirements[0].EngineeringReviewRequirementID.Value': 123}), csv_ahj_row_dict()),
+        (csv_ahj_row_dict({'Address.AddressID.Value': 123,
+                           'Contacts[0].Address.AddressID.Value': 123,
+                           'Address.Location.LocationID.Value': 123,
+                           'Contacts[0].Address.Location.LocationID.Value': 123,
+                           'Contacts[0].ContactID.Value': 123,
+                           'EngineeringReviewRequirements[0].EngineeringReviewRequirementID.Value': 123}), csv_ahj_row_dict()),
+    ]
+)
+@pytest.mark.django_db
+def test_drop_related_id_columns(ahj_csv_row, expected_output):
+    ahj_csv_row = usf.drop_related_id_columns(ahj_csv_row)
+    assert ahj_csv_row.keys() == expected_output.keys()
+    assert ahj_csv_row == expected_output
 
 
 @pytest.mark.parametrize(
