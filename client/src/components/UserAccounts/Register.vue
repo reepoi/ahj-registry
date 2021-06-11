@@ -156,7 +156,6 @@ export default {
                     )
                 })
                 .catch(error => {
-                    console.log(error)
                     this.submitStatus = 'ERROR';
                     if (error.response){
                         if (error.response.data.password){

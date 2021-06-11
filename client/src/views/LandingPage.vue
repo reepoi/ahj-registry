@@ -77,8 +77,6 @@ export default {
     data() {
         return {
             Email: '',
-            //clientPhotos: ['titan_solar.png', 'aurora.jpg', 'solar_app.png', 'raise_green.png', 
-            //'ipsun_solar.jpg', 'solar_power_of_oklahoma.jpg', '17_terawatts.jpg', 'blue_banyan.jpg', 'sunspec_alliance.png'],
             clientPhotos: ['sunspec_alliance.png'],
             clientPhotoLocation: "images/LandingPage/clients/",
         }
