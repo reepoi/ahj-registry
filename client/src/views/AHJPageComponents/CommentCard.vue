@@ -1,7 +1,7 @@
 <template>
     <div id="commentCard">
         <div>
-             <img v-if="this.Comment === null || this.Comment.User.Photo === null" class='pfp' src='../../../src/assets/images/genie.jpg'/>
+             <img v-if="this.Comment === null || this.Comment.User.Photo === null" class='pfp' src='../../../src/assets/images/profile-image-default.jpeg'/>
              <img v-else v-bind:src="Comment.User.Photo" class='pfp'/>
         </div>
         <div class="info-text">
