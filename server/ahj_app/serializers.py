@@ -151,6 +151,7 @@ class UserSerializer(serializers.Serializer):
     SignUpDate = serializers.DateField()
     MaintainedAHJs = serializers.ListField(source='get_maintained_ahjs')
     APIToken = serializers.CharField(source='get_API_token')
+    IsSuperuser = serializers.BooleanField()
 
 class UserCreateSerializer(UserCreateSerializer):
 

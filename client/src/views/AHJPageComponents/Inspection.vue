@@ -5,9 +5,9 @@
             </h2>
             <h3 class="head" v-else> <input type="text" v-model="Edits.AHJInspectionName"> </h3>
             <div style="display:flex">
-            <div style="width: 50px;" v-if="eID >= 0">
+            <div style="width: 50px;margin-right:10px;" v-if="eID >= 0">
                 <i style="margin-right:10px;margin-top:10px;" v-if="$parent.isManaged && this.editstatus==='P'" v-on:click="$emit('official',{Type:'Accept',eID: eID});editstatus = 'A';changeStatus();" class="fa fa-check"></i>
-                <i style="margin-right:5px;" v-if="$parent.isManaged && this.editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus();" class="fa fa-thumbs-down"></i>
+                <i style="margin-right:5px;" v-if="$parent.isManaged && this.editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus();" class="fa fa-times"></i>
             </div>
             <i ref='chev' style="height:100%;margin-right: 10px;margin-top:10px;" class="fa fa-chevron-down" v-on:click="showInfo()"></i>
             <div style="float: right;" v-if="isEditing">

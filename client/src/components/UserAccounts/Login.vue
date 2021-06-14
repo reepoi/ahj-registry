@@ -88,7 +88,8 @@ export default {
                         authToken: "Token " + response.data["auth_token"],
                         Username: response.data.User['Username'],
                         Photo: response.data.User['Photo'],
-                        MaintainedAHJs: response.data.User['MaintainedAHJs']
+                        MaintainedAHJs: response.data.User['MaintainedAHJs'],
+                        IsSuperuser: response.data.User['IsSuperuser']
                     }
                     this.$router.push({name: 'ahj-search'})
                     this.$store.commit("changeUserLoginStatus", loginStatus);

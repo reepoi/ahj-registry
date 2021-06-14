@@ -448,6 +448,7 @@ class User(AbstractBaseUser):
     SubmittedEdits = models.IntegerField(db_column='NumSubmittedEdits', default=0)
     CommunityScore = models.IntegerField(db_column='CommunityScore', default=0)
     SecurityLevel = models.IntegerField(db_column='SecurityLevel', default=3)
+    IsSuperuser = models.BooleanField(db_column='IsSuperUser', default=False)
 
     USERNAME_FIELD = 'Email'
     objects = UserManager()

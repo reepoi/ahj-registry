@@ -7,10 +7,10 @@
                 <input style="flex-basis:33%;" type="text" v-model="Edits.MiddleName">
                 <input style="flex-basis:33%;" type="text" v-model="Edits.LastName">
             </div>
-            <div style="display:flex;">
+            <div style="display:flex;margin-right:10px;">
                             <div v-if="eID >= 0">
             <i style="margin-right:10px" v-if="$parent.isManaged && editstatus==='P'" v-on:click="$emit('official',{Type:'Accept',eID: eID});editstatus = 'A';changeStatus();" class="fa fa-check"></i>
-            <i style="margin-right:10px" v-if="$parent.isManaged && editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus()" class="fa fa-thumbs-down"></i>
+            <i style="margin-right:10px" v-if="$parent.isManaged && editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus()" class="fa fa-times"></i>
             </div>
             <div style="display:flex;" v-if="isEditing">
                 <i ref='chev' style="height:100%;margin-right: 10px;" class="fa fa-chevron-down" v-on:click="showInfo('c-info')"></i>

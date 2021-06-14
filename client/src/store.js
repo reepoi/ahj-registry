@@ -42,7 +42,8 @@ export default new Vuex.Store({
             Username: "",
             MaintainedAHJs: [],
             Photo: "",
-            authToken: ""
+            authToken: "",
+            isSuperuser: false
         },
         currentUserInfo: null,
         searchedQuery: null,

@@ -5,18 +5,18 @@
             <div class="big-div">
                 <div class="edit-title">Edits</div>
                 <div style="display: flex; align-items:center; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(edit,index) in editObjects" v-bind:key="`EDIT${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(edit,index) in editObjects" v-bind:key="`EDIT${index}`">
                         <h3>You have changed {{edit.OldValue}} to {{edit.NewValue}} for {{edit.SourceColumn}}</h3>
                         <i v-on:click="deleteEdit(index)" class="fas fa-minus"></i>
                     </div>
                 </div>
                 <div class="edit-title">Additions</div>
                 <div style="display: flex; align-items:center; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in contactAddition.Value" v-bind:key="`CONTADD${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in contactAddition.Value" v-bind:key="`CONTADD${index}`">
                         <h3>You have added a Contact</h3>
                         <i v-on:click="deleteContactAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPChil${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in $children" v-bind:key="`INSPChil${index}`">
                         <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.AddCont.Value" v-bind:key="`INSPCONT${i}`">
                                 <h3>You have added a Contact to an AHJInspection: {{ add.data.AHJInspectionName.Value }}</h3>
@@ -24,38 +24,38 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in inspectionAddition.Value" v-bind:key="`INSP${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in inspectionAddition.Value" v-bind:key="`INSP${index}`">
                         <h3>You have added an Inspection</h3>
                         <i v-on:click="deleteInspectionAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in AddPIM.Value" v-bind:key="`PIM${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in AddPIM.Value" v-bind:key="`PIM${index}`">
                         <h3>You have added a Permit Issue Method</h3>
                         <i v-on:click="deletePIMAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in AddDSM.Value" v-bind:key="`DSM-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in AddDSM.Value" v-bind:key="`DSM-${index}`">
                         <h3>You have added a Document Submission Method</h3>
                         <i v-on:click="deleteDSMAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in ERRAddition.Value" v-bind:key="`ERR-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in ERRAddition.Value" v-bind:key="`ERR-${index}`">
                         <h3>You have added an Engineering Review Requirement</h3>
                         <i v-on:click="deleteERRAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in FSAddition.Value" v-bind:key="`FS-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in FSAddition.Value" v-bind:key="`FS-${index}`">
                         <h3>You have added a Fee Structure</h3>
                         <i v-on:click="deleteFSAddition(index)" class="fas fa-minus"></i>
                     </div>
                 </div>
                 <div class="edit-title">Deletions</div>
                 <div style="display: flex; align-items:center; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in contactDeletions.Value" v-bind:key="`CONTD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in contactDeletions.Value" v-bind:key="`CONTD-${index}`">
                         <h3>You have deleted a Contact</h3>
                         <i v-on:click="deleteContactDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in inspectionDeletions.Value" v-bind:key="`INSPD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in inspectionDeletions.Value" v-bind:key="`INSPD-${index}`">
                         <h3>You have deleted an Inspection</h3>
                         <i v-on:click="deleteInspectionDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPCD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in $children" v-bind:key="`INSPCD-${index}`">
                         <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.Deleted.Value" v-bind:key="`INPSCDC-${i}`">
                                 <h3>You have deleted a Contact on AHJInspection: {{ add.data.AHJInspectionName.Value }}</h3>
@@ -63,19 +63,19 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in ERRDeletions.Value" v-bind:key="`ERRD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in ERRDeletions.Value" v-bind:key="`ERRD-${index}`">
                         <h3>You have deleted an Engineering Review Requirement</h3>
                         <i v-on:click="deleteERRDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in FSDeletions.Value" v-bind:key="`FSD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in FSDeletions.Value" v-bind:key="`FSD-${index}`">
                         <h3>You have deleted a Fee Structure</h3>
                         <i v-on:click="deleteFSDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in DSMDeletion.Value" v-bind:key="`DSMD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in DSMDeletion.Value" v-bind:key="`DSMD-${index}`">
                         <h3>You have deleted a Document Submission Method</h3>
                         <i v-on:click="DSMDeletion.Value.splice(index,1)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in PIMDeletion.Value" v-bind:key="`PIMD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in PIMDeletion.Value" v-bind:key="`PIMD-${index}`">
                         <h3>You have deleted a Permit Issue Method</h3>
                         <i v-on:click="PIMDeletion.Value.splice(index,1)" class="fas fa-minus"></i>
                     </div>
@@ -1843,6 +1843,10 @@ export default {
             insp.Deleted.Value.splice(i,1);
         },
         assertIsManaged(){
+            if(this.$store.state.loginStatus.IsSuperuser){
+                this.isManaged = true;
+                return;
+            }
             let MA =  this.$store.state.loginStatus.MaintainedAHJs;
             for(let i = 0; i < MA.length;i++){
                 if(MA[i]==this.AHJInfo.AHJPK.Value){

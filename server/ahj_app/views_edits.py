@@ -184,11 +184,11 @@ def edit_addition(request):
                       'OldValue'     : None,
                       'NewValue'     : True,
                       'EditType'     : 'A' }
-                edit = add_edit(e, ReviewStatus='A')
+                edit = add_edit(e)
                 edits.append(edit)
 
                 response_data.append(get_serializer(row)(edit_info_row).data)
-            apply_edits(ready_edits=edits)
+            #apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_addition', str(e))
@@ -256,10 +256,10 @@ def edit_update(request):
 
                 e['User'] = request.user
                 e['EditType'] = 'U'
-                edit = add_edit(e, ReviewStatus='A')
+                edit = add_edit(e)
                 edits.append(edit)
                 response_data.append(EditSerializer(edit).data)
-            apply_edits(ready_edits=edits)
+            #apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_update', str(e))
