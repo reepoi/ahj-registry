@@ -10,7 +10,7 @@ import pytest
 import datetime
 import requests
 
-from ahj_app.models import User, APIToken, AHJUserMaintains
+from ahj_app.models import User, APIToken, AHJUserMaintains, Edit
 
 
 @pytest.mark.parametrize(
@@ -129,16 +129,21 @@ def test_process_delete_toggle_api_token_data(expect_toggle, expect_delete, crea
         delete_text = 'on'
     else:
         delete_text = ''
-    user = create_user()
-    form_prefix = 'form-0'
-    post_data_dict = {'user_to_form': f'{user.UserID}.{form_prefix}',
-                      f'{form_prefix}-toggle': toggle_text,
-                      f'{form_prefix}-delete_token': delete_text}
+    users = []
+    form_prefix = 'form-{0}'
+    post_data_dict = {}
     post_query_dict = dict_make_query_dict(post_data_dict)
-    for result in admin_actions.process_delete_toggle_api_token_data(post_query_dict):
-        assert result['user'].UserID == user.UserID
-        assert result['toggle'] == expect_toggle
-        assert result['delete'] == (expect_delete if expect_delete is not None else False)
+    for x in range(5):
+        user = create_user()
+        users.append(user)
+        post_query_dict.update({'user_to_form': f'{user.UserID}.{form_prefix.format(x)}',
+                                f'{form_prefix.format(x)}-toggle': toggle_text,
+                                f'{form_prefix.format(x)}-delete_token': delete_text})
+    results = admin_actions.process_delete_toggle_api_token_data(post_query_dict)
+    for x in range(len(users)):
+        assert results[x]['user'].UserID == users[x].UserID
+        assert results[x]['toggle'] == expect_toggle
+        assert results[x]['delete'] == (expect_delete if expect_delete is not None else False)
 
 
 @pytest.mark.parametrize(
@@ -193,11 +198,73 @@ def test_assign_ahj_official_status(num_existing, num_kept, num_new, ahj_obj_fac
 
 
 @pytest.mark.parametrize(
-    'date_effective', [
-        datetime.date.today(),
-        datetime.date(1, 1, 1)
+    'date_str', [
+        str(datetime.date.today()),
+        str(datetime.date(1, 1, 1)),
+        ''
     ]
 )
 @pytest.mark.django_db
-def test_process_approve_edits_data(date_effective, create_user):
-    pass
+def test_set_date_from_str(date_str):
+    try:
+        date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        date = None
+    result = admin_actions.set_date_from_str(date_str)
+    assert result == date
+
+
+@pytest.mark.parametrize(
+    'date_effective', [
+        datetime.date.today(),
+        datetime.date(1, 1, 1),
+    ]
+)
+@pytest.mark.django_db
+def test_process_approve_edits_data(date_effective, create_user, ahj_obj):
+    form_prefix = 'form-{0}'
+    post_data_dict = {}
+    post_query_dict = dict_make_query_dict(post_data_dict)
+    edits = []
+    approving_user = create_user()
+    for x in range(5):
+        user = create_user()
+        edit = Edit.objects.create(AHJPK=ahj_obj, ChangedBy=user, EditType='A', SourceTable='AHJ',
+                                   SourceColumn='BuildingCode', SourceRow=ahj_obj.pk,
+                                   DateRequested=datetime.date.today())
+        edits.append(edit)
+        post_query_dict.update({'edit_to_form': f'{edit.EditID}.{form_prefix.format(x)}',
+                                f'{form_prefix.format(x)}-date_effective': str(date_effective)})
+    results = admin_actions.process_approve_edits_data(post_query_dict, approving_user)
+    for x in range(len(edits)):
+        assert results[x]['edit'].EditID == edits[x].EditID
+        assert results[x]['approved_by'].UserID == approving_user.UserID
+        assert results[x]['date_effective'] == date_effective
+        assert results[x]['apply_now'] == (date_effective == datetime.date.today())
+
+
+@pytest.mark.parametrize(
+    'date_effective', [
+        '',
+        None
+    ]
+)
+@pytest.mark.django_db
+def test_process_approve_edits_data_invalid_date_effective(date_effective, create_user, ahj_obj):
+    form_prefix = 'form-{0}'
+    post_data_dict = {}
+    post_query_dict = dict_make_query_dict(post_data_dict)
+    edits = []
+    approving_user = create_user()
+    for x in range(5):
+        user = create_user()
+        edit = Edit.objects.create(AHJPK=ahj_obj, ChangedBy=user, EditType='A', SourceTable='AHJ',
+                                   SourceColumn='BuildingCode', SourceRow=ahj_obj.pk,
+                                   DateRequested=datetime.date.today())
+        edits.append(edit)
+        post_query_dict.update({'edit_to_form': f'{edit.EditID}.{form_prefix.format(x)}',
+                                f'{form_prefix.format(x)}-date_effective': str(date_effective)})
+    results = admin_actions.process_approve_edits_data(post_query_dict, approving_user)
+    assert len(results) == 0
+
+# Test setting date effective to the past does not work

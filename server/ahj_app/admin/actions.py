@@ -5,9 +5,10 @@ from django.forms import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm
+from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm, EditApproveForm
 from ..models import User, APIToken, Edit
 from ..usf import dict_filter_keys_start_with
+from ..views_edits import apply_edits
 
 
 def reset_password(user, raw_password):
@@ -155,8 +156,8 @@ def user_delete_toggle_api_token(self, request, queryset):
     """
     Admin action for the User model. The admin can select one or
     more users and delete or toggle on/off each user's API token.
-     If selected users do not have an API token, there will be no
-     options displayed for them.
+    If selected users do not have an API token, there will be no
+    options displayed for them.
     """
     if 'apply' in request.POST:
         """
@@ -182,27 +183,76 @@ def user_delete_toggle_api_token(self, request, queryset):
 user_delete_toggle_api_token.short_description = 'Delete/Toggle API Token'
 
 
-def process_approve_edits_data(post_data):
+def set_date_from_str(date_str):
+    """
+    Returns a date object from a string formatted in '%Y-%m-%d'.
+    """
+    try:
+        return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+
+def process_approve_edits_data(post_data, requesting_user):
     """
     This expects the post_data to contain an array called 'edit_to_form'.
     Each item in this array is of the form:
      - '<EditID>.<form_prefix>' (i.e. '1.form-0')
     Each form then may add two form data key-value pairs:
-     - '<form_prefix>-date_effective': '<date>' (i.e. 'form-0-date_effective': '06-04-2021')
+     - '<form_prefix>-date_effective': '<date>' (i.e. 'form-0-date_effective': '2021-06-04')
     """
     edit_to_form_pairs = [pair.split('.') for pair in post_data.getlist('edit_to_form')]
     edit_form_data = []
     for edit_id, form_prefix in edit_to_form_pairs:
         edit = Edit.objects.get(EditID=edit_id)
         form_data = dict_filter_keys_start_with(form_prefix, post_data)
-        date_effective = datetime.datetime.strptime(form_data.get('date_effective', ''), '%Y-%m-%d').date()
+        date_effective = set_date_from_str(date_str=form_data.get('date_effective', ''))
+        if date_effective is None:
+            continue
         edit_form_data.append({'edit': edit,
+                               'approved_by': requesting_user,
                                'date_effective': date_effective,
                                'apply_now': date_effective == datetime.date.today()})
     return edit_form_data
 
 
+def approve_edit(edit, approved_by, date_effective, apply_now):
+    """
+    Sets the fields necessary to approve and apply an edit.
+    If apply_now is True, then the edit will be applied immediately.
+    """
+    edit.ApprovedBy = approved_by
+    edit.DateEffective = date_effective
+    edit.ReviewStatus = 'A'
+    if apply_now:
+        apply_edits(ready_edits=[edit])
+    else:
+        edit.save()
+
+
 def edit_approve_edits(self, request, queryset):
+    """
+    Admin action for the Edit model. The admin can select one or
+    more edits and approve each one by setting its date effective and approving user.
+    """
     if 'apply' in request.POST:
-        pass
-    pass
+        """
+        The form has been filled out and submitted.
+        """
+        action_data = process_approve_edits_data(request.POST, request.user)
+        for item in action_data:
+            approve_edit(edit=item['edit'],
+                         approved_by=item['approved_by'],
+                         date_effective=item['date_effective'],
+                         apply_now=item['apply_now'])
+        self.message_user(request, 'Success', level=messages.INFO)
+        return HttpResponseRedirect(request.get_full_path())
+    formset = formset_factory(EditApproveForm, extra=queryset.count())()
+    return render(request, 'admin/edit_approve_edits.html', context={
+        'request': request,
+        'edits_and_forms': zip(queryset, formset),
+        'edits': queryset
+    })
+
+
+edit_approve_edits.short_description = 'Approve Edits'

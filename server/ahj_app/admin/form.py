@@ -1,8 +1,13 @@
+import datetime
+
 import django.contrib.admin
 from django import forms
 from django.contrib.admin.widgets import ManyToManyRawIdWidget
+from django.core.exceptions import ValidationError
+from django.forms import SelectDateWidget
 from django.forms.utils import ErrorList
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 from ..models import AHJ, User, AHJUserMaintains
 
@@ -104,3 +109,17 @@ class UserChangeForm(forms.ModelForm):
     class Meta:
         model = User
         fields = '__all__'
+
+
+def validate_today_or_later(value):
+    print(value)
+    if value < datetime.date.today():
+        raise ValidationError(_('Date %(value)s is not today or later'), params={'value': value})
+
+
+class EditApproveForm(forms.Form):
+    DateEffective = forms.DateField(input_formats=['%Y-%m-%d'],
+                                    validators=[validate_today_or_later],
+                                    widget=SelectDateWidget,
+                                    required=False,
+                                    label='Date Effective')

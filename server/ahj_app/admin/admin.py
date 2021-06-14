@@ -4,7 +4,7 @@ from django.apps import apps
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 
-from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token
+from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits
 from .form import UserChangeForm
 
 USER_DATA_MODELS = {
@@ -234,6 +234,19 @@ Removing from list_display:
 """
 polygon_admin_model = model_admin_dict['Polygon']['admin_model']
 polygon_admin_model.list_display.remove('Polygon')
+
+
+"""
+Customizing Edit Admin Model:
+Adding Admin Actions:
+ - Approve Edits
+"""
+edit_admin_model = model_admin_dict['Edit']['admin_model']
+admin_actions_to_add = []
+admin_actions_to_add.append(get_action_info_dict('edit_approve_edits', edit_approve_edits))
+for action in admin_actions_to_add:
+    setattr(edit_admin_model, action['name'], action['function'])
+    edit_admin_model.actions.append(action['name'])
 
 
 """
