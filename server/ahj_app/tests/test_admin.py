@@ -10,7 +10,9 @@ import pytest
 import datetime
 import requests
 
-from ahj_app.models import User, APIToken, AHJUserMaintains, Edit
+from ahj_app.models import AHJ, User, APIToken, AHJUserMaintains, Edit
+
+from ahj_app.views_edits import apply_edits
 
 
 @pytest.mark.parametrize(
@@ -217,7 +219,7 @@ def test_set_date_from_str(date_str):
 @pytest.mark.parametrize(
     'date_effective', [
         datetime.date.today(),
-        datetime.date(1, 1, 1),
+        datetime.date(1, 1, 1)
     ]
 )
 @pytest.mark.django_db
@@ -233,8 +235,11 @@ def test_process_approve_edits_data(date_effective, create_user, ahj_obj):
                                    SourceColumn='BuildingCode', SourceRow=ahj_obj.pk,
                                    DateRequested=datetime.date.today())
         edits.append(edit)
+        date_strs = str(date_effective).split('-')
         post_query_dict.update({'edit_to_form': f'{edit.EditID}.{form_prefix.format(x)}',
-                                f'{form_prefix.format(x)}-date_effective': str(date_effective)})
+                                f'{form_prefix.format(x)}-DateEffective_year': date_strs[0],
+                                f'{form_prefix.format(x)}-DateEffective_month': date_strs[1],
+                                f'{form_prefix.format(x)}-DateEffective_day': date_strs[2]})
     results = admin_actions.process_approve_edits_data(post_query_dict, approving_user)
     for x in range(len(edits)):
         assert results[x]['edit'].EditID == edits[x].EditID
@@ -243,14 +248,8 @@ def test_process_approve_edits_data(date_effective, create_user, ahj_obj):
         assert results[x]['apply_now'] == (date_effective == datetime.date.today())
 
 
-@pytest.mark.parametrize(
-    'date_effective', [
-        '',
-        None
-    ]
-)
 @pytest.mark.django_db
-def test_process_approve_edits_data_invalid_date_effective(date_effective, create_user, ahj_obj):
+def test_process_approve_edits_data_invalid_date_effective(create_user, ahj_obj):
     form_prefix = 'form-{0}'
     post_data_dict = {}
     post_query_dict = dict_make_query_dict(post_data_dict)
@@ -258,13 +257,43 @@ def test_process_approve_edits_data_invalid_date_effective(date_effective, creat
     approving_user = create_user()
     for x in range(5):
         user = create_user()
-        edit = Edit.objects.create(AHJPK=ahj_obj, ChangedBy=user, EditType='A', SourceTable='AHJ',
-                                   SourceColumn='BuildingCode', SourceRow=ahj_obj.pk,
+        edit = Edit.objects.create(AHJPK=ahj_obj, ChangedBy=user, EditType='U', SourceTable='AHJ',
+                                   SourceColumn='AHJName', SourceRow=ahj_obj.pk, NewValue='NewName',
                                    DateRequested=datetime.date.today())
         edits.append(edit)
         post_query_dict.update({'edit_to_form': f'{edit.EditID}.{form_prefix.format(x)}',
-                                f'{form_prefix.format(x)}-date_effective': str(date_effective)})
+                                f'{form_prefix.format(x)}-DateEffective_year': '',
+                                f'{form_prefix.format(x)}-DateEffective_month': '',
+                                f'{form_prefix.format(x)}-DateEffective_day': ''})
     results = admin_actions.process_approve_edits_data(post_query_dict, approving_user)
     assert len(results) == 0
+
+
+@pytest.mark.parametrize(
+    'apply_now', [
+        True,
+        False
+    ]
+)
+@pytest.mark.django_db
+def test_approve_edit(apply_now, create_user, ahj_obj):
+    user = create_user()
+    edit = Edit.objects.create(AHJPK=ahj_obj, ChangedBy=user, EditType='U', SourceTable='AHJ',
+                               SourceColumn='AHJName', SourceRow=ahj_obj.pk, NewValue='NewName',
+                               DateRequested=datetime.date.today())
+    admin_actions.approve_edit(edit, user, datetime.date.today(), apply_now)
+    edit = Edit.objects.get(EditID=edit.EditID)
+    ahj = AHJ.objects.get(AHJPK=ahj_obj.pk)
+    assert edit.ApprovedBy.UserID == user.UserID
+    assert edit.DateEffective == datetime.date.today()
+    assert edit.ReviewStatus == 'A'
+    if apply_now:
+        assert ahj.AHJName == 'NewName'
+    else:
+        assert ahj.AHJName != 'NewName'
+        # NOTE: apply_edits is tested separately in test_view_edits.py
+        apply_edits()
+        ahj = AHJ.objects.get(AHJPK=ahj_obj.pk)
+        assert ahj.AHJName == 'NewName'
 
 # Test setting date effective to the past does not work

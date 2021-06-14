@@ -206,7 +206,10 @@ def process_approve_edits_data(post_data, requesting_user):
     for edit_id, form_prefix in edit_to_form_pairs:
         edit = Edit.objects.get(EditID=edit_id)
         form_data = dict_filter_keys_start_with(form_prefix, post_data)
-        date_effective = set_date_from_str(date_str=form_data.get('date_effective', ''))
+        date_str = '-'.join([form_data.get('DateEffective_year', ''),
+                             form_data.get('DateEffective_month', ''),
+                             form_data.get('DateEffective_day', '')])
+        date_effective = set_date_from_str(date_str=date_str)
         if date_effective is None:
             continue
         edit_form_data.append({'edit': edit,
@@ -224,10 +227,9 @@ def approve_edit(edit, approved_by, date_effective, apply_now):
     edit.ApprovedBy = approved_by
     edit.DateEffective = date_effective
     edit.ReviewStatus = 'A'
+    edit.save()
     if apply_now:
         apply_edits(ready_edits=[edit])
-    else:
-        edit.save()
 
 
 def edit_approve_edits(self, request, queryset):
