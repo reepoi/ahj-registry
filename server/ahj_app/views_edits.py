@@ -15,7 +15,7 @@ from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
 from .usf import ENUM_FIELDS, get_enum_value_row
 
 
-def add_edit(edit_dict: dict):
+def add_edit(edit_dict: dict, ReviewStatus='P'):
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
     edit.DateRequested = datetime.date.today()
@@ -26,17 +26,18 @@ def add_edit(edit_dict: dict):
     edit.SourceRow = edit_dict.get('SourceRow')
     edit.OldValue = edit_dict.get('OldValue')
     edit.NewValue = edit_dict.get('NewValue')
-    edit.ReviewStatus = 'P'
+    edit.ReviewStatus = ReviewStatus
     edit.EditType = edit_dict.get('EditType')
     edit.save()
     return edit
 
 
-def apply_edits():
-    ready_edits = Edit.objects.filter(
-        ReviewStatus='A',
-        DateEffective=datetime.date.today()
-    ).exclude(ApprovedBy=None)
+def apply_edits(ready_edits=None):
+    if ready_edits is None:
+        ready_edits = Edit.objects.filter(
+            ReviewStatus='A',
+            DateEffective=datetime.date.today()
+        ).exclude(ApprovedBy=None)
     for edit in ready_edits:
         model = apps.get_model('ahj_app', edit.SourceTable)
         row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
@@ -45,16 +46,16 @@ def apply_edits():
         row.save()
 
     # If an addition edit is rejected, set its status false
-    rejected_addition_edits = Edit.objects.filter(
-        ReviewStatus='R',
-        EditType='A',
-        DateEffective=datetime.date.today()
-    ).exclude(ApprovedBy=None)
-    for edit in rejected_addition_edits:
-        model = apps.get_model('ahj_app', edit.SourceTable)
-        row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
-        setattr(row, row.get_relation_status_field(), False)
-        row.save()
+    # rejected_addition_edits = Edit.objects.filter(
+    #     ReviewStatus='R',
+    #     EditType='A',
+    #     DateEffective=datetime.date.today()
+    # ).exclude(ApprovedBy=None)
+    # for edit in rejected_addition_edits:
+    #     model = apps.get_model('ahj_app', edit.SourceTable)
+    #     row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+    #     setattr(row, row.get_relation_status_field(), False)
+    #     row.save()
 
 ####################
 
@@ -168,7 +169,7 @@ def edit_addition(request):
             For example, Contact, FeeStructure and EngineeringReviewRequirement
             """
             AHJ_one_to_many = 'AHJPK' in [field.name for field in model._meta.fields]
-
+            edits = []
             for obj in new_objs:
                 if AHJ_one_to_many:
                     obj['AHJPK'] = ahj
@@ -183,9 +184,11 @@ def edit_addition(request):
                       'OldValue'     : None,
                       'NewValue'     : True,
                       'EditType'     : 'A' }
-                edit = add_edit(e)
+                edit = add_edit(e, ReviewStatus='A')
+                edits.append(edit)
 
                 response_data.append(get_serializer(row)(edit_info_row).data)
+            apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_addition', str(e))
@@ -237,6 +240,7 @@ def edit_update(request):
         response_data, response_status = [], status.HTTP_200_OK
         with transaction.atomic():
             es = request.data
+            edits = []
             for e in es:
                 e['AHJPK'] = AHJ.objects.get(AHJPK=e['AHJPK'])
                 model = apps.get_model('ahj_app', e['SourceTable'])
@@ -245,13 +249,17 @@ def edit_update(request):
 
                 if e['SourceColumn'] in ENUM_FIELDS and old_value is None:
                     e['OldValue'] = ''
+                elif e['SourceColumn'] in ENUM_FIELDS:
+                    e['OldValue'] = old_value.Value
                 else:
                     e['OldValue'] = old_value
 
                 e['User'] = request.user
                 e['EditType'] = 'U'
-                edit = add_edit(e)
+                edit = add_edit(e, ReviewStatus='A')
+                edits.append(edit)
                 response_data.append(EditSerializer(edit).data)
+            apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_update', str(e))

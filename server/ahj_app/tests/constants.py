@@ -19,10 +19,12 @@ webpageTokenUrls= [
     ('comment-submit', {}), 
     ('data-map', {}), 
     ('data-map-polygon', {}), 
+    ('send-support-email', {}),
     ('form-validator', {}), 
     ('user-create', {}), 
     ('user-login', {}),
     ('user-logout', {}),
+    ('confirm-reset-password', {})
 ]
 
 apiTokenUrls = [
