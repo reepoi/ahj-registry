@@ -1,5 +1,6 @@
 import csv
 import os
+import traceback
 from functools import lru_cache
 import datetime
 from django.apps import apps
@@ -293,7 +294,6 @@ def create_contact(contact_dict):
     return Contact.objects.create(**contact_dict)
 
 
-@lru_cache(maxsize=None)
 def get_enum_value_row(enum_field, enum_value):
     """
     Finds the row of the enum table given the field name and its enum value.

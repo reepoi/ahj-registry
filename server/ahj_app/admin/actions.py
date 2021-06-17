@@ -4,6 +4,7 @@ from django.core.checks import messages
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.utils import timezone
 
 from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm, EditApproveForm
 from ..models import User, APIToken, Edit
@@ -188,7 +189,7 @@ def set_date_from_str(date_str):
     Returns a date object from a string formatted in '%Y-%m-%d'.
     """
     try:
-        return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        return timezone.make_aware(datetime.datetime.strptime(date_str, '%Y-%m-%d'))
     except ValueError:
         return None
 
@@ -215,7 +216,7 @@ def process_approve_edits_data(post_data, requesting_user):
         edit_form_data.append({'edit': edit,
                                'approved_by': requesting_user,
                                'date_effective': date_effective,
-                               'apply_now': date_effective == datetime.date.today()})
+                               'apply_now': date_effective.date() == datetime.date.today()})
     return edit_form_data
 
 
