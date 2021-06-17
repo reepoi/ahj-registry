@@ -37,7 +37,7 @@ GDAL_LIBRARY_PATH = '/usr/local/lib/libgdal.so'
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'ahj_app.apps.AhjAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -95,7 +95,7 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

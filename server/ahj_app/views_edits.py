@@ -2,6 +2,7 @@ import datetime
 
 from django.apps import apps
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -15,10 +16,10 @@ from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
 from .usf import ENUM_FIELDS, get_enum_value_row
 
 
-def add_edit(edit_dict: dict, ReviewStatus='P'):
+def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=None):
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
-    edit.DateRequested = datetime.date.today()
+    edit.DateRequested = timezone.now()
     edit.AHJPK = edit_dict.get('AHJPK')
     edit.InspectionID = edit_dict.get('InspectionID')
     edit.SourceTable = edit_dict.get('SourceTable')
@@ -27,6 +28,9 @@ def add_edit(edit_dict: dict, ReviewStatus='P'):
     edit.OldValue = edit_dict.get('OldValue')
     edit.NewValue = edit_dict.get('NewValue')
     edit.ReviewStatus = ReviewStatus
+    if ReviewStatus == 'A':
+        edit.ApprovedBy = ApprovedBy
+        edit.DateEffective = DateEffective
     edit.EditType = edit_dict.get('EditType')
     edit.save()
     return edit
@@ -36,7 +40,7 @@ def apply_edits(ready_edits=None):
     if ready_edits is None:
         ready_edits = Edit.objects.filter(
             ReviewStatus='A',
-            DateEffective=datetime.date.today()
+            DateEffective__date=datetime.date.today()
         ).exclude(ApprovedBy=None)
     for edit in ready_edits:
         model = apps.get_model('ahj_app', edit.SourceTable)
@@ -49,13 +53,52 @@ def apply_edits(ready_edits=None):
     # rejected_addition_edits = Edit.objects.filter(
     #     ReviewStatus='R',
     #     EditType='A',
-    #     DateEffective=datetime.date.today()
+    #     DateEffective__date=datetime.date.today()
     # ).exclude(ApprovedBy=None)
     # for edit in rejected_addition_edits:
     #     model = apps.get_model('ahj_app', edit.SourceTable)
     #     row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
     #     setattr(row, row.get_relation_status_field(), False)
     #     row.save()
+
+
+def revert_edit(user, edit):
+    model = apps.get_model('ahj_app', edit.SourceTable)
+    row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+    current_value = getattr(row, edit.SourceColumn)
+    if edit.SourceColumn in ENUM_FIELDS:
+        current_value = current_value.Value
+    next_value = edit.OldValue if edit.EditType not in {'A', 'D'} else not edit.NewValue
+    revert_edit_dict = {'User': user,
+                        'AHJPK': edit.AHJPK,
+                        'SourceTable': edit.SourceTable,
+                        'SourceColumn': edit.SourceColumn,
+                        'SourceRow': edit.SourceRow,
+                        'OldValue': current_value,
+                        'NewValue': next_value,
+                        'EditType': edit.EditType}
+    e = add_edit(revert_edit_dict, ReviewStatus='A', ApprovedBy=user, DateEffective=timezone.now())
+    apply_edits(ready_edits=[e])
+
+
+def edit_is_resettable(edit):
+    return not Edit.objects.filter(SourceTable=edit.SourceTable, SourceRow=edit.SourceRow, SourceColumn=edit.SourceColumn,
+                                   ReviewStatus='A', DateEffective__gt=edit.DateEffective).exists()
+
+
+def reset_edit(user, edit):
+    if edit_is_resettable(edit):
+        model = apps.get_model('ahj_app', edit.SourceTable)
+        row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+        value = get_enum_value_row(edit.SourceColumn, edit.OldValue) if edit.SourceColumn in ENUM_FIELDS else edit.OldValue
+        setattr(row, edit.SourceColumn, value)
+        row.save()
+        edit.ReviewStatus = 'P'
+        edit.ApprovedBy = None
+        edit.DateEffective = None
+        edit.save()
+    else:
+        revert_edit(user, edit)
 
 ####################
 
@@ -72,7 +115,7 @@ def edit_review(request):
             edit = Edit.objects.get(EditID=int(eid))
             edit.ReviewStatus = stat
             edit.ApprovedBy = request.user
-            tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+            tomorrow = timezone.now() + datetime.timedelta(days=1)
             if not edit.DateEffective or edit.DateEffective < tomorrow:
                 edit.DateEffective = tomorrow
             edit.save()  # commit changes

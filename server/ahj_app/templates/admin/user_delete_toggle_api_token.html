@@ -1,0 +1,74 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<form action="" method="post">
+  {% csrf_token %}
+  <p>
+  For each user, please select whether to delete or toggle on/off their API Token:
+  </p>
+  <br>
+  <label>
+    Toggle All Tokens:
+    <select onchange="AdminUserDeleteToggleAPIToken.toggleAll(this)">
+      <option value="DoNothing">Do Nothing</option>
+      <option value="On">On</option>
+      <option value="Off">Off</option>
+    </select>
+  </label>
+  <label>
+      Delete All Tokens:
+    <input type="checkbox" onclick="AdminUserDeleteToggleAPIToken.checkAll(this)">
+  </label>
+  <br>
+  {% for tuple in users_and_forms %}
+    <h2><b>
+      <a href="../apitoken/{{ tuple.0.api_token }}/" target="_blank">{{ tuple.0.Email }}</a>
+    </b></h2>
+    {{ tuple.1 }}
+  <input type="hidden" name="user_to_form" value="{{ tuple.0.pk }}.{{ tuple.1.prefix }}">
+    <input type="hidden" name="_selected_action" value="{{ tuple.0.pk }}">
+  {% endfor %}
+  {% if users_without_tokens.count > 0 %}
+  <p>
+    These users do <b>NOT</b> have an API Token:
+  </p>
+  <ul>
+    {% for user in users_without_tokens %}
+    <li>
+      <a href="../apitoken/{{ user.api_token }}/" target="_blank">{{ user.Email }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <input type="hidden" name="action" value="user_delete_toggle_api_token" />
+  <p style="padding-top: 1em; text-align: center">
+  <span style="padding-right: 2em">
+    <a href="{{ request.get_full_path }}">
+      <input type="button" name="Cancel" value="Cancel">
+    </a>
+  </span>
+    <span>
+    <input type="submit" name="apply" value="Confirm"/>
+  </span>
+  </p>
+</form>
+<script>
+  AdminUserDeleteToggleAPIToken = {
+    toggleAll: function (source) {
+      for (let i = 0; i < "{{ users_with_tokens.count }}"; i++) {
+        let toggle_id = "id_form-" + i + "-toggle";
+        let toggle = document.getElementById(toggle_id);
+        toggle.value = source.value;
+      }
+    },
+    checkAll: function (source) {
+      for (let i = 0; i < "{{ users_with_tokens.count }}"; i++) {
+        let checkbox_id = "id_form-" + i + "-delete_token";
+        let checkbox = document.getElementById(checkbox_id);
+        checkbox.checked = source.checked;
+      }
+
+    }
+  }
+</script>
+{% endblock %}
