@@ -39,7 +39,7 @@ export default {
 
 .feature-section-container {
     display: flex;
-    margin: 200px auto 0px;
+    margin: 160px auto 0px;
     width: 80%;
 }
 
@@ -81,8 +81,14 @@ export default {
 
 .info-section-right {
     margin-left: 100px;
-    text-align: right;
-    direction: rtl;
+}
+
+.info-section-right > * {
+    margin: auto;
+}
+
+.info-section-right > h2 {
+    text-align: center;
 }
 
 .info-section-left {
@@ -114,6 +120,18 @@ export default {
     text-align: center;
     margin: 1em 0px 1em;
     flex:2;
+}
+.info-section-right {
+    margin-left: 100px;
+    text-align: center;
+}
+
+.info-section-right > * {
+    margin: auto;
+}
+
+.info-section-right > h2 {
+    text-align: center;
 }
 
 .info-section-right {

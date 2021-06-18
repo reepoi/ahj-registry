@@ -25,6 +25,7 @@ webpageTokenUrls= [
     ('user-create', {}), 
     ('user-login', {}),
     ('user-logout', {}),
+    ('confirm-reset-password', {})
 ]
 
 apiTokenUrls = [

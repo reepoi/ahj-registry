@@ -2,20 +2,12 @@
     <div>
         <h1>API</h1>
         <div>
-            <h4 id="api-description-text">Our API makes searching and filtering AHJs by location, AHJ ID, Building Code type, and many other attributes an easy process. Documentation for our API is still in the works.</h4>
+            <h4 id="api-description-text">Our API makes searching and filtering AHJs by location, AHJ ID, Building Code type, and many other attributes an easy process. 
+                Documentation for our API is still in the works. To obtain an API token, contact us at support@sunspec.org.</h4>
             <b-button id="documentation-button" class="button" disabled block pill variant="primary">
                 Go to Documentation
             </b-button>
         </div>
-        <b-button id="get-token-button" class="button" @click="displayAPIToken" block pill variant="primary">Get Current API Token</b-button>
-        <b-button id="generate-token-button" class="button" @click="GenerateAPIToken" :disabled="this.SubmitStatus === 'PENDING'" block pill variant="primary">
-            Generate New Token
-        </b-button>
-        <p>Note: One token per account. <b> Generating a new token will destroy any older tokens.</b></p>
-        <h4 class="api-status-text" v-if="this.showAPIToken">Your current API token: <span>{{this.$store.state.currentUserInfo.APIToken}}</span></h4>
-        <h4 class="api-status-text" v-if="this.generatedAPIToken && this.SubmitStatus === 'OK'">Your new API token: <span>{{this.APIToken}}</span></h4>
-        <h4 class="api-status-text" v-if="this.SubmitStatus === 'PENDING'"> Generating Token... </h4>
-        <h4 class="api-status-text error" v-if="this.SubmitStatus === 'ERROR'"> Something went wrong with generating your API token. </h4>
     </div>
 </template>
 
@@ -67,6 +59,9 @@ export default {
 </script>
 
 <style scoped>
+h1 {
+    margin-bottom: 0.5em;
+}
 .button {
     width: 30%;
     min-width: 180px;
@@ -78,6 +73,9 @@ export default {
 }
 #generate-token-button {
     margin-bottom: 5px;
+}
+#api-description-text {
+    margin-bottom: 1.5em;
 }
 #get-token-button{
     margin-bottom: 25px;

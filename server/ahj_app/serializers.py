@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+from djoser.compat import get_user_email, get_user_email_field_name
+from django.conf import settings
 from django.db import connection
 from rest_framework import serializers
 from rest_framework_gis import serializers as geo_serializers
@@ -485,3 +487,32 @@ class DataVisAHJPolygonInfoSerializer(serializers.Serializer):
         if self.context.get('is_state', False) is True:
             r.update(get_polygons_in_state(str(r['PolygonID'])))
         return r
+
+# Serializer used in Djoser's password reset endpoint. 
+class UserFunctionsMixin:
+    def get_user(self):
+        try:
+            user = User._default_manager.get(
+                **{self.email_field: self.data.get(self.email_field, "")},
+            )
+            if user.has_usable_password():
+                return user
+        except User.DoesNotExist:
+            pass
+        if (
+            settings.PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND
+            or settings.USERNAME_RESET_SHOW_EMAIL_NOT_FOUND
+        ):
+            self.fail("email_not_found")
+
+# Serializer used in Djoser's password reset endpoint
+class SendEmailResetSerializer(serializers.Serializer, UserFunctionsMixin):
+    default_error_messages = {
+        "email_not_found": "User with given email does not exist."
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.email_field = get_user_email_field_name(User)
+        self.fields[self.email_field] = serializers.EmailField()

@@ -1,9 +1,8 @@
 <template>
     <div id="commentCard">
         <div>
-<!--             <img v-if="this.Comment === null || this.Comment.User.Photo === null" class='pfp' src='../../../src/assets/images/genie.jpg'/>-->
-<!--             <img v-else v-bind:src="Comment.User.Photo" class='pfp'/>-->
-<!-- REPLACE ABOVE LINES WHEN PFPS WORK -->
+             <img v-if="this.Comment === null || this.Comment.User.Photo === null" class='pfp' src='../../../src/assets/images/profile-image-default.jpeg'/>
+             <img v-else v-bind:src="Comment.User.Photo" class='pfp'/>
         </div>
         <div class="info-text">
             <div class="username">

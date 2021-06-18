@@ -1,27 +1,21 @@
 <template>
   <div class="About-page-container">
+      <!-- Client Section -->
+    <div id="client-section">
+        <img v-for="client in clientPhotos" :key="client" :src="require('@/assets/' + clientPhotoLocation + client + '')" />
+    </div>
+    <hr>
 
     <!-- About Section -->
      <div id="about-section">
         <h2 id="about-section-header">What is the AHJ Registry?</h2>
         <h4>The AHJ Registry contains the building permit and contact information for most 
-            AHJs within the United States. The registry is founded upon a collection of data
-            provided by NREL and is kept updated through crowd-sourced edits. <br> <br>
-            <!-- The registry has a 97% accuracy rate with building permit requirements. -->
+            AHJs within the United States. The registry is founded upon a collection of data 
+            provided by NREL and is kept updated through crowd-sourced edits. <br>
         </h4>
-        <hr style="width:30%;">
-         <!-- video section div to specify max height, videowrapper and iframe for responsiveness trick. Used for our final website. -->
-         <div id="video-section">
-            <div id="videowrapper">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/d8Fwy-3aR50" frameborder="0" allowfullscreen></iframe>
-            </div>
-        </div> 
     </div>
 
-    <!-- Client Section -->
-    <div id="client-section"> 
-        <img v-for="client in clientPhotos" :key="client" :src="require('@/assets' + clientPhotoLocation + '' + client + '')" />
-    </div>
+    <hr>
 
     <!-- Features Section (describes main features of AHJ Registry)-->
     <feature-section headerText="AHJ Map Search Tool" 
@@ -32,9 +26,7 @@
                     imgSrc="/images/AboutPage/ComponentPictures/partial_map.png"
                     ></feature-section>
     <feature-section headerText="Our API" 
-                    paragraphText="Our API makes searching and filtering AHJs by location, AHJ ID, Building Code type, and many other attributes an easy process. Create an account to request an API token"
-                    buttonText="View Documentation"
-                    buttonPageLink="login"
+                    paragraphText="Our API makes searching and filtering AHJs by location, AHJ ID, Building Code type, and many other attributes an easy process. Contact support@sunspec.org for an API token."
                     pictureSide="left"
                     imgSrc="/images/AboutPage/ComponentPictures/API_code.png"
                     ></feature-section>
@@ -80,9 +72,8 @@ export default {
     data() {
         return {
             Email: '',
-            clientPhotos: ['titan_solar.png', 'aurora.jpg', 'solar_app.png', 'raise_green.png', 
-            'ipsun_solar.jpg', 'solar_power_of_oklahoma.jpg', '17_terawatts.jpg', 'blue_banyan.jpg', 'sunspec_alliance.png'],
-            clientPhotoLocation: "/images/AboutPage/clients/",
+            clientPhotos: ['sunspec_alliance.png'],
+            clientPhotoLocation: "images/AboutPage/clients/",
         }
     },
     computed: {
@@ -99,8 +90,14 @@ export default {
 
 <style scoped>
 
+hr {
+    margin: 0;
+    padding: 0;
+    font-size: 1.5em;
+}
+
 h1 {
-    font-size: 4.2rem;
+    font-size: 4rem;
 }
 
 h2 {
@@ -108,7 +105,11 @@ h2 {
 }
 
 h4 {
-    font-size: 1.4rem;
+    font-size: 1.8rem;
+}
+
+.error {
+    color: #dc3545;
 }
 
 h5 {
@@ -123,18 +124,16 @@ h5 {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 40px 0px;
+    padding: 20px 0px;
     width: 92%;
     margin: auto;
 }
 
 #client-section > * {
-    max-height: 13vh;
-    max-width: 12.5vw;
+    max-height: 20vh;
+    max-width: 18vw;
     flex: 1;
     object-fit: contain; /* always keep the aspect ratio the same */
-    margin-right: 1vw;
-    margin-top: 2em;
     width: 100%;
 }
 
@@ -222,7 +221,7 @@ h5 {
     #client-section {
         flex-wrap: wrap;
         justify-content: center;
-        padding: 10px 0px;
+        padding: 0px;
     }
     #client-section > *{
         max-height: 130px;
@@ -259,8 +258,8 @@ h5 {
         font-size: 1.1rem;
     }
     #client-section > *{
-        max-height: 100px;
-        max-width: 130px;
+        max-height: 150px;
+        max-width: 200px;
         margin-top: 5px;
     }
     #about-section h4 {

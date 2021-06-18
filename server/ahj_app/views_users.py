@@ -1,9 +1,12 @@
 import json
 import os
 
+from djoser.conf import settings as djoser_settings
+from djoser.compat import get_user_email
+from django.utils.timezone import now
 from django.http import HttpResponse
 from rest_framework import status
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db import transaction
@@ -30,6 +33,27 @@ class LoginUser(TokenCreateView):
 class LogoutUser(TokenDestroyView):
     pass
 
+
+@authentication_classes([WebpageTokenAuth])
+@permission_classes([IsAuthenticated])
+class ConfirmPasswordReset(UserViewSet):
+
+    @action(["post"], detail=False)
+    def reset_password_confirm(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.user.set_password(serializer.data["new_password"])
+        if hasattr(serializer.user, "last_login"):
+            serializer.user.last_login = now()
+        serializer.user.is_active = True # The purpose of overwriting this endpoint is to set users as active if performing password reset confirm.
+        serializer.user.save()           # The user had to access their email account to perform a password reset.
+
+        if djoser_settings.PASSWORD_CHANGED_EMAIL_CONFIRMATION:
+            context = {"user": serializer.user}
+            to = [get_user_email(serializer.user)]
+            djoser_settings.EMAIL.password_changed_confirmation(self.request, context).send(to)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 @authentication_classes([WebpageTokenAuth])
@@ -76,7 +100,7 @@ def user_update(request, username):
         token = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
         receivedToken = WebpageToken.objects.get(key=token)
         # Check if the user requesting the user update is updating their own account
-        if (receivedToken.user.UserID not in [user.UserID, WebpageToken.objects.get(key=settings.WEBPAGE_TOKEN_CONSTANT).user.UserID]):
+        if (receivedToken.user.UserID != user.UserID):
             raise Exception("Provided token credentials do not match user being updated.")
         contact = user.ContactID
         # request.data is an immutable QueryDict, so we must make a copy

@@ -153,7 +153,6 @@ export default {
          submitRegistration() {
             // Touch the validator object (now making it dirty) so now if any validations fail, the incorrcet fields will show error messages.
             this.$v.$touch();
-            let that = this;
             // If all validations checks pass, call the api to create the user.
             if (!this.$v.$invalid && !this.isQueryingDataBase) {
                 this.submitStatus = 'PENDING';
@@ -169,22 +168,8 @@ export default {
                 }).then(() => {
                     this.submitStatus = 'OK';
                     document.getElementById("registration-form").reset();
-                    // Send user first and last name to backend (ideally we will consolidate all this into one API call). 
-                    axios.post(constants.API_ENDPOINT + "user/update/" + that.Username + "/", 
-                        {
-                            "FirstName" : that.FirstName,
-                            "LastName" : that.LastName
-                        },
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `${this.$store.getters.authToken}`
-                            }
-                        }
-                    )
                 })
                 .catch(error => {
-                    console.log(error);
                     this.submitStatus = 'ERROR';
                     if (error.response){
                         // If password error, display the password error underneath the password field
