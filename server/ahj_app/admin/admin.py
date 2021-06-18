@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 
 from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits, \
-    edit_revert_edits
+    edit_roll_back_edits
 from .form import UserChangeForm
 
 USER_DATA_MODELS = {
@@ -13,7 +13,6 @@ USER_DATA_MODELS = {
     'Comment',
     'Edit',
     'User',
-    'WebpageToken'
 }
 
 POLYGON_DATA_MODELS = {
@@ -246,7 +245,7 @@ Adding Admin Actions:
 edit_admin_model = model_admin_dict['Edit']['admin_model']
 admin_actions_to_add = []
 admin_actions_to_add.append(get_action_info_dict('edit_approve_edits', edit_approve_edits))
-admin_actions_to_add.append(get_action_info_dict('edit_revert_edits', edit_revert_edits))
+admin_actions_to_add.append(get_action_info_dict('edit_roll_back_edits', edit_roll_back_edits))
 for action in admin_actions_to_add:
     setattr(edit_admin_model, action['name'], action['function'])
     edit_admin_model.actions.append(action['name'])

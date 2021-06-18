@@ -9,7 +9,7 @@ from django.utils import timezone
 from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm, EditApproveForm
 from ..models import User, APIToken, Edit
 from ..usf import dict_filter_keys_start_with
-from ..views_edits import apply_edits, revert_edit
+from ..views_edits import apply_edits, revert_edit, reset_edit, edit_is_resettable
 
 
 def reset_password(user, raw_password):
@@ -213,10 +213,13 @@ def process_approve_edits_data(post_data, requesting_user):
         date_effective = set_date_from_str(date_str=date_str)
         if date_effective is None:
             continue
+        apply_now = date_effective.date() <= datetime.date.today()
+        if apply_now:
+            date_effective = timezone.now()
         edit_form_data.append({'edit': edit,
                                'approved_by': requesting_user,
                                'date_effective': date_effective,
-                               'apply_now': date_effective.date() == datetime.date.today()})
+                               'apply_now': apply_now})
     return edit_form_data
 
 
@@ -238,6 +241,7 @@ def edit_approve_edits(self, request, queryset):
     Admin action for the Edit model. The admin can select one or
     more edits and approve each one by setting its date effective and approving user.
     """
+    queryset = queryset.order_by('DateRequested')
     if 'apply' in request.POST:
         """
         The form has been filled out and submitted.
@@ -261,25 +265,35 @@ def edit_approve_edits(self, request, queryset):
 edit_approve_edits.short_description = 'Approve Edits'
 
 
-def edit_revert_edits(self, request, queryset):
+def edit_roll_back_edits(self, request, queryset):
     """
     Admin action for the Edit model. The admin can select one or
-    more edits and each one will be reverted. To revert an edit,
-    a new edit is created that changes the edited field to the
-    old value of the reverted edit.
+    more edits and each one will be rolled back. To roll back an edit,
+    it is either reset (it is changed to a pending edit, and its
+    changes are undone), or reverted (a new edit is created that
+    reverses the change made by the selected edit).
     """
+    queryset = queryset.order_by('-DateEffective')
+    pending_edits, non_pending_edits = partition_by_field(queryset, 'ReviewStatus', 'P')
+    resettable_edits = [edit for edit in non_pending_edits if edit_is_resettable(edit)]
+    non_resettable_edits = [edit for edit in non_pending_edits if not edit_is_resettable(edit)]
     if 'apply' in request.POST:
         """
         The form has been filled out and submitted.
         """
-        for edit in queryset:
-            revert_edit(request.user, edit)
+        for edit in non_resettable_edits:
+            reset_edit(request.user, edit)
+        for edit in resettable_edits:
+            revert_occurred = not edit_is_resettable(edit)
+            reset_edit(request.user, edit, force_resettable=revert_occurred, skip_undo=revert_occurred)
         self.message_user(request, 'Success', level=messages.INFO)
         return HttpResponseRedirect(request.get_full_path())
-    return render(request, 'admin/edit_revert_edits.html', context={
+    return render(request, 'admin/edit_roll_back_edits.html', context={
         'request': request,
-        'edits': queryset
+        'pending_edits': pending_edits,
+        'resettable_edits': resettable_edits,
+        'non_resettable_edits': non_resettable_edits
     })
 
 
-edit_revert_edits.short_description = 'Revert Edits'
+edit_roll_back_edits.short_description = 'Roll back Edits'

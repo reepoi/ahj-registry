@@ -79,14 +79,18 @@ def revert_edit(user, edit):
     Creates and applies an edit that reverses the change of the given edit.
     The OldValue of the created edit is the current value of the edited field.
     """
+    if edit.ReviewStatus == 'P':
+        return
     row = edit.get_edited_row()
     current_value = getattr(row, edit.SourceColumn)
     if edit.SourceColumn in ENUM_FIELDS:
-        current_value = current_value.Value
+        current_value = current_value.Value if current_value is not None else ''
     if edit.EditType in {'A', 'D'}:
         next_value = not edit.NewValue
     else:
         next_value = edit.OldValue
+    if current_value == next_value:
+        return
     revert_edit_dict = {'User': user,
                         'AHJPK': edit.AHJPK,
                         'SourceTable': edit.SourceTable,
@@ -106,7 +110,7 @@ def edit_is_applied(edit):
     and if their DateEffective has passed.
     """
     edit_is_approved = edit.ReviewStatus == 'A'
-    date_effective_passed = edit.DateEffective.date() <= timezone.now().date()
+    date_effective_passed = edit.DateEffective is not None and edit.DateEffective.date() <= timezone.now().date()
     return edit_is_approved and date_effective_passed
 
 
@@ -143,7 +147,7 @@ def edit_update_old_value(edit):
     row = edit.get_edited_row()
     current_value = getattr(row, edit.SourceColumn)
     if edit.SourceColumn in ENUM_FIELDS:
-        current_value = current_value.Value
+        current_value = current_value.Value if current_value is not None else ''
     edit.OldValue = current_value
     edit.save()
 
@@ -165,7 +169,7 @@ def edit_undo_apply(edit):
     row.save()
 
 
-def reset_edit(user, edit):
+def reset_edit(user, edit, force_resettable=False, skip_undo=False):
     """
     Rolls back the an edit in a similar way to Git's 'git reset' command.
     When an edit is reset, it returns to a pending state, again awaiting
@@ -173,11 +177,13 @@ def reset_edit(user, edit):
     to the edited row are undone.
     If an edit is not resettable, it is instead reverted.
     """
-    if edit_is_resettable(edit):
-        if edit_is_applied(edit):
+    if edit_is_resettable(edit) or force_resettable:
+        if edit_is_applied(edit) and not skip_undo:
             edit_undo_apply(edit)
+        else:
+            edit_update_old_value(edit)
         edit_make_pending(edit)
-    else:
+    elif edit.ReviewStatus == 'A':
         revert_edit(user, edit)
 
 ####################

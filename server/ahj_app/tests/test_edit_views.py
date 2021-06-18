@@ -42,9 +42,21 @@ def create_obj_from_dict(model_name, obj_dict):
 
 
 def set_obj_field(obj, field_name, value):
-    value = get_enum_value_row(field_name, value) if field_name in ENUM_FIELDS else value
+    if field_name in ENUM_FIELDS:
+        if value == '':
+            value = None
+        else:
+            value = get_enum_value_row(field_name, value)
     setattr(obj, field_name, value)
     obj.save()
+
+
+def get_value_or_enum_row(field_name, value):
+    return get_enum_value_row(field_name, value) if field_name in ENUM_FIELDS else value
+
+
+def get_obj_field(obj, field_name):
+    return getattr(obj._meta.model.objects.get(**{obj._meta.pk.name: obj.pk}), field_name)
 
 
 def filter_to_edit(edit_dict):
@@ -278,23 +290,6 @@ def test_edit_update__applied_immediately(ahj_obj, generate_client_with_webpage_
     assert Edit.objects.get(AHJPK=ahj_obj.AHJPK).ReviewStatus == 'A'
 
 
-# @pytest.mark.parametrize(
-#     'model_name, obj_dict, field_name, old_value, new_value', [
-#         ('AHJ', {'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}},
-#          'AHJName', 'oldname', 'newname'),
-#         ('Contact', {'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}},
-#          'FirstName', 'oldname', 'newname'),
-#         ('Address', {'LocationID': {'_model_name': 'Location'}}, 'Country', 'oldcountry', 'newcountry'),
-#         ('Location', {}, 'Elevation', Decimal('0.00000000'), Decimal('10000.00000000')),
-#         ('Location', {}, 'LocationDeterminationMethod', '', 'AddressGeocoding'),
-#         ('EngineeringReviewRequirement', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
-#          'RequirementLevel', 'ConditionallyRequired', 'Required'),
-#         ('AHJInspection', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
-#          'FileFolderURL', 'oldurl', 'newurl'),
-#         ('FeeStructure', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
-#          'FeeStructureID', str(uuid.uuid4()), str(uuid.uuid4()))
-#     ]
-# )
 @pytest.mark.parametrize(
     'model_name, obj_dict, field_name, old_value, new_value, expected_value', [
         ('AHJ', {'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}},
@@ -304,6 +299,7 @@ def test_edit_update__applied_immediately(ahj_obj, generate_client_with_webpage_
         ('Address', {'LocationID': {'_model_name': 'Location'}}, 'Country', 'oldcountry', 'newcountry', 'old_value'),
         ('Location', {}, 'Elevation', Decimal('0.00000000'), Decimal('10000.00000000'), 'old_value'),
         ('Location', {}, 'LocationDeterminationMethod', '', 'AddressGeocoding', None),
+        ('Location', {}, 'LocationDeterminationMethod', 'AddressGeocoding', '', 'old_value'),
         ('EngineeringReviewRequirement', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
          'RequirementLevel', 'ConditionallyRequired', 'Required', 'old_value'),
         ('AHJInspection', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
@@ -326,9 +322,47 @@ def test_edit_revert__edit_update(model_name, obj_dict, field_name, old_value, n
     views_edits.revert_edit(user, edit)
     edit_dict['OldValue'], edit_dict['NewValue'] = edit.NewValue, edit.OldValue
     if expected_value:
-        expected_value = get_enum_value_row(field_name, old_value) if field_name in ENUM_FIELDS else old_value
-    assert getattr(obj._meta.model.objects.get(**{obj._meta.pk.name: obj.pk}), field_name) == expected_value
+        expected_value = get_value_or_enum_row(field_name, old_value)
+    assert get_obj_field(obj, field_name) == expected_value
     assert check_edit_exists(edit_dict) is True
+
+
+@pytest.mark.django_db
+def test_edit_revert__edit_pending_do_nothing(create_user, ahj_obj):
+    user = create_user()
+    old_value = 'oldname'
+    new_value = 'newname'
+    set_obj_field(ahj_obj, 'AHJName', old_value)
+    edit_dict = {'ChangedBy': user, 'ApprovedBy': None,
+                 'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
+                 'OldValue': old_value, 'NewValue': new_value,
+                 'DateRequested': timezone.now(), 'DateEffective': None,
+                 'ReviewStatus': 'P', 'EditType': 'U', 'AHJPK': ahj_obj}
+    edit = Edit.objects.create(**edit_dict)
+    views_edits.revert_edit(user, edit)
+    edit_dict['OldValue'], edit_dict['NewValue'] = old_value, edit_dict['OldValue']
+    edit_dict['ReviewStatus'] = 'A'
+    edit_dict['ApprovedBy'], edit_dict['DateEffective'] = user, timezone.now()
+    assert not check_edit_exists(edit_dict)
+    assert Edit.objects.all().count() == 1
+
+
+@pytest.mark.django_db
+def test_edit_revert__current_value_is_old_value_do_nothing(create_user, ahj_obj):
+    user = create_user()
+    old_value = 'oldname'
+    new_value = 'newname'
+    set_obj_field(ahj_obj, 'AHJName', old_value)
+    edit_dict = {'ChangedBy': user, 'ApprovedBy': user,
+                 'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
+                 'OldValue': old_value, 'NewValue': new_value,
+                 'DateRequested': timezone.now(), 'DateEffective': timezone.now(),
+                 'ReviewStatus': 'A', 'EditType': 'U', 'AHJPK': ahj_obj}
+    edit = Edit.objects.create(**edit_dict)
+    views_edits.revert_edit(user, edit)
+    edit_dict['OldValue'], edit_dict['NewValue'] = old_value, edit_dict['OldValue']
+    assert not check_edit_exists(edit_dict)
+    assert Edit.objects.all().count() == 1
 
 
 @pytest.mark.django_db
@@ -352,7 +386,7 @@ def test_edit_revert__revert_edit_old_value_uses_current_row_value(create_user, 
     reverting_edit = filter_to_edit(edit_dict)
     assert reverting_edit.exists() is True
     assert reverting_edit.first().OldValue == new_value
-    assert AHJ.objects.get(AHJPK=ahj_obj.pk).AHJName == old_value
+    assert get_obj_field(ahj_obj, 'AHJName')
 
 
 @pytest.mark.parametrize(
@@ -389,7 +423,7 @@ def test_edit_revert__edit_addition(parent_model_name, parent_obj_dict, model_na
     views_edits.revert_edit(user, edit)
     edit_dict['OldValue'], edit_dict['NewValue'] = edit_dict['NewValue'], False
     assert check_edit_exists(edit_dict) is True
-    assert getattr(relation._meta.model.objects.get(**{relation._meta.pk.name: relation.pk}), relation.get_relation_status_field()) is edit_dict['NewValue']
+    assert get_obj_field(relation, relation.get_relation_status_field()) is edit_dict['NewValue']
 
 
 @pytest.mark.parametrize(
@@ -426,13 +460,14 @@ def test_edit_revert__edit_deletion(parent_model_name, parent_obj_dict, model_na
     views_edits.revert_edit(user, edit)
     edit_dict['OldValue'], edit_dict['NewValue'] = edit_dict['NewValue'], edit_dict['OldValue']
     assert check_edit_exists(edit_dict) is True
-    assert getattr(relation._meta.model.objects.get(**{relation._meta.pk.name: relation.pk}), relation.get_relation_status_field()) is edit_dict['NewValue']
+    assert get_obj_field(relation, relation.get_relation_status_field()) is edit_dict['NewValue']
 
 
 @pytest.mark.parametrize(
     'date_effective, date_checked, edit_status', [
         (timezone.now(), timezone.now() + datetime.timedelta(days=1), 'A'),
         (timezone.now(), timezone.now(), 'A'),
+        (None, timezone.now(), 'A'),
         (timezone.now() + datetime.timedelta(days=1), timezone.now(), 'A'),
         (timezone.now(), timezone.now(), 'R'),
         (timezone.now(), timezone.now(), 'P')
@@ -440,14 +475,18 @@ def test_edit_revert__edit_deletion(parent_model_name, parent_obj_dict, model_na
 )
 @pytest.mark.django_db
 def test_edit_is_applied__approved_and_date_effective_passed(date_effective, date_checked, edit_status, create_user, ahj_obj):
+    def get_expected_value(date_effective, date_checked, edit_status):
+        return date_effective is not None and date_effective <= date_checked and edit_status == 'A'
+
     user = create_user()
+    date_requested = date_effective if date_effective is not None else timezone.now()
     edit_dict = {'ChangedBy': user, 'ApprovedBy': user,
                  'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
                  'OldValue': 'oldname', 'NewValue': 'newname',
-                 'DateRequested': date_effective, 'DateEffective': date_effective,
+                 'DateRequested': date_requested, 'DateEffective': date_effective,
                  'ReviewStatus': edit_status, 'EditType': 'U', 'AHJPK': ahj_obj}
     edit = Edit.objects.create(**edit_dict)
-    assert views_edits.edit_is_applied(edit) == (date_effective <= date_checked and edit_status == 'A')
+    assert views_edits.edit_is_applied(edit) == get_expected_value(date_effective, date_checked, edit_status)
 
 
 @pytest.mark.parametrize(
@@ -511,6 +550,7 @@ def test_edit_make_pending(create_user, ahj_obj):
         ('Address', {'LocationID': {'_model_name': 'Location'}}, 'Country', 'oldcountry', 'newcountry'),
         ('Location', {}, 'Elevation', Decimal('0.00000000'), Decimal('10000.00000000')),
         ('Location', {}, 'LocationDeterminationMethod', '', 'AddressGeocoding'),
+        ('Location', {}, 'LocationDeterminationMethod', 'AddressGeocoding', ''),
         ('EngineeringReviewRequirement', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
          'RequirementLevel', 'ConditionallyRequired', 'Required'),
         ('AHJInspection', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
@@ -544,6 +584,7 @@ def test_edit_update_old_value(model_name, obj_dict, field_name, old_value, new_
         ('Address', {'LocationID': {'_model_name': 'Location'}}, 'Country', 'oldcountry', 'newcountry', 'old_value'),
         ('Location', {}, 'Elevation', Decimal('0.00000000'), Decimal('10000.00000000'), 'old_value'),
         ('Location', {}, 'LocationDeterminationMethod', '', 'AddressGeocoding', None),
+        ('Location', {}, 'LocationDeterminationMethod', 'AddressGeocoding', '', 'old_value'),
         ('EngineeringReviewRequirement', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
          'RequirementLevel', 'ConditionallyRequired', 'Required', 'old_value'),
         ('AHJInspection', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
@@ -565,8 +606,8 @@ def test_edit_undo_apply(model_name, obj_dict, field_name, old_value, new_value,
     views_edits.apply_edits(ready_edits=[edit])
     views_edits.edit_undo_apply(edit)
     if expected_value == 'old_value':
-        expected_value = get_enum_value_row(field_name, old_value) if field_name in ENUM_FIELDS else old_value
-    assert getattr(obj._meta.model.objects.get(**{obj._meta.pk.name: obj.pk}), field_name) == expected_value
+        expected_value = get_value_or_enum_row(field_name, old_value)
+    assert get_obj_field(obj, field_name) == expected_value
 
 
 @pytest.mark.parametrize(
@@ -578,6 +619,7 @@ def test_edit_undo_apply(model_name, obj_dict, field_name, old_value, new_value,
         ('Address', {'LocationID': {'_model_name': 'Location'}}, 'Country', 'oldcountry', 'newcountry', True, 'old_value'),
         ('Location', {}, 'Elevation', Decimal('0.00000000'), Decimal('10000.00000000'), True, 'old_value'),
         ('Location', {}, 'LocationDeterminationMethod', '', 'AddressGeocoding', True, None),
+        ('Location', {}, 'LocationDeterminationMethod', 'AddressGeocoding', '', True, 'old_value'),
         ('EngineeringReviewRequirement', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
          'RequirementLevel', 'ConditionallyRequired', 'Required', True, 'old_value'),
         ('AHJInspection', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
@@ -591,6 +633,7 @@ def test_edit_undo_apply(model_name, obj_dict, field_name, old_value, new_value,
         ('Address', {'LocationID': {'_model_name': 'Location'}}, 'Country', 'oldcountry', 'newcountry', False, 'old_value'),
         ('Location', {}, 'Elevation', Decimal('0.00000000'), Decimal('10000.00000000'), False, 'old_value'),
         ('Location', {}, 'LocationDeterminationMethod', '', 'AddressGeocoding', False, None),
+        ('Location', {}, 'LocationDeterminationMethod', 'AddressGeocoding', '', False, 'old_value'),
         ('EngineeringReviewRequirement', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
          'RequirementLevel', 'ConditionallyRequired', 'Required', False, 'old_value'),
         ('AHJInspection', {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
@@ -635,8 +678,28 @@ def test_edit_reset(model_name, obj_dict, field_name, old_value, new_value, crea
         assert edit.ApprovedBy is None
         assert edit.DateEffective is None
     if expected_value == 'old_value':
-        expected_value = get_enum_value_row(field_name, old_value) if field_name in ENUM_FIELDS else old_value
-    assert getattr(obj._meta.model.objects.get(**{obj._meta.pk.name: obj.pk}), field_name) == expected_value
+        expected_value = get_value_or_enum_row(field_name, old_value)
+    assert get_obj_field(obj, field_name) == expected_value
+
+
+@pytest.mark.django_db
+def test_edit_reset__edit_pending_do_nothing(create_user, ahj_obj):
+    user = create_user()
+    old_value = 'oldname'
+    new_value = 'newname'
+    set_obj_field(ahj_obj, 'AHJName', old_value)
+    edit_dict = {'ChangedBy': user, 'ApprovedBy': None,
+                 'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
+                 'OldValue': old_value, 'NewValue': new_value,
+                 'DateRequested': timezone.now(), 'DateEffective': None,
+                 'ReviewStatus': 'P', 'EditType': 'U', 'AHJPK': ahj_obj}
+    edit = Edit.objects.create(**edit_dict)
+    views_edits.reset_edit(user, edit)
+    edit_dict['OldValue'], edit_dict['NewValue'] = old_value, edit_dict['OldValue']
+    edit_dict['ReviewStatus'] = 'A'
+    edit_dict['ApprovedBy'], edit_dict['DateEffective'] = user, timezone.now()
+    assert not check_edit_exists(edit_dict)
+    assert Edit.objects.all().count() == 1
 
 
 @pytest.mark.django_db
@@ -669,7 +732,7 @@ def test_edit_reset__edit_rejected_always_make_pending_only(create_user, ahj_obj
     assert later_edit.ReviewStatus == 'P'
     assert later_edit.ApprovedBy is None
     assert later_edit.DateEffective is None
-    assert AHJ.objects.get(AHJPK=ahj_obj.pk).AHJName == old_value
+    assert get_obj_field(ahj_obj, 'AHJName') == old_value
 
 
 @pytest.mark.django_db
@@ -702,4 +765,38 @@ def test_edit_reset__edit_approved_not_applied_always_make_pending_only(create_u
     assert later_edit.ReviewStatus == 'P'
     assert later_edit.ApprovedBy is None
     assert later_edit.DateEffective is None
-    assert AHJ.objects.get(AHJPK=ahj_obj.pk).AHJName == old_value
+    assert get_obj_field(ahj_obj, 'AHJName') == old_value
+
+
+@pytest.mark.parametrize(
+    'force_resettable, skip_undo', [
+        (True, False),
+        (True, True)
+    ]
+)
+@pytest.mark.django_db
+def test_edit_reset__kwargs(force_resettable, skip_undo, create_user, ahj_obj):
+    user = create_user()
+    old_value = 'oldname'
+    new_value = 'newname'
+    later_value = 'newname_later'
+    set_obj_field(ahj_obj, 'AHJName', later_value)
+    edit_dict = {'ChangedBy': user, 'ApprovedBy': user,
+                 'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
+                 'OldValue': old_value, 'NewValue': new_value,
+                 'DateRequested': timezone.now(), 'DateEffective': timezone.now(),
+                 'ReviewStatus': 'A', 'EditType': 'U', 'AHJPK': ahj_obj}
+    edit = Edit.objects.create(**edit_dict)
+    edit_dict['OldValue'], edit_dict['NewValue'] = edit_dict['NewValue'], later_value
+    later_edit = Edit.objects.create(**edit_dict)
+    views_edits.reset_edit(user, edit, force_resettable=force_resettable, skip_undo=skip_undo)
+    edit = Edit.objects.get(EditID=edit.EditID)
+    if force_resettable and not skip_undo:
+        assert get_obj_field(ahj_obj, 'AHJName') == old_value
+    elif force_resettable and skip_undo:
+        assert get_obj_field(ahj_obj, 'AHJName') == later_value
+        assert edit.OldValue == later_value
+    assert edit.NewValue == new_value
+    assert edit.ReviewStatus == 'P'
+    assert edit.ApprovedBy is None
+    assert edit.DateEffective is None
