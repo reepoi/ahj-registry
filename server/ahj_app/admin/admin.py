@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 
 from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits, \
-    edit_roll_back_edits
+    edit_roll_back_edits, ExportCSVMixin
 from .form import UserChangeForm
 
 USER_DATA_MODELS = {
@@ -16,6 +16,7 @@ USER_DATA_MODELS = {
 }
 
 POLYGON_DATA_MODELS = {
+    'Polygon',
     'StatePolygon',
     'CountyPolygon',
     'CityPolygon',
@@ -108,16 +109,18 @@ def get_default_model_admin_class(model, geo=False):
     """
     model_fields = [field for field in model._meta.fields]
     if geo:
-        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin):
+        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin, ExportCSVMixin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
+            actions = ['export_csv']
         return DefaultPolygonAdmin
     else:
-        class DefaultAdmin(admin.ModelAdmin):
+        class DefaultAdmin(admin.ModelAdmin, ExportCSVMixin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
+            actions = ['export_csv']
         return DefaultAdmin
 
 

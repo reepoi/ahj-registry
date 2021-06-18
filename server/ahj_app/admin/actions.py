@@ -1,15 +1,55 @@
+import csv
 import datetime
 
 from django.core.checks import messages
 from django.forms import formset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
 from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm, EditApproveForm
 from ..models import User, APIToken, Edit
-from ..usf import dict_filter_keys_start_with
-from ..views_edits import apply_edits, revert_edit, reset_edit, edit_is_resettable
+from ..usf import dict_filter_keys_start_with, ENUM_FIELDS
+from ..views_edits import apply_edits, reset_edit, edit_is_resettable
+
+
+def get_value_or_primary_key(obj, field):
+    """
+    Retrieves the value of a field from an object.
+    If the value is None, empty string is returned.
+    If the field is an enum field, its value is returned.
+    If the field is a related field, the its primary key is returned.
+    """
+    value = getattr(obj, field)
+    field_class_name = obj._meta.get_field(field).__class__.__name__
+    if value is None:
+        value = ''
+    elif field in ENUM_FIELDS:
+        value = value.Value
+    elif field_class_name == 'ForeignKey' or field_class_name == 'OneToOneField':
+        value = value.pk
+    return value
+
+
+class ExportCSVMixin:
+    """
+    Mixin to for an admin model to inherit to add an export_csv admin action.
+    """
+    def export_csv(self, request, queryset):
+        """
+        Returns a CSV file exporting all the rows in the queryset.
+        """
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename={timezone.now()}_{self.model.__name__}_table.csv'
+        writer = csv.writer(response)
+        writer.writerow(field_names)
+        for obj in queryset:
+            writer.writerow([get_value_or_primary_key(obj, field) for field in field_names])
+        return response
+
+    export_csv.short_description = 'Export CSV'
 
 
 def reset_password(user, raw_password):
