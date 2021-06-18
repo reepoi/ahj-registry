@@ -1,5 +1,5 @@
 from django.urls import reverse
-from ahj_app.models import User, Edit, Comment, AHJInspection
+from ahj_app.models import User, Edit, Comment, AHJInspection, Contact
 from fixtures import *
 from ahj_app.views_edits import *
 import pytest
@@ -184,3 +184,45 @@ def test_edit_list__missing_param(generate_client_with_webpage_credentials):
     url = reverse('edit-list')
     response = client.get(url)
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_edit_addition__applied_immediately(ahj_obj, generate_client_with_webpage_credentials):
+    """
+    This tests that edits are applied to what they are editing immediately.
+    It is temporary functionality to be removed after the 2.0 release.
+    """
+    client = generate_client_with_webpage_credentials(Username='someone')
+    user = User.objects.get(Username='someone')
+    url = reverse('edit-addition')
+
+    response = client.post(url, {'SourceTable': 'Contact',
+                                 'AHJPK': ahj_obj.AHJPK,
+                                 'ParentTable': 'AHJ',
+                                 'ParentID': ahj_obj.AHJPK,
+                                 'Value': [{}]}, format='json')
+    assert response.status_code == 200
+    contact_id = response.data[0]['ContactID']['Value']
+    assert Contact.objects.filter(ContactID=contact_id).exists()
+    assert Edit.objects.get(AHJPK=ahj_obj.AHJPK).ReviewStatus == 'A'
+
+
+@pytest.mark.django_db
+def test_edit_update__applied_immediately(ahj_obj, generate_client_with_webpage_credentials):
+    """
+    This tests that edits are applied to what they are editing immediately.
+    It is temporary functionality to be removed after the 2.0 release.
+    """
+    client = generate_client_with_webpage_credentials(Username='someone')
+    user = User.objects.get(Username='someone')
+    url = reverse('edit-update')
+
+    contact = Contact.objects.create(ParentTable='AHJ', ParentID=ahj_obj.AHJPK)
+    response = client.post(url, [{'SourceTable': 'Contact',
+                                 'SourceRow': contact.ContactID,
+                                 'SourceColumn': 'FirstName',
+                                 'NewValue': 'NewName',
+                                 'AHJPK': ahj_obj.AHJPK}], format='json')
+    assert response.status_code == 200
+    assert Contact.objects.get(ContactID=contact.ContactID).FirstName == 'NewName'
+    assert Edit.objects.get(AHJPK=ahj_obj.AHJPK).ReviewStatus == 'A'
