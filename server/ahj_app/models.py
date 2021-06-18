@@ -1,4 +1,6 @@
 import datetime
+
+from django.apps import apps
 from django.conf import settings
 from .models_field_enums import *
 from django.contrib.gis.db import models
@@ -250,6 +252,12 @@ class Edit(models.Model):
         db_table = 'Edit'
         verbose_name = 'Edit'
         verbose_name_plural = 'Edits'
+
+    def get_edited_row(self):
+        model = apps.get_model('ahj_app', self.SourceTable)
+        row = model.objects.get(**{model._meta.pk.name: self.SourceRow})
+        return row
+
 
 class Location(models.Model):
     LocationID = models.AutoField(db_column='LocationID', primary_key=True)

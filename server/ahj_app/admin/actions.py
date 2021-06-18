@@ -9,7 +9,7 @@ from django.utils import timezone
 from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm, EditApproveForm
 from ..models import User, APIToken, Edit
 from ..usf import dict_filter_keys_start_with
-from ..views_edits import apply_edits
+from ..views_edits import apply_edits, revert_edit
 
 
 def reset_password(user, raw_password):
@@ -259,3 +259,27 @@ def edit_approve_edits(self, request, queryset):
 
 
 edit_approve_edits.short_description = 'Approve Edits'
+
+
+def edit_revert_edits(self, request, queryset):
+    """
+    Admin action for the Edit model. The admin can select one or
+    more edits and each one will be reverted. To revert an edit,
+    a new edit is created that changes the edited field to the
+    old value of the reverted edit.
+    """
+    if 'apply' in request.POST:
+        """
+        The form has been filled out and submitted.
+        """
+        for edit in queryset:
+            revert_edit(request.user, edit)
+        self.message_user(request, 'Success', level=messages.INFO)
+        return HttpResponseRedirect(request.get_full_path())
+    return render(request, 'admin/edit_revert_edits.html', context={
+        'request': request,
+        'edits': queryset
+    })
+
+
+edit_revert_edits.short_description = 'Revert Edits'

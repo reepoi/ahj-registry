@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<form action="" method="post">
+    {% csrf_token %}
+    <p>
+        These edits will be reverted:
+    </p>
+    <ul>
+        {% for edit in edits %}
+        <li>
+            <h2><b>
+                <a href="../edit/{{ edit.pk }}/" target="_blank">Edit({{ edit.EditID }}): Revert {{ edit.SourceTable }}({{ edit.SourceRow }}).{{ edit.SourceColumn }} from '{{ edit.OldValue }}' to '{{ edit.NewValue }}'.</a>
+            </b></h2>
+            <input type="hidden" name="_selected_action" value="{{ edit.pk }}">
+        </li>
+        {% endfor %}
+    </ul>
+    <input type="hidden" name="action" value="edit_revert_edits" />
+    <p style="padding-top: 1em; text-align: center">
+  <span style="padding-right: 2em">
+    <a href="{{ request.get_full_path }}">
+      <input type="button" name="Cancel" value="Cancel">
+    </a>
+  </span>
+        <span>
+    <input type="submit" name="apply" value="Confirm"/>
+  </span>
+    </p>
+</form>
+{% endblock %}
