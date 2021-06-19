@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm, EditApproveForm
-from ..models import User, APIToken, Edit
+from ..models import User, APIToken, Edit, AHJUserMaintains, Comment
 from ..usf import dict_filter_keys_start_with, ENUM_FIELDS
 from ..views_edits import apply_edits, reset_edit, edit_is_resettable
 
@@ -224,6 +224,102 @@ def user_delete_toggle_api_token(self, request, queryset):
 user_delete_toggle_api_token.short_description = 'Delete/Toggle API Token'
 
 
+def build_url_parameters_for_change_list_filtering(queryset, field_key_pairs):
+    """
+    Builds a URL query of key-value pairs for each field of the form:
+     - <field>=<value>,...<value>
+    """
+    query = '?'
+    for f in field_key_pairs:
+        values = [str(v) for v in queryset.values_list(f['field'], flat=True)]
+        query += f'{f["key"]}={",".join(values)}&'
+    return query
+
+
+def field_key_pair(field, key):
+    return {'field': field, 'key': key}
+
+
+def load_change_list_with_queryset(request, queryset, model_name, field_key_pairs):
+    """
+    Creates the redirect response to a change list with a url query created from
+    the queryset and field_key_pairs.
+    """
+    query = build_url_parameters_for_change_list_filtering(queryset, field_key_pairs)
+    return HttpResponseRedirect(f'{request.build_absolute_uri(f"/admin/ahj_app/{model_name}/")}{query}')
+
+
+def user_query_api_tokens(self, request, queryset):
+    """
+    Admin action for the User model. Redirects the admin to
+    a change list of the selected users' APITokens.
+    Users without APITokens are filtered from the selection.
+    """
+    model_name = 'apitoken'
+    field_key_pairs = [field_key_pair('api_token__user', 'user')]
+    queryset = queryset.exclude(api_token=None)
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+user_query_api_tokens.short_description = 'Query API Tokens'
+
+
+def user_query_ahjs_is_ahj_official_of(self, request, queryset):
+    """
+    Admin action for the User model. Redirects the admin to
+    a change list of AHJs the selected users are AHJ officials of.
+    """
+    model_name = 'ahj'
+    field_key_pairs = [field_key_pair('AHJPK', 'AHJPK')]
+    queryset = AHJUserMaintains.objects.filter(UserID__in=queryset)
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+user_query_ahjs_is_ahj_official_of.short_description = 'Query Is AHJ Official Of'
+
+
+def user_query_submitted_edits(self, request, queryset):
+    """
+    Admin action for the User model. Redirects the admin to
+    a change list of edits submitted by the selected users.
+    """
+    model_name = 'edit'
+    field_key_pairs = [field_key_pair('ChangedBy', 'ChangedBy')]
+    queryset = Edit.objects.filter(ChangedBy__in=queryset)
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+user_query_submitted_edits.short_description = 'Query Submitted Edits'
+
+
+def user_query_approved_edits(self, request, queryset):
+    """
+    Admin action for the User model. Redirects the admin to
+    a change list of edits approved by the selected users.
+    """
+    model_name = 'edit'
+    field_key_pairs = [field_key_pair('ApprovedBy', 'ApprovedBy')]
+    queryset = Edit.objects.filter(ApprovedBy__in=queryset)
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+user_query_approved_edits.short_description = 'Query Approved Edits'
+
+
+def user_query_submitted_comments(self, request, queryset):
+    """
+    Admin action for the User model. Redirects the admin to
+    a change list of comments submitted by the selected users.
+    """
+    model_name = 'comment'
+    field_key_pairs = [field_key_pair('UserID', 'UserID')]
+    queryset = Comment.objects.filter(UserID__in=queryset)
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+user_query_submitted_comments.short_description = 'Query Submitted Comments'
+
+
 def set_date_from_str(date_str):
     """
     Returns a date object from a string formatted in '%Y-%m-%d'.
@@ -337,3 +433,59 @@ def edit_roll_back_edits(self, request, queryset):
 
 
 edit_roll_back_edits.short_description = 'Roll back Edits'
+
+
+def edit_query_submitting_users(self, request, queryset):
+    """
+    Admin action for the Edit model. Redirects the admin to
+    a change list of users who submitted the selected edits.
+    """
+    model_name = 'user'
+    field_key_pairs = [field_key_pair('UserID', 'UserID')]
+    queryset = User.objects.filter(UserID__in=queryset.values_list('ChangedBy', flat=True))
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+edit_query_submitting_users.short_description = 'Query Submitting Users'
+
+
+def edit_query_approving_users(self, request, queryset):
+    """
+    Admin action for the Edit model. Redirects the admin to
+    a change list of users who approved the selected edits.
+    """
+    model_name = 'user'
+    field_key_pairs = [field_key_pair('UserID', 'UserID')]
+    queryset = User.objects.filter(UserID__in=queryset.values_list('ApprovedBy', flat=True))
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+edit_query_approving_users.short_description = 'Query Approving Users'
+
+
+def ahj_query_ahj_official_users(self, request, queryset):
+    """
+    Admin action for the AHJ model. Redirects the admin to
+    a change list of users who are AHJ officials of the selected AHJs.
+    """
+    model_name = 'user'
+    field_key_pairs = [field_key_pair('UserID', 'UserID')]
+    queryset = AHJUserMaintains.objects.filter(AHJPK__in=queryset)
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+ahj_query_ahj_official_users.short_description = 'Query AHJ Official Users'
+
+
+def comment_query_submitting_users(self, request, queryset):
+    """
+    Admin action for the Comment model. Redirects the admin to
+    a change list of users who submitted the selected comments.
+    """
+    model_name = 'user'
+    field_key_pairs = [field_key_pair('UserID', 'UserID')]
+    queryset = User.objects.filter(UserID__in=queryset.values_list('UserID', flat=True))
+    return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
+
+
+comment_query_submitting_users.short_description = 'Query Submitting Users'

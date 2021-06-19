@@ -305,3 +305,11 @@ def test_approve_edit(apply_now, create_user, ahj_obj):
         apply_edits()
         ahj = AHJ.objects.get(AHJPK=ahj_obj.pk)
         assert ahj.AHJName == 'NewName'
+
+
+@pytest.mark.django_db
+def test_build_url_parameters_for_change_list_filtering(ahj_obj_factory):
+    ahj1 = ahj_obj_factory()
+    ahj2 = ahj_obj_factory()
+    ahj3 = ahj_obj_factory()
+    assert admin_actions.build_url_parameters_for_change_list_filtering(AHJ.objects.all(), [admin_actions.field_key_pair('AHJPK', 'AHJPK')]) == f'?AHJPK={ahj1.pk},{ahj2.pk},{ahj3.pk}&'
