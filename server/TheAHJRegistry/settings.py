@@ -77,9 +77,8 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 ROOT_URLCONF = 'TheAHJRegistry.urls'
 
 # Throttle rates are per day
-SUNSPEC_MEMBER_API_THROTTLE_RATE = 80000
-
-DEFAULT_API_THROTTLE_RATE = 80000
+SUNSPEC_MEMBER_API_THROTTLE_RATE = '100000000/month'
+WEBPAGE_SEARCH_THROTTLE_RATE = '3/day'
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': {
@@ -93,7 +92,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'member': f'{SUNSPEC_MEMBER_API_THROTTLE_RATE}/day'
+        'member': SUNSPEC_MEMBER_API_THROTTLE_RATE,
+        'webpage-search': WEBPAGE_SEARCH_THROTTLE_RATE
     },
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -133,6 +133,13 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '',
         'PORT': ''
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'APICache',
     }
 }
 

@@ -21,18 +21,15 @@ class MemberRateThrottle(UserRateThrottle):
             # No throttling
             return True
 
-        if request.user.is_authenticated:
-            self.key, self.num_requests = get_user_throttle_data(request.user)
-        else:
+        if not request.user.is_authenticated:
             # Unauthenticated user will be blocked by authentication guard
             # Returning False will give the user a throttle error instead of an authentication error
             return True
 
+        self.key = f'User{request.user.pk}'
         # Original logic from the parent method (besides cache key determination)
-
         if self.rate is None or self.key is None:
             return True
-
         self.history = self.cache.get(self.key, [])
         self.now = self.timer()
 
@@ -44,11 +41,21 @@ class MemberRateThrottle(UserRateThrottle):
             return self.throttle_failure()
         return self.throttle_success()
 
-# Returns the cache key associated with the incoming request and the applicable rate limit
-def get_user_throttle_data(user):
-    # If user works for SunSpec Alliance member, return MemberID cache key and standard member limit 
-    if user.MemberID:
-        return f'Member{user.MemberID.MemberID}', settings.SUNSPEC_MEMBER_API_THROTTLE_RATE
-    # Else user is regular, returns user pk cache key and standard user rate
-    else:
-        return user.pk, settings.DEFAULT_API_THROTTLE_RATE
+    def parse_rate(self, rate):
+        """
+        Given the request rate string, return a two tuple of:
+        <allowed number of requests>, <period of time in seconds>
+        """
+        if rate is None:
+            return (None, None)
+        num, period = rate.split('/')
+        num_requests = int(num)
+        if (period == 'month'): # Period is 30 days
+            duration = 2592000
+        else:
+            duration = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[period[0]]
+        return (num_requests, duration)
+
+class WebpageSearchThrottle(UserRateThrottle):
+    # Define a custom scope name to be referenced by DRF in settings.py
+    scope = "webpage-search"

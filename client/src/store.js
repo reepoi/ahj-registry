@@ -35,6 +35,7 @@ state: {
     cancelAPICallToken: null, // Field to call .cancel() on to cancel an axios api request
     apiLoading: true,
     apiError: false,
+    apiErrorStatusCode: null,
     showTable: false, // shows the search results table
     selectedAHJ: null, // Current AHJ in focus on map and AHJ table
     editList: null,
@@ -56,6 +57,7 @@ state: {
     mutations: {
         callAPI(state, queryPayload) {
             state.apiLoading = true;
+            this.state.apiErrorStatusCode = null;
             if (!state.showTable) {
                 state.showTable = true;
             }
@@ -99,6 +101,9 @@ state: {
                     }
                 })
                 .catch((err) => {
+                    if (err.response){
+                        this.state.apiErrorStatusCode = err.response.status;
+                    }
                     // request was cancelled or some other error
                     if(err.message !== 'previous request cancelled'){
                         this.state.apiError = true;

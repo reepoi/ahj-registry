@@ -1,9 +1,10 @@
 from rest_framework import status
-from rest_framework.decorators import permission_classes, authentication_classes, api_view
+from rest_framework.decorators import permission_classes, authentication_classes, throttle_classes, api_view
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from .throttles import WebpageSearchThrottle
 from .authentication import WebpageTokenAuth
 from .models import AHJ
 from .serializers import AHJSerializer
@@ -14,6 +15,7 @@ from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
+@throttle_classes([WebpageSearchThrottle])
 def webpage_ahj_list(request):
     """
     Functional view for the WebPageAHJList
@@ -27,7 +29,6 @@ def webpage_ahj_list(request):
     if polygon is not None:
         polygon_wkt = get_multipolygon_wkt(multipolygon=polygon)
     str_location = get_str_location(location=json_location)
-
     ahjs = filter_ahjs(
         AHJName=request.data.get('AHJName', None),
         AHJID=request.data.get('AHJID', None),

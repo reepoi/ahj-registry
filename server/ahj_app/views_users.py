@@ -51,7 +51,6 @@ class ActivateUser(UserViewSet):
             AHJUserMaintains.objects.create(AHJPK=maintainedAHJ, UserID=user, MaintainerStatus=1)
         user.is_active = True
         user.MemberID = self.get_member_id(user.Email)
-        print(user.MemberID)
         user.save()
 
         signals.user_activated.send(
