@@ -252,5 +252,3 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 GOOGLE_MAPS_KEY = ''
-
-WEBPAGE_TOKEN_CONSTANT = ''

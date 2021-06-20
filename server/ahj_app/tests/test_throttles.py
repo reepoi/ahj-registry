@@ -49,13 +49,28 @@ def test_member_rate_throttle__regular_user(urlName, args, generate_client_with_
 def test_webpage_search_throttle__regular_user(generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Email='f@f.fewbudsj')
     url = reverse('ahj-private')
-    args = {}
     iterNum = 3
     settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']['webpage-search'] = f'{iterNum}/day'
     for i in range(0, iterNum):
-        response = client.post(url, args, format='json')
+        response = client.post(url, {}, format='json')
         # Check second to last run is not throttled
         if (i == iterNum-1):
             assert response.status_code == 200
-    response = client.post(url, args, format='json')
+    response = client.post(url, {}, format='json')
     assert response.data['detail'][0:22] == 'Request was throttled.'
+
+@pytest.mark.django_db
+def test_webpage_search_throttle__member_user(generate_client_with_webpage_credentials):
+    memberID, domain = generate_sunspec_alliance_member()
+    client = generate_client_with_webpage_credentials(Email=f'f@{domain}')
+    User.objects.filter(Email=f'f@{domain}').update(MemberID = memberID)
+    url = reverse('ahj-private')
+    iterNum = 3
+    settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']['webpage-search'] = f'{iterNum}/day'
+    for i in range(0, iterNum):
+        response = client.post(url, {}, format='json')
+        # Check second to last run is not throttled
+        if (i == iterNum-1):
+            assert response.status_code == 200
+    response = client.post(url, {}, format='json')
+    assert response.status_code == 200 # API calls still work outside of the throttle threshold (because members have unlimited calls)
