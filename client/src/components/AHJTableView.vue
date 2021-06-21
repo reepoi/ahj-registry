@@ -41,8 +41,8 @@
             <b-col v-html="rowGetAHJAddress(row)"></b-col>
           </b-row>
           <b-row class="mb-2">
-            <b-col sm="4" class="text-sm-right"><b>Visit this AHJ's Page:</b></b-col>
-            <b-col><b-button size="sm" @click="$router.push({ name: 'view-ahj', params: { AHJID: row.item.AHJPK.Value }})" class="mr-2">AHJ Page</b-button></b-col>
+            <b-col sm="4" class="text-sm-right"><b>Learn more about this AHJ:</b></b-col>
+            <b-col><b-button size="sm" @click="openWithTab({ name: 'view-ahj', params: { AHJID: row.item.AHJPK.Value }})" class="mr-2">More Details</b-button></b-col>
           </b-row>
         </template>
       </b-table>
@@ -179,6 +179,10 @@ export default {
           }
         }
       }
+    },
+    openWithTab(routeObj){
+      let page = this.$router.resolve(routeObj);
+      window.open(page.href,'_blank');
     }
   },
   watch: {
