@@ -229,6 +229,7 @@ def test_set_date_from_str(date_str):
 @pytest.mark.parametrize(
     'date_effective', [
         timezone.now(),
+        timezone.now() + datetime.timedelta(days=1),
         timezone.make_aware(datetime.datetime(1, 1, 1))
     ]
 )
@@ -254,6 +255,8 @@ def test_process_approve_edits_data(date_effective, create_user, ahj_obj):
     for x in range(len(edits)):
         assert results[x]['edit'].EditID == edits[x].EditID
         assert results[x]['approved_by'].UserID == approving_user.UserID
+        if date_effective <= timezone.now():
+            date_effective = timezone.now()
         assert results[x]['date_effective'].date() == date_effective.date()
         assert results[x]['apply_now'] == (date_effective.date() == datetime.date.today())
 
