@@ -19,6 +19,7 @@
                     <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in contactAddition.Value" v-bind:key="`CONTADD${index}`">
                         <!-- Contact Addition -->
                         <h3>You have added a Contact</h3>
+                        <h3>{{add.Address.AddrLine1}}</h3>
                         <!-- Allow it to be deleted -->
                         <i v-on:click="deleteContactAddition(index)" class="fas fa-minus"></i>
                     </div>
@@ -189,6 +190,14 @@
                         <label for="Description">Description</label>
                         <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
                         </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
+                        </div>
                 </div>
                 
                 <div style="margin:2px;margin-top:15px;">Created Contacts</div>
@@ -313,6 +322,14 @@
                          <b-form-select size="sm" id="addrtype" :options="consts.CHOICE_FIELDS.Address.AddressType" v-model="Address.AddressType" />
                         <label for="Description">Description</label>
                         <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
                         </div>
                         <div style="flex-basis:100%;margin-top:25px;"/>
                         <div class="edit-buttons">
@@ -959,7 +976,10 @@
                 <div>
                     <h3>AHJID: {{ this.AHJInfo ? this.AHJInfo.AHJID.Value : 'Loading' }}</h3>
                 </div>
-                                
+                <div>
+                    <h3 v-if="!isEditing">Description: {{ this.AHJInfo ? this.AHJInfo.Description.Value : 'Loading' }}</h3>
+                    <input v-else type="text" v-model="Edits.Description" />
+                </div>
                 <div class="break"/>
                 <div style="width:10px;"/>
                 <div id="edit-buttons">
@@ -1220,7 +1240,13 @@ export default {
                 ResidentialCode: "",
                 ResidentialCodeNotes: "",
                 WindCode: "",
-                WindCodeNotes: ""
+                WindCodeNotes: "",
+                Description: "",
+                DocumentSubmissionMethodNotes: "",
+                PermitIssueMethodNotes: "",
+                EstimatedTurnaroundDays: "",
+                FileFolderURL: "",
+                URL: ""
             },
             //constants file
             consts: constants,
@@ -1421,6 +1447,7 @@ export default {
             //Application upload file and status
             uploadedApplication: null,
             applicationStatus: null,
+            contactAdditionBackup: null
         }
     },
     computed: {
@@ -1904,17 +1931,28 @@ export default {
             }
             //addition endpoint
             url = constants.API_ENDPOINT + 'edit/add/';
+            for(var i = 0; i < this.contactAddition.Value.length;i++){
+                let keys = Object.keys(this.contactAddition.Value[i].Address);
+                for(var j = 0; j < keys.length; j++){
+                    console.log(this.contactAddition.Value[i].Address[keys[j]]);
+                    this.contactAddition.Value[i].Address[keys[j]] = this.contactAddition.Value[i].Address[keys[j]];
+                }
+            }
+            this.contactAddition.Value = [...this.contactAddition.Value];
+            console.log(JSON.stringify(this.contactAddition));
             //submit all addition objects to backend (this order is random)
             axios
-                .post(url,this.contactAddition, {
+                .post(url,JSON.stringify(this.contactAddition), {
                     headers: {
-                        Authorization: this.$store.getters.authToken
+                        Authorization: this.$store.getters.authToken,
+                        'Content-type': 'application/json'
                     }
                 })
             axios
-                .post(url,this.inspectionAddition, {
+                .post(url,JSON.stringify(this.inspectionAddition), {
                     headers: {
-                        Authorization: this.$store.getters.authToken
+                        Authorization: this.$store.getters.authToken,
+                        'Content-type': 'application/json'
                     }
                 })
 
@@ -2052,11 +2090,13 @@ export default {
             this.Edits.FireCodeNotes = this.AHJInfo.FireCodeNotes.Value === 'None' ? '' : this.AHJInfo.FireCodeNotes.Value;
             this.Edits.WindCodeNotes = this.AHJInfo.WindCodeNotes.Value === 'None' ? '' : this.AHJInfo.WindCodeNotes.Value;
             this.Edits.ElectricCodeNotes = this.AHJInfo.ElectricCodeNotes.Value === 'None' ? '' : this.AHJInfo.ElectricCodeNotes.Value;
+            this.Edits.Description = this.AHJInfo.Description.Value === 'None' ? '' : this.AHJInfo.Description.Value;
         },
         //user creates a contact addition edit
         addContact(){
             //deep copy address into contact object
-            this.AddCont.Address = { ...this.Address };
+            this.$set(this.AddCont, 'Address',{ ...this.Address });
+            this.AddCont.Address.Location = {...this.Location};
             //if we are not replacing a contact
             if(this.replacingCont < 0){
                 //if we are not adding to an inspection, push to contact addition object
@@ -2101,6 +2141,7 @@ export default {
             for(let i = 0; i < k.length; i++){
                 this.Address[k[i]] = "";
             }
+            console.log(this.contactAddition.Value[0]);
             // this.showBigDiv('addacontact');
         },
         //adding an inspection
@@ -2137,6 +2178,7 @@ export default {
         addInspectionCont(){
             //deep copy address
             this.AddCont.Address = { ...this.Address };
+            this.AddCont.Address.Location = {...this.Location};
             //if not replacing an already made edit, push to addition object
             if(this.replacingInspCont < 0){
                 this.AddInsp.Contacts.push({ ...this.AddCont});

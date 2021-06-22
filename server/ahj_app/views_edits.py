@@ -65,6 +65,39 @@ def create_addr_string(Address):
 
     return addr
     
+def addr_string_from_dict(Address):
+    addr = Address["AddrLine1"]
+    if addr != '' and Address["AddrLine2"] != '':
+        addr += ', ' + Address["AddrLine2"]
+    elif Address["AddrLine2"] != '':
+        addr += Address["AddrLine2"]
+    if addr != '' and Address["AddrLine3"] != '':
+        addr += ', ' + Address["AddrLine3"]
+    elif Address["AddrLine3"] != '':
+        addr += Address["AddrLine3"]
+    if addr != '' and Address["City"] != '':
+        addr += ', ' + Address["City"]
+    elif Address["City"] != '':
+        addr += Address["City"]
+    if addr != '' and Address["County"] != '':
+        addr += ', ' + Address["County"]
+    elif Address["County"] != '':
+        addr += Address["County"]
+    if addr != '' and Address["StateProvince"] != '':
+        addr += ', ' + Address["StateProvince"]
+    elif Address["StateProvince"] != '':
+        addr += Address["StateProvince"]
+    if addr != '' and Address["Country"] != '':
+        addr += ', ' + Address["Country"]
+    elif Address["Country"] != '':
+        addr += Address["Country"]
+    if addr != '' and Address["ZipPostalCode"] != '':
+        addr += ', ' + Address["ZipPostalCode"]
+    elif Address["ZipPostalCode"] != '':
+        addr += Address["ZipPostalCode"]
+
+    return addr
+
     
 
 
@@ -134,6 +167,7 @@ def create_row(model, obj):
     rel_one_to_one = []
     rel_many_to_many = []
     for field, value in obj.items():
+        print(field,value)
         if value == '':
             continue
         elif type(value) is dict:
@@ -141,6 +175,11 @@ def create_row(model, obj):
             NOTE: This assumes the field name matches the name of its model!
             For example, a serialized 'Contact' has the field 'Address', and Address is a model
             """
+            if field == "Address":
+                addr = get_elevation(addr_string_from_dict(value))
+                value["Location"]["Longitude"] = addr["Longitude"]["Value"]
+                value["Location"]["Latitude"] = addr["Latitude"]["Value"]
+                value["Location"]["Elevation"] = addr["Elevation"]["Value"]
             rel_one_to_one.append(create_row(apps.get_model('ahj_app', field), value))
         elif type(value) is list:
             plurals_to_singular = {'Contacts': 'Contact'}
