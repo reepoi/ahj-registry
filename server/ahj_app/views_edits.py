@@ -239,6 +239,7 @@ def edit_addition(request):
     """
     try:
         source_table = request.data.get('SourceTable')
+        print(source_table, request.data.get('AHJPK'), request.data.get('ParentTable'))
         response_data, response_status = [], status.HTTP_200_OK
         with transaction.atomic():
             model = apps.get_model('ahj_app', source_table)

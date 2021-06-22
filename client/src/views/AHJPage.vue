@@ -572,6 +572,14 @@
         <div id="edits" class='edits hide'>
             <div style="width:15px;height:15px;top:0px;float:right;position:sticky;color:red;" v-on:click="showBigDiv('edits')" class="fas fa-times"></div>
             <div id="mid-edits" class='big-div'>
+                <div class="edit-title">AHJ</div>
+                <div id="Address-edits" class="edit-body">
+                    <div v-for="(e,index) in editList" v-bind:key="`ahjedit${index}`">
+                        <div v-if="baseFields.has(e.SourceColumn)">
+                            <edit-object v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                        </div>
+                    </div>
+                </div>
                 <div class="edit-title">Address</div>
                 <div id="Address-edits" class="edit-body">
                     <div v-for="(e,index) in editList" v-bind:key="`addredit${index}`">
@@ -957,7 +965,7 @@
             </div>
         </div>
         <!-- Header to page -->
-        <div id='titleCard'>
+        <div id='titleCard'  ref="titleInfo">
             <div id='mapDiv' ref="map">
 
             </div>
@@ -976,13 +984,43 @@
                 <div>
                     <h3>AHJID: {{ this.AHJInfo ? this.AHJInfo.AHJID.Value : 'Loading' }}</h3>
                 </div>
-                <div>
+                <div class="break"/>
+                <div style="height:10px;"/>
+                <div class="break"/>
+                <div style="position:absolute;right:50%;top:93%;">
+                    <h3 v-on:click="toggleMoreInfo()"> <i id="moreInfoChev" class="fa fa-chevron-down"/> More Info</h3>
+                </div>
+                <div v-if="showMore">
                     <h3 v-if="!isEditing">Description: {{ this.AHJInfo ? this.AHJInfo.Description.Value : 'Loading' }}</h3>
-                    <input v-else type="text" v-model="Edits.Description" />
+                    <h3 v-else> Description: <input type="text" v-model="Edits.Description" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3> AHJ Level Code: {{ this.AHJInfo ? this.AHJInfo.AHJLevelCode.Value : 'Loading' }} </h3>
                 </div>
                 <div class="break"/>
-                <div style="width:10px;"/>
-                <div id="edit-buttons">
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Document Submission Method Notes: {{ this.AHJInfo ? this.AHJInfo.DocumentSubmissionMethodNotes.Value : 'Loading' }}</h3>
+                    <h3 v-else> Document Submission Method Notes: <input type="text" v-model="Edits.DocumentSubmissionMethodNotes" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Permit Issue Method Notes: {{ this.AHJInfo ? this.AHJInfo.PermitIssueMethodNotes.Value : 'Loading' }}</h3>
+                    <h3 v-else> Permit Issue Method Notes: <input type="text" v-model="Edits.PermitIssueMethodNotes" /></h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">URL: {{ this.AHJInfo ? this.AHJInfo.URL.Value : 'Loading' }}</h3>
+                    <h3 v-else> URL: <input type="text" v-model="Edits.URL" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">File Folder URL: {{ this.AHJInfo ? this.AHJInfo.FileFolderURL.Value : 'Loading' }}</h3>
+                    <h3 v-else> File Folder URL: <input type="text" v-model="Edits.FileFolderURL" /></h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Estimated Turnaround Days: {{ this.AHJInfo ? this.AHJInfo.EstimatedTurnaroundDays.Value : 'Loading' }}</h3>
+                    <h3 v-else> Estimated Turnaround Days: <input type="text" v-model="Edits.EstimatedTurnaroundDays" /></h3>
+                </div>
+                <div style="position:absolute;right:1%;top:92%;" id="edit-buttons">
                     <!-- OPen window to display edits on this page -->
                     <a v-if="!isEditing" style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;" v-on:click="showBigDiv('edits')">Show Edits</a>
                     <!-- Allow user to edit this AHJ -->
@@ -1447,7 +1485,9 @@ export default {
             //Application upload file and status
             uploadedApplication: null,
             applicationStatus: null,
-            contactAdditionBackup: null
+            contactAdditionBackup: null,
+            showMore: false,
+            baseFields: new Set(["URL","Description","DocumentSubmissionMethodNotes","PermitIssueMethodNotes", "EstimatedTurnaroundDays","FileFolderURL"])
         }
     },
     computed: {
@@ -2091,6 +2131,11 @@ export default {
             this.Edits.WindCodeNotes = this.AHJInfo.WindCodeNotes.Value === 'None' ? '' : this.AHJInfo.WindCodeNotes.Value;
             this.Edits.ElectricCodeNotes = this.AHJInfo.ElectricCodeNotes.Value === 'None' ? '' : this.AHJInfo.ElectricCodeNotes.Value;
             this.Edits.Description = this.AHJInfo.Description.Value === 'None' ? '' : this.AHJInfo.Description.Value;
+            this.Edits.EstimatedTurnaroundDays = this.AHJInfo.EstimatedTurnaroundDays.Value === 'None' ? '' : this.AHJInfo.EstimatedTurnaroundDays.Value;
+            this.Edits.DocumentSubmissionMethodNotes = this.AHJInfo.DocumentSubmissionMethodNotes.Value === 'None' ? '' : this.AHJInfo.DocumentSubmissionMethodNotes.Value;
+            this.Edits.PermitIssueMethodNotes = this.AHJInfo.PermitIssueMethodNotes.Value === 'None' ? '' : this.AHJInfo.PermitIssueMethodNotes.Value;
+            this.Edits.URL = this.AHJInfo.URL.Value === 'None' ? '' : this.AHJInfo.URL.Value;
+            this.Edits.FileFolderURL = this.AHJInfo.FileFolderURL.Value === 'None' ? '' : this.AHJInfo.FileFolderURL.Value;
         },
         //user creates a contact addition edit
         addContact(){
@@ -2486,6 +2531,17 @@ export default {
             for(let i = 0; i < keys.length; i++){
                 this.Location[keys[i]] = contAddr.Location[keys[i]].Value;
             }
+        },
+        toggleMoreInfo(){
+            document.getElementById("moreInfoChev").classList.toggle('fa-chevron-down');
+            document.getElementById("moreInfoChev").classList.toggle('fa-chevron-up');
+            this.showMore = !this.showMore;
+            if(this.showMore){
+                this.$refs.titleInfo.style.height = "350px"
+            }
+            else{
+                this.$refs.titleInfo.style.height = "275px";
+            }
         }
     },
     watch: {
@@ -2508,6 +2564,7 @@ export default {
             this.reset();
             this.inspectionAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.inspectionAddition.ParentID = this.AHJInfo.AHJPK.Value;
+            this.inspectionContactAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.contactAddition.ParentID = this.AHJInfo.AHJPK.Value;
             this.contactAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.contactDeletions.AHJPK = this.AHJInfo.AHJPK.Value;
@@ -2746,5 +2803,8 @@ tr{
     border-bottom: 1px solid black;
     text-align: center;
     font-size: 25px;;
+}
+.tall{
+    height: 350px;
 }
 </style>
