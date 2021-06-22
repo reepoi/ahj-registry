@@ -109,7 +109,7 @@ class Address(models.Model):
     StateProvince = models.CharField(db_column='StateProvince', max_length=100, blank=True)
     ZipPostalCode = models.CharField(db_column='ZipPostalCode', max_length=100, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
-    AddressType = models.ForeignKey('AddressType', on_delete=models.DO_NOTHING, db_column='AddressTypeID', null=True)
+    AddressType = models.ForeignKey('AddressType', on_delete=models.DO_NOTHING, db_column='AddressType', null=True)
 
     class Meta:
         managed = True
@@ -159,7 +159,7 @@ class Contact(models.Model):
 class AHJInspection(models.Model):
     InspectionID = models.AutoField(db_column='InspectionID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
-    InspectionType = models.ForeignKey('InspectionType', on_delete=models.DO_NOTHING, db_column='InspectionTypeID', null=True)
+    InspectionType = models.ForeignKey('InspectionType', on_delete=models.DO_NOTHING, db_column='InspectionType', null=True)
     AHJInspectionName = models.CharField(db_column='AHJInspectionName', max_length=255)
     AHJInspectionNotes = models.CharField(db_column='AHJInspectionNotes', max_length=255, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
@@ -228,8 +228,8 @@ class Edit(models.Model):
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1, default='P')
     OldValue = models.CharField(db_column='OldValue', max_length=255, blank=True, null=True)
     NewValue = models.CharField(db_column='NewValue', max_length=255, blank=True, null=True)
-    DateRequested = models.DateField(db_column='DateRequested')
-    DateEffective = models.DateField(db_column='DateEffective', blank=True, null=True)
+    DateRequested = models.DateTimeField(db_column='DateRequested')
+    DateEffective = models.DateTimeField(db_column='DateEffective', blank=True, null=True)
     #Edit type: A = addition, D = deletion, U = update
     EditType = models.CharField(db_column='EditType', max_length=1, default='U')
     DataSourceComment = models.CharField(db_column='DataSourceComment', max_length=255, blank=True)
@@ -456,8 +456,6 @@ class User(AbstractBaseUser):
     CompanyAffiliation = models.CharField(db_column='CompanyAffiliation', max_length=255, blank=True)
     Photo = models.CharField(db_column='Photo', max_length=255,
                              null=False, default=settings.DEFAULT_USER_IMG)
-    IsPeerReviewer = models.IntegerField(db_column='IsPeerReviewer', null=True, default=False)
-    NumReviewsDone = models.IntegerField(db_column='NumReviewsDone', default=0)
     AcceptedEdits = models.IntegerField(db_column='NumAcceptedEdits', default=0)
     SubmittedEdits = models.IntegerField(db_column='NumSubmittedEdits', default=0)
     CommunityScore = models.IntegerField(db_column='CommunityScore', default=0)

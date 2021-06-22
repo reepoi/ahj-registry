@@ -8,17 +8,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .authentication import WebpageTokenAuth
-from .models import AHJ, Edit
+from .models import AHJ, Edit, Location
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
-    FeeStructureSerializer, AHJInspectionSerializer
+    FeeStructureSerializer, AHJInspectionSerializer, AddressSerializer
 from .usf import ENUM_FIELDS, get_enum_value_row
+from .utils import get_elevation
 
 
 def add_edit(edit_dict: dict):
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
-    edit.DateRequested = datetime.date.today()
+    edit.DateRequested = datetime.datetime.today()
     edit.AHJPK = edit_dict.get('AHJPK')
     edit.InspectionID = edit_dict.get('InspectionID')
     edit.SourceTable = edit_dict.get('SourceTable')
@@ -30,6 +31,41 @@ def add_edit(edit_dict: dict):
     edit.EditType = edit_dict.get('EditType')
     edit.save()
     return edit
+
+def create_addr_string(Address):
+    addr = Address.AddrLine1
+    if addr != '' and Address.AddrLine2 != '':
+        addr += ', ' + Address.AddrLine2
+    elif Address.AddrLine2 != '':
+        addr += Address.AddrLine2
+    if addr != '' and Address.AddrLine3!= '':
+        addr += ', ' + Address.AddrLine3
+    elif Address.AddrLine3 != '':
+        addr += Address.AddrLine3
+    if addr != '' and Address.City != '':
+        addr += ', ' + Address.City
+    elif Address.City != '':
+        addr += Address.City
+    if addr != '' and Address.County != '':
+        addr += ', ' + Address.County
+    elif Address.County != '':
+        addr += Address.County
+    if addr != '' and Address.StateProvince != '':
+        addr += ', ' + Address.StateProvince
+    elif Address.StateProvince != '':
+        addr += Address.StateProvince
+    if addr != '' and Address.Country != '':
+        addr += ', ' + Address.Country
+    elif Address.Country != '':
+        addr += Address.Country
+    if addr != '' and Address.ZipPostalCode != '':
+        addr += ', ' + Address.ZipPostalCode
+    elif Address.ZipPostalCode != '':
+        addr += Address.ZipPostalCode
+
+    return addr
+    
+    
 
 
 def apply_edits():
@@ -43,6 +79,18 @@ def apply_edits():
         new_value = get_enum_value_row(edit.SourceColumn, edit.NewValue) if edit.SourceColumn in ENUM_FIELDS else edit.NewValue
         setattr(row, edit.SourceColumn, new_value)
         row.save()
+        row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+        if edit.SourceTable == "Address":
+            addr_string = create_addr_string(row)
+            addr = AddressSerializer(row).data
+            print("Addr String: " + addr_string)
+            if addr_string != '':
+                loc = get_elevation(create_addr_string(row))
+                location = Location.objects.get(LocationID=row.LocationID.LocationID)
+                location.Elevation = loc['Elevation']['Value']
+                location.Longitude = loc['Longitude']['Value']
+                location.Latitude =  loc['Latitude']['Value']
+                location.save()
 
     # If an addition edit is rejected, set its status false
     rejected_addition_edits = Edit.objects.filter(
