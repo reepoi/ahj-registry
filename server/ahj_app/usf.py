@@ -1,9 +1,6 @@
-"""
-File of helper methods for uploading 2020 Census Bureau shapefile polygons and AHJ Data
-"""
-
 import csv
 import os
+import traceback
 from functools import lru_cache
 import datetime
 from django.apps import apps
@@ -14,11 +11,6 @@ from .models_field_enums import *
 BASE_DIR = os.path.expanduser('~/AHJRegistryData/')
 BASE_DIR_SHP = BASE_DIR + '2020CensusPolygons/'
 
-"""
-Dictionaries that map fields in shapefiles to
-fields in the temporary tables (StateTemp, etc)
-to hold the shapefile data.
-"""
 
 state_mapping = {
     'GEOID': 'GEOID',
@@ -69,15 +61,6 @@ city_mapping = {
     'mpoly': 'MULTIPOLYGON'
 }
 
-"""
-Methods for uploading shapefiles to temporary tables (StateTemp, ...)
-Expects the file structure:
-- 2020CensusPolygons
-    - States
-    - Counties
-    - Citites
-    - CountySubdivisions
-"""
 
 def upload_all_shapefile_types():
     upload_state_shapefiles()
@@ -147,12 +130,6 @@ def get_other_polygon_type_fields(obj, polygon):
         'StatePolygonID': StatePolygon.objects.get(FIPSCode=obj.GEOID[:2]),
         'LSAreaCodeName': obj.NAMELSAD
     }
-
-
-"""
-Moves the shapefile data from the temporary tables (StateTemp, ...)
-to the Polygon tables (Polygon, StatePolygon, ...)
-"""
 
 
 def translate_polygons():
@@ -317,7 +294,6 @@ def create_contact(contact_dict):
     return Contact.objects.create(**contact_dict)
 
 
-@lru_cache(maxsize=None)
 def get_enum_value_row(enum_field, enum_value):
     """
     Finds the row of the enum table given the field name and its enum value.
@@ -379,6 +355,7 @@ def create_admin_user():
     )
     admin.is_active = True
     admin.is_staff = True
+    admin.is_superuser = True
     admin.save()
     webpage_api_token = WebpageToken.objects.create(user=admin)
     api_token = APIToken.objects.create(user=admin)
@@ -387,7 +364,7 @@ def create_admin_user():
 
 
 def load_ahj_data_csv():
-    create_admin_user()
+#    create_admin_user()
     user = User.objects.get(Email=settings.ADMIN_ACCOUNT_EMAIL)
     with open(BASE_DIR + 'AHJRegistryData/ahjregistrydata.csv') as file:
         reader = csv.DictReader(file, delimiter=',', quotechar='"')
@@ -500,6 +477,36 @@ def address_to_contacts():
     return
     
 # Dict to translate state FIPS codes to state abbreviations
+def load_ahj_census_names_csv():
+    """
+    Save AHJ census names from a CSV with columns: (AHJID, AHJCensusName, StateProvince)
+    """
+    with open(BASE_DIR + 'AHJRegistryData/ahjcensusnames.csv') as file:
+        reader = csv.DictReader(file, delimiter=',', quotechar='"')
+        i = 1
+        for row in reader:
+            ahj = AHJ.objects.get(AHJID=row['AHJID'])
+            AHJCensusName.objects.create(AHJPK=ahj,
+                                         AHJCensusName=row['AHJCensusName'],
+                                         StateProvince=row['StateProvince'])
+            print('AHJ {0}: {1}'.format(ahj.AHJID, i))
+            i += 1
+
+
+def load_ahj_census_names_ahj_table():
+    """
+    Save AHJ census names are AHJ names.
+    Use only if AHJ names are still AHJ census names.
+    """
+    i = 1
+    for ahj in AHJ.objects.all():
+        AHJCensusName.objects.create(AHJPK=ahj,
+                                     AHJCensusName=ahj.AHJName,
+                                     StateProvince=ahj.AddressID.StateProvince)
+        print('AHJ {0}: {1}'.format(ahj.AHJID, i))
+        i += 1
+
+
 state_fips_to_abbr = {
     '01': 'AL',
     '02': 'AK',
@@ -570,13 +577,7 @@ state_fips_to_abbr = {
     '56': 'WY'
 }
 
-# dict for translating state abbreviations to state FIPS codes
 abbr_to_state_fips = dict(map(reversed, state_fips_to_abbr.items()))
-
-
-"""
-Helpers to assign an AHJ to its polygon by AHJName and polygon name
-"""
 
 
 def pair_all():

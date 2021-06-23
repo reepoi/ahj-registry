@@ -34,11 +34,11 @@ def webpage_ahj_list(request):
         AHJPK=request.data.get('AHJPK', None),
         AHJCode=request.data.get('AHJCode', None),
         AHJLevelCode=request.data.get('AHJLevelCode', None),
-        BuildingCode=request.data.get('BuildingCode', None),
-        ElectricCode=request.data.get('ElectricCode', None),
-        FireCode=request.data.get('FireCode', None),
-        ResidentialCode=request.data.get('ResidentialCode', None),
-        WindCode=request.data.get('WindCode', None),
+        BuildingCode=request.data.get('BuildingCode', []),
+        ElectricCode=request.data.get('ElectricCode', []),
+        FireCode=request.data.get('FireCode', []),
+        ResidentialCode=request.data.get('ResidentialCode', []),
+        WindCode=request.data.get('WindCode', []),
         StateProvince=request.data.get('StateProvince', None),
         location=str_location, polygon=polygon_wkt)
 
@@ -73,9 +73,6 @@ def webpage_ahj_list(request):
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
 def get_single_ahj(request):
-    """
-    Endpoint to get a single ahj given an AHJPK
-    """
     AHJPK = request.GET.get('AHJPK')
     ahj = AHJ.objects.filter(AHJPK=AHJPK)
     context = {'fields_to_drop': []}

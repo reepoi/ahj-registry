@@ -1,9 +1,11 @@
 from django.urls import reverse
+from django.conf import settings
 from ahj_app.models import User, Edit, Comment
+from django.utils import timezone
+
 from fixtures import *
 import pytest
 import datetime
-import json
 
 @pytest.mark.django_db
 def test_form_validator__username_exists(generate_client_with_webpage_credentials):
@@ -63,8 +65,8 @@ def test_comment_submit__no_comment(ahj_obj, client_with_webpage_credentials):
 def test_user_edits__edits_exist(ahj_obj, generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
     user = User.objects.get(Username='someone')
-    edit1 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj.AHJPK, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=datetime.datetime.now())
-    edit2 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj.AHJPK, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=datetime.datetime.now())
+    edit1 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=timezone.now())
+    edit2 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=timezone.now())
 
     url = reverse('user-edits')
     response = client.get(url, {'UserID': user.UserID})
@@ -77,3 +79,10 @@ def test_user_edits__user_does_not_exist(client_with_webpage_credentials):
     response = client_with_webpage_credentials.get(url, {'UserID': 99999999})
     assert len(response.data) == 0 # no edits returned
     assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_send_support_email__valid_usage(client_with_webpage_credentials):
+    url = reverse('send-support-email')
+    settings.SUNSPEC_SUPPORT_EMAIL = 'ahjregistry@gmail.com'
+    response = client_with_webpage_credentials.post(url, {'Email': 'test@test.abcdef', 'Subject': 'A subject.', 'Message': 'A message.'})
+    assert response.status_code == 200 

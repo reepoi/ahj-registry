@@ -37,7 +37,7 @@ GDAL_LIBRARY_PATH = '/usr/local/lib/libgdal.so'
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'ahj_app.apps.AhjAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'request_logging.middleware.LoggingMiddleware'
+    'ahj_app.middleware.LoggingMiddleware.SkipRequestLoggingMiddleware'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True # If this is used then `CORS_ORIGIN_WHITELIST` will not have any effect
@@ -95,7 +95,7 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -133,11 +133,11 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
             'verbose': {
-                'format': '{levelname}\t{request.user}\t{asctime}\t{message}',
+                'format': '{levelname} {request.user} {request.auth} {asctime} {message}',
                 'style': '{',
             },
             'simple': {
-                'format': '{request.user}\t{message}',
+                'format': '{request.user} {message}',
                 'style': '{',
             },
         },
@@ -145,7 +145,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/apilogs.log'),
+            'filename': os.path.join(BASE_DIR, 'logs/api.log'),
             'when': 'midnight',
             'backupCount': 14,
             'formatter': 'verbose'
@@ -167,6 +167,7 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SUNSPEC_SUPPORT_EMAIL = 'support@sunspec.org'
 
 DOMAIN = 'localhost:8080'
 SITE_NAME = 'AHJ Registry'
@@ -212,13 +213,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-# for os path reading/writing
-MEDIA_ROOT = 'server-storage/'
-STORAGE_DIRS = {
-    'USER_IMG': 'user-image/'
-}
-DEFAULT_USER_IMG = STORAGE_DIRS['USER_IMG']+'default.jpeg'
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/

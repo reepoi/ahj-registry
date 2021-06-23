@@ -8,7 +8,6 @@ from django.utils.timezone import now
 import rest_framework.authtoken.models
 from taggit.managers import TaggableManager
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-import uuid
 
 class AHJ(models.Model):
     AHJPK = models.AutoField(db_column='AHJPK', primary_key=True)
@@ -38,6 +37,8 @@ class AHJ(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJ'
+        verbose_name = 'AHJ'
+        verbose_name_plural = 'AHJs'
 
 
     def get_contacts(self):
@@ -96,6 +97,8 @@ class Comment(models.Model):
     class Meta:
         managed = True
         db_table = 'Comment'
+        verbose_name = 'Comment'
+        verbose_name_plural = 'Comments'
 
 class Address(models.Model):
     AddressID = models.AutoField(db_column='AddressID', primary_key=True)
@@ -114,6 +117,8 @@ class Address(models.Model):
     class Meta:
         managed = True
         db_table = 'Address'
+        verbose_name = 'Address'
+        verbose_name_plural = 'Addresses'
 
     SERIALIZER_EXCLUDED_FIELDS = ['AddressID']
 
@@ -140,6 +145,8 @@ class Contact(models.Model):
     class Meta:
         managed = True
         db_table = 'Contact'
+        verbose_name = 'Contact'
+        verbose_name_plural = 'Contacts'
         index_together = (('ParentTable', 'ParentID'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['ContactID']
@@ -186,6 +193,8 @@ class AHJInspection(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJInspection'
+        verbose_name = 'AHJ Inspection'
+        verbose_name_plural = 'AHJ Inspections'
         unique_together = (('AHJPK', 'AHJInspectionName'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['InspectionID', 'UnconfirmedContacts', 'InspectionStatus']
@@ -202,6 +211,8 @@ class FeeStructure(models.Model):
     class Meta:
         managed = True
         db_table = 'FeeStructure'
+        verbose_name = 'Fee Structure'
+        verbose_name_plural = 'Fee Structures'
         unique_together = (('FeeStructureID', 'AHJPK'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['FeeStructurePK', 'FeeStructureStatus']
@@ -237,6 +248,8 @@ class Edit(models.Model):
     class Meta:
         managed = True
         db_table = 'Edit'
+        verbose_name = 'Edit'
+        verbose_name_plural = 'Edits'
 
 class Location(models.Model):
     LocationID = models.AutoField(db_column='LocationID', primary_key=True)
@@ -251,6 +264,8 @@ class Location(models.Model):
     class Meta:
         managed = True
         db_table = 'Location'
+        verbose_name = 'Location'
+        verbose_name_plural = 'Locations'
 
     SERIALIZER_EXCLUDED_FIELDS = ['LocationID']
 
@@ -267,6 +282,8 @@ class EngineeringReviewRequirement(models.Model):
     class Meta:
         managed = True
         db_table = 'EngineeringReviewRequirement'
+        verbose_name = 'Engineering Review Requirement'
+        verbose_name_plural = 'Engineering Review Requirements'
 
     SERIALIZER_EXCLUDED_FIELDS = ['EngineeringReviewRequirementID', 'EngineeringReviewRequirementStatus']
 
@@ -298,6 +315,10 @@ class DocumentSubmissionMethod(models.Model):
     def get_relation_status_field(self):
         return 'MethodStatus'
 
+    class Meta:
+        verbose_name = 'Document Submission Method'
+        verbose_name_plural = 'Document Submission Methods'
+
 class AHJDocumentSubmissionMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -307,6 +328,8 @@ class AHJDocumentSubmissionMethodUse(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJDocumentSubmissionMethodUse'
+        verbose_name = 'AHJ Document Submission Method Use'
+        verbose_name_plural = 'AHJ Document Submission Method Uses'
         unique_together = (('AHJPK', 'DocumentSubmissionMethodID'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['UseID']
@@ -335,6 +358,10 @@ class PermitIssueMethod(models.Model):
     def get_relation_status_field(self):
         return 'MethodStatus'
 
+    class Meta:
+        verbose_name = 'Permit Issue Method'
+        verbose_name_plural = 'Permit Issue Methods'
+
 class AHJPermitIssueMethodUse(models.Model):
     UseID = models.AutoField(db_column='UseID', primary_key=True)
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
@@ -344,6 +371,8 @@ class AHJPermitIssueMethodUse(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJPermitIssueMethodUse'
+        verbose_name = 'AHJ Permit Issue Method Use'
+        verbose_name_plural = 'AHJ Permit Issue Method Uses'
         unique_together = (('AHJPK', 'PermitIssueMethodID'),)
 
     SERIALIZER_EXCLUDED_FIELDS = ['UseID']
@@ -367,6 +396,8 @@ class Polygon(models.Model):
     class Meta:
         managed = True
         db_table = 'Polygon'
+        verbose_name = 'Polygon'
+        verbose_name_plural = 'Polygons'
 
 class StatePolygon(models.Model):
     PolygonID = models.OneToOneField(Polygon, models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -375,6 +406,8 @@ class StatePolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'StatePolygon'
+        verbose_name = 'State Polygon'
+        verbose_name_plural = 'State Polygons'
 
 class CountyPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -384,6 +417,8 @@ class CountyPolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'CountyPolygon'
+        verbose_name = 'County Polygon'
+        verbose_name_plural = 'County Polygons'
 
 class CityPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -393,6 +428,8 @@ class CityPolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'CityPolygon'
+        verbose_name = 'City Polygon'
+        verbose_name_plural = 'City Polygons'
 
 class CountySubdivisionPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
@@ -402,24 +439,18 @@ class CountySubdivisionPolygon(models.Model):
     class Meta:
         managed = True
         db_table = 'CountySubdivisionPolygon'
+        verbose_name = 'County Subdivision Polygon'
+        verbose_name_plural = 'County Subdivision Polygons'
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
-
-    # eventually handle first name and last name into contact table, for now handles username and password
-    def _create_user(self, email, password, **extra_fields):
-        # save to user
-        ContactID = Contact.objects.create(Email=email)
-        
-        User = User.objects.create()
-        # save to authuser
-        user = self.model(email=email, **extra_fields)
 
     def create_user(self, **extra_fields):
         Email = extra_fields.get('Email', '')
         Username = extra_fields.get('Username', '')
         password = extra_fields.get('password', '')
         ContactID = Contact.objects.create(Email=Email, AddressID=Address.objects.create())
+
         user = self.model(
             Email=self.normalize_email(Email),
             ContactID=ContactID,
@@ -427,11 +458,7 @@ class UserManager(BaseUserManager):
             SignUpDate=datetime.date.today(),
         )
         user.set_password(password)
-        try:
-            user.save(using=self._db)
-        except Exception as e:
-            print(e)
-        print('saved')
+        user.save(using=self._db)
         return user
 
     def create_superuser(self, **extra_fields):
@@ -450,16 +477,15 @@ class User(AbstractBaseUser):
     Email = models.CharField(db_column='Email', unique=True, max_length=254)
     is_staff = models.BooleanField(db_column='IsStaff', default=False)
     is_active = models.BooleanField(db_column='IsActive', default=False)
+    is_superuser = models.BooleanField(db_column='IsSuperuser', default=False)
     SignUpDate = models.DateField(db_column='SignUpDate', blank=True)
     PersonalBio = models.CharField(db_column='PersonalBio', max_length=255, blank=True)
     URL = models.CharField(db_column='URL', max_length=255, blank=True, null=True)
     CompanyAffiliation = models.CharField(db_column='CompanyAffiliation', max_length=255, blank=True)
-    Photo = models.CharField(db_column='Photo', max_length=255,
-                             null=False, default=settings.DEFAULT_USER_IMG)
+    Photo = models.CharField(db_column='Photo', max_length=255, blank=True, null=True)
     AcceptedEdits = models.IntegerField(db_column='NumAcceptedEdits', default=0)
     SubmittedEdits = models.IntegerField(db_column='NumSubmittedEdits', default=0)
     CommunityScore = models.IntegerField(db_column='CommunityScore', default=0)
-    APICalls = models.IntegerField(db_column='NumAPICalls', default=0)
     SecurityLevel = models.IntegerField(db_column='SecurityLevel', default=3)
 
     USERNAME_FIELD = 'Email'
@@ -467,18 +493,18 @@ class User(AbstractBaseUser):
 
     def has_perm(self, perm, obj=None):
         return self.is_superuser
-    
+
     def has_module_perms(self, core):
         return self.is_superuser
-    
+
     def get_email_field_name(self=None):
         return 'Email'
 
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
-    
-    def get_subscribed_channels(self):
-        return [channel for channel in SubscribedChannels.objects.filter(UserID=self)]
+
+    def is_ahj_official(self):
+        return len(self.get_maintained_ahjs()) > 0
 
     def get_API_token(self):
         api_token = APIToken.objects.filter(user=self).first()
@@ -488,6 +514,8 @@ class User(AbstractBaseUser):
 
     class Meta:
         db_table = 'User'
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
         managed = True
 
 class AHJUserMaintains(models.Model):
@@ -499,20 +527,38 @@ class AHJUserMaintains(models.Model):
     class Meta:
         managed = True
         db_table = 'AHJUserMaintains'
+        verbose_name = 'AHJ User Maintains'
+        verbose_name_plural = 'AHJ User Maintains'
         unique_together = (('AHJPK', 'UserID'),)
 
 class WebpageToken(rest_framework.authtoken.models.Token):
-     key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
-     created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
-     user = models.OneToOneField(on_delete=models.CASCADE, related_name='webpage_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+    key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
+    user = models.OneToOneField(on_delete=models.CASCADE, related_name='webpage_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
 
-     def get_user(self):
-         return self.user
+    def get_user(self):
+        return self.user
+
+    class Meta:
+        verbose_name = 'Webpage Token'
+        verbose_name_plural = 'Webpage Tokens'
+
+    def __str__(self):
+        return f'WebpageToken({self.key})'
 
 class APIToken(rest_framework.authtoken.models.Token):
-     key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
-     created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
-     user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+    key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
+    expires = models.DateTimeField(verbose_name='Expires', default=None, null=True)
+    user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'API Token'
+        verbose_name_plural = 'API Tokens'
+
+    def __str__(self):
+        return f'APIToken({self.key})'
 
 class StateTemp(models.Model):
     GEOID = models.CharField(max_length=2)
@@ -526,6 +572,10 @@ class StateTemp(models.Model):
 
     def __str__(self):
         return self.NAME
+
+    class Meta:
+        verbose_name = 'Temporary State Polygon'
+        verbose_name_plural = 'Temporary State Polygons'
 
 # Census county shapefile model
 class CountyTemp(models.Model):
@@ -543,6 +593,10 @@ class CountyTemp(models.Model):
     def __str__(self):
         return self.NAMELSAD
 
+    class Meta:
+        verbose_name = 'Temporary County Polygon'
+        verbose_name_plural = 'Temporary County Polygons'
+
 # Census cousub shapefile model
 class CousubTemp(models.Model):
     STATEFP = models.CharField(max_length=2)
@@ -558,6 +612,10 @@ class CousubTemp(models.Model):
 
     def __str__(self):
         return self.NAMELSAD
+
+    class Meta:
+        verbose_name = 'Temporary Cousub Polygon'
+        verbose_name_plural = 'Temporary Cousub Polygons'
 
 # Census place shapefile model
 class CityTemp(models.Model):
@@ -575,13 +633,15 @@ class CityTemp(models.Model):
     def __str__(self):
         return self.NAMELSAD
 
-class SubscribedChannels(models.Model):
-    UserID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='UserID')
-    ChannelID = models.UUIDField(default=uuid.uuid4, editable=False)
-    LastReadToken = models.CharField(max_length=255)
+    class Meta:
+        verbose_name = 'Temporary City Polygon'
+        verbose_name_plural = 'Temporary City Polygons'
 
-    def get_participating_users(self):
-        return [{'Username': user.UserID.Username, 'UserID': user.UserID.UserID, 'Photo': user.UserID.Photo} for user in SubscribedChannels.objects.filter(ChannelID=self.ChannelID)]
+class AHJCensusName(models.Model):
+    AHJPK = models.OneToOneField('AHJ', on_delete=models.DO_NOTHING, db_column='AHJPK', primary_key=True)
+    AHJCensusName = models.CharField(db_column='AHJCensusName', max_length=100)
+    StateProvince = models.CharField(db_column='StateProvince', max_length=2)
 
     class Meta:
-        unique_together = (('UserID', 'ChannelID'),)
+        verbose_name = 'AHJ Census Name'
+        verbose_name_plural = 'AHJ Census Names'

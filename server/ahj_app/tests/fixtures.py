@@ -19,14 +19,26 @@ def api_client():
 @pytest.fixture
 def create_user(db, django_user_model):
     def make_user(**kwargs):
-        kwargs['password'] = 'strong-test-pass'
+        if 'password' not in kwargs:
+            kwargs['password'] = 'strong-test-pass'
         # If any required field missing, generate it here
         if 'Username' not in kwargs or kwargs['Username'] is None:
             kwargs['Username'] = str(uuid.uuid4())
         if 'Email' not in kwargs or kwargs['Email'] is None:
-            kwargs['Email'] = random_char(5) + '@gmail.com'
-        user = django_user_model.objects.create_user(**kwargs)
+            kwargs['Email'] = str(uuid.uuid4()) + '@gmail.com'
+        if kwargs.get('is_superuser', False):
+            user = django_user_model.objects.create_superuser(**kwargs)
+        else:
+            user = django_user_model.objects.create_user(**kwargs)
         User.objects.filter(UserID=user.UserID).update(is_active = True)
+        return user
+    return make_user
+
+@pytest.fixture
+def create_user_with_api_token(create_user):
+    def make_user(**kwargs):
+        user = create_user(**kwargs)
+        APIToken.objects.create(user=user)
         return user
     return make_user
 
@@ -85,7 +97,19 @@ def ahj_obj(db):
     polygon = Polygon.objects.create(Polygon=mp, LandArea=1, WaterArea=1, InternalPLatitude=1, InternalPLongitude=1)
     address = Address.objects.create()
     ahj = AHJ.objects.create(AHJPK=1, PolygonID=polygon, AddressID=address)
-    return ahj 
+    return ahj
+
+@pytest.fixture
+def ahj_obj_factory(db):
+    def make_ahj():
+        p1 = geosPolygon( ((0, 0), (0, 1), (1, 1), (0, 0)) )
+        p2 = geosPolygon( ((1, 1), (1, 2), (2, 2), (1, 1)) )
+        mp = MultiPolygon(p1, p2)
+        polygon = Polygon.objects.create(Polygon=mp, LandArea=1, WaterArea=1, InternalPLatitude=1, InternalPLongitude=1)
+        address = Address.objects.create()
+        ahj = AHJ.objects.create(AHJID=uuid.uuid4(), PolygonID=polygon, AddressID=address)
+        return ahj
+    return make_ahj
 
 
 """

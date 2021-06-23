@@ -1,17 +1,11 @@
 from django.urls import reverse
-from ahj_app.models import User, Contact, AHJUserMaintains
+from ahj_app.models import User, Contact, AHJUserMaintains, PreferredContactMethod
 from fixtures import *
 import pytest
 
 """
     User View Endpoints
 """
-
-@pytest.mark.django_db
-def test_get_active_user(client_with_webpage_credentials):
-    url = reverse('active-user-info')
-    response = client_with_webpage_credentials.get(url)
-    assert response.status_code == 200
 
 @pytest.mark.django_db
 def test_get_single_user__user_exists(generate_client_with_webpage_credentials):
@@ -29,6 +23,7 @@ def test_get_single_user__user_does_not_exist(generate_client_with_webpage_crede
 
 @pytest.mark.django_db
 def test_update_user__user_exists(generate_client_with_webpage_credentials):
+    PreferredContactMethod.objects.create(PreferredContactMethodID=1, Value='Email') # create a PreferredContactMethod so we can change that attr in the Contact model
     client = generate_client_with_webpage_credentials(Username='someone', Email='test@test.com')
     newUserData = {
         'Username': 'username',
@@ -38,7 +33,7 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
         'URL': 'url',
         'CompanyAffiliation': 'ca',
         'WorkPhone': '123-456-7890',
-        'PreferredContactMethod': 'Phone',
+        'PreferredContactMethod': 'Email',
         'Title': 'title'
     }
     # send update to user-update path 
@@ -53,16 +48,12 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
             assert getattr(user, field.name) == newUserData[field.name]
     for field in Contact._meta.get_fields():
         if field.name in newUserData:
-            assert getattr(ContactID, field.name) == newUserData[field.name]
+            if field.name == 'PreferredContactMethod':
+                assert getattr(ContactID, 'PreferredContactMethod').Value == newUserData[field.name]
+            else:
+                assert getattr(ContactID, field.name) == newUserData[field.name]
     
     assert response.status_code == 200
-
-@pytest.mark.django_db
-def test_update_user__user_updating_another_user(create_user, client_with_webpage_credentials):
-    user2 = create_user(Username='test')
-    url = reverse('user-update', kwargs={'username': 'test'})
-    response = client_with_webpage_credentials.post(url, {'Username': 'usernamechange'})
-    assert response.status_code == 400
 
 @pytest.mark.django_db
 def test_update_user__unchangable_field_changed(generate_client_with_webpage_credentials):
@@ -162,4 +153,4 @@ def test_remove_ahj_maintainer__invalid_params(generate_client_with_webpage_cred
     userData = {'Username': 'someone', 'AHJPK': 999999999}
     url = reverse('ahj-remove-maintainer')
     response = client.post(url, userData)
-    assert response.status_code == 400 
+    assert response.status_code == 400

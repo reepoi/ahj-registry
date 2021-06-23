@@ -1,11 +1,7 @@
 export function jsonToCSV(json) {
   let csv = "";
-
-  // function to flatten json to a list of fields with unique names based on position in the json
   let flattenJSON = function(json) {
     let result = {};
-
-    // function to walk the json object
     function recurse(cur, prop) {
       if (Object(cur) !== cur) {
         result[prop] = cur;
@@ -25,8 +21,6 @@ export function jsonToCSV(json) {
     recurse(json, "");
     return result;
   };
-
-  // Create a unique set of column names for all included fields in the array of ahjs
   let keys = Array.from(
     new Set(
       Object.keys(flattenJSON(json)).map(
@@ -34,12 +28,8 @@ export function jsonToCSV(json) {
       )
     )
   );
-
-  // Keep only the column names that point to primitives (no column names that point to an object)
   keys = keys.filter(key => ["Value", "Decimals", "Precision", "StartTime", "EndTime", "Unit"].includes(key.substring(key.lastIndexOf(".") + 1)));
   csv += keys.join(",") + "\n";
-
-  // build a string representing the csv file
   for (let line of json) {
     csv +=
       keys
@@ -63,26 +53,24 @@ export function jsonToCSV(json) {
   return csv;
 }
 
-// constructs the object that represents a room for the vue-advanced-chat
-export function getRoomObject(channel,username) {
-  let result = {};
-  result['roomId'] = channel.ChannelID;
-  result['roomName'] = channel.Users.filter(u => u.Username !== username).map(u => u.Username).join(', ');
-  result['avatar'] = null; // set to Photo path?
-  result['unreadCount'] = channel.NumberUnread;
-  result['users'] = channel.Users.map(u => { return { _id: u.Username, username: u.Username, avatar: u.Photo }; });
-  if(channel.lastMessage){
-    result['lastMessage'] = getMessageObject(channel.lastMessage);
+/**
+ * Given JSON, returns new JSON with every non-array and non-object
+ * field replaced with this object:
+ * '<field_name>': {
+ *     'Value': <field_value>
+ * }
+ * @param item
+ * @returns {{Value}|{}|*}
+ */
+export function value_to_ob_value_primitive(item) {
+  if (Array.isArray(item)) {
+    return item.map(a => value_to_ob_value_primitive(a));
+  } else if (typeof item === 'object' && item !== null) {
+    return Object.keys(item).reduce((result, k) => {
+      result[k] = value_to_ob_value_primitive(item[k]);
+      return result;
+    }, {})
+  } else {
+    return { Value: item }
   }
-  return result;
-}
-
-// constructs the object that represents a message in a chat room for the vue-advanced-chat
-export function getMessageObject(pubnubMessage) {
-  let result = {seen:true};
-  result['content'] = pubnubMessage.message.text;
-  result['senderId'] = pubnubMessage.uuid;
-  result['username'] = pubnubMessage.uuid;
-  result['timetoken'] = pubnubMessage.timetoken;
-  return result;
 }

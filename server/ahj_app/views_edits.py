@@ -2,6 +2,7 @@ import datetime
 
 from django.apps import apps
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -16,7 +17,7 @@ from .usf import ENUM_FIELDS, get_enum_value_row
 from .utils import get_elevation
 
 
-def add_edit(edit_dict: dict):
+def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=None):
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
     edit.DateRequested = datetime.datetime.today()
@@ -27,7 +28,10 @@ def add_edit(edit_dict: dict):
     edit.SourceRow = edit_dict.get('SourceRow')
     edit.OldValue = edit_dict.get('OldValue')
     edit.NewValue = edit_dict.get('NewValue')
-    edit.ReviewStatus = 'P'
+    edit.ReviewStatus = ReviewStatus
+    if ReviewStatus == 'A':
+        edit.ApprovedBy = ApprovedBy
+        edit.DateEffective = DateEffective
     edit.EditType = edit_dict.get('EditType')
     edit.save()
     return edit
@@ -101,11 +105,12 @@ def addr_string_from_dict(Address):
     
 
 
-def apply_edits():
-    ready_edits = Edit.objects.filter(
-        ReviewStatus='A',
-        DateEffective=datetime.date.today()
-    ).exclude(ApprovedBy=None)
+def apply_edits(ready_edits=None):
+    if ready_edits is None:
+        ready_edits = Edit.objects.filter(
+            ReviewStatus='A',
+            DateEffective__date=datetime.date.today()
+        ).exclude(ApprovedBy=None)
     for edit in ready_edits:
         model = apps.get_model('ahj_app', edit.SourceTable)
         row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
@@ -126,16 +131,55 @@ def apply_edits():
                 location.save()
 
     # If an addition edit is rejected, set its status false
-    rejected_addition_edits = Edit.objects.filter(
-        ReviewStatus='R',
-        EditType='A',
-        DateEffective=datetime.date.today()
-    ).exclude(ApprovedBy=None)
-    for edit in rejected_addition_edits:
+    # rejected_addition_edits = Edit.objects.filter(
+    #     ReviewStatus='R',
+    #     EditType='A',
+    #     DateEffective__date=datetime.date.today()
+    # ).exclude(ApprovedBy=None)
+    # for edit in rejected_addition_edits:
+    #     model = apps.get_model('ahj_app', edit.SourceTable)
+    #     row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+    #     setattr(row, row.get_relation_status_field(), False)
+    #     row.save()
+
+
+def revert_edit(user, edit):
+    model = apps.get_model('ahj_app', edit.SourceTable)
+    row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+    current_value = getattr(row, edit.SourceColumn)
+    if edit.SourceColumn in ENUM_FIELDS:
+        current_value = current_value.Value
+    next_value = edit.OldValue if edit.EditType not in {'A', 'D'} else not edit.NewValue
+    revert_edit_dict = {'User': user,
+                        'AHJPK': edit.AHJPK,
+                        'SourceTable': edit.SourceTable,
+                        'SourceColumn': edit.SourceColumn,
+                        'SourceRow': edit.SourceRow,
+                        'OldValue': current_value,
+                        'NewValue': next_value,
+                        'EditType': edit.EditType}
+    e = add_edit(revert_edit_dict, ReviewStatus='A', ApprovedBy=user, DateEffective=timezone.now())
+    apply_edits(ready_edits=[e])
+
+
+def edit_is_resettable(edit):
+    return not Edit.objects.filter(SourceTable=edit.SourceTable, SourceRow=edit.SourceRow, SourceColumn=edit.SourceColumn,
+                                   ReviewStatus='A', DateEffective__gt=edit.DateEffective).exists()
+
+
+def reset_edit(user, edit):
+    if edit_is_resettable(edit):
         model = apps.get_model('ahj_app', edit.SourceTable)
         row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
-        setattr(row, row.get_relation_status_field(), False)
+        value = get_enum_value_row(edit.SourceColumn, edit.OldValue) if edit.SourceColumn in ENUM_FIELDS else edit.OldValue
+        setattr(row, edit.SourceColumn, value)
         row.save()
+        edit.ReviewStatus = 'P'
+        edit.ApprovedBy = None
+        edit.DateEffective = None
+        edit.save()
+    else:
+        revert_edit(user, edit)
 
 ####################
 
@@ -152,7 +196,7 @@ def edit_review(request):
             edit = Edit.objects.get(EditID=int(eid))
             edit.ReviewStatus = stat
             edit.ApprovedBy = request.user
-            tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+            tomorrow = timezone.now() + datetime.timedelta(days=1)
             if not edit.DateEffective or edit.DateEffective < tomorrow:
                 edit.DateEffective = tomorrow
             edit.save()  # commit changes
@@ -256,7 +300,7 @@ def edit_addition(request):
             For example, Contact, FeeStructure and EngineeringReviewRequirement
             """
             AHJ_one_to_many = 'AHJPK' in [field.name for field in model._meta.fields]
-
+            edits = []
             for obj in new_objs:
                 if AHJ_one_to_many:
                     obj['AHJPK'] = ahj
@@ -271,9 +315,11 @@ def edit_addition(request):
                       'OldValue'     : None,
                       'NewValue'     : True,
                       'EditType'     : 'A' }
-                edit = add_edit(e)
+                edit = add_edit(e, ReviewStatus='A')
+                edits.append(edit)
 
                 response_data.append(get_serializer(row)(edit_info_row).data)
+            apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_addition', str(e))
@@ -325,6 +371,7 @@ def edit_update(request):
         response_data, response_status = [], status.HTTP_200_OK
         with transaction.atomic():
             es = request.data
+            edits = []
             for e in es:
                 e['AHJPK'] = AHJ.objects.get(AHJPK=e['AHJPK'])
                 model = apps.get_model('ahj_app', e['SourceTable'])
@@ -333,13 +380,17 @@ def edit_update(request):
 
                 if e['SourceColumn'] in ENUM_FIELDS and old_value is None:
                     e['OldValue'] = ''
+                elif e['SourceColumn'] in ENUM_FIELDS:
+                    e['OldValue'] = old_value.Value
                 else:
                     e['OldValue'] = old_value
 
                 e['User'] = request.user
                 e['EditType'] = 'U'
-                edit = add_edit(e)
+                edit = add_edit(e, ReviewStatus='A')
+                edits.append(edit)
                 response_data.append(EditSerializer(edit).data)
+            apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_update', str(e))
