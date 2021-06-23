@@ -13,7 +13,7 @@ from django.db import transaction
 from django.conf import settings
 
 from .authentication import WebpageTokenAuth
-from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, PreferredContactMethod, WebpageToken
+from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, PreferredContactMethod
 from .permissions import IsSuperuser
 from .serializers import UserSerializer
 from djoser.views import UserViewSet

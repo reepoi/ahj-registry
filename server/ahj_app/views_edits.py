@@ -9,11 +9,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .authentication import WebpageTokenAuth
-from .models import AHJ, Edit, AHJUserMaintains
+from .models import AHJ, Edit, Location
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
-    FeeStructureSerializer, AHJInspectionSerializer
-from .utils import ENUM_FIELDS, get_enum_value_row
+    FeeStructureSerializer, AHJInspectionSerializer, AddressSerializer
+from .usf import ENUM_FIELDS, get_enum_value_row
+from .utils import get_elevation
 
 
 def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=None):
@@ -23,7 +24,7 @@ def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=N
     """
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
-    edit.DateRequested = timezone.now()
+    edit.DateRequested = datetime.datetime.today()
     edit.AHJPK = edit_dict.get('AHJPK')
     edit.SourceTable = edit_dict.get('SourceTable')
     edit.SourceColumn = edit_dict.get('SourceColumn')
@@ -38,6 +39,74 @@ def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=N
     edit.save()
     return edit
 
+def create_addr_string(Address):
+    addr = Address.AddrLine1
+    if addr != '' and Address.AddrLine2 != '':
+        addr += ', ' + Address.AddrLine2
+    elif Address.AddrLine2 != '':
+        addr += Address.AddrLine2
+    if addr != '' and Address.AddrLine3!= '':
+        addr += ', ' + Address.AddrLine3
+    elif Address.AddrLine3 != '':
+        addr += Address.AddrLine3
+    if addr != '' and Address.City != '':
+        addr += ', ' + Address.City
+    elif Address.City != '':
+        addr += Address.City
+    if addr != '' and Address.County != '':
+        addr += ', ' + Address.County
+    elif Address.County != '':
+        addr += Address.County
+    if addr != '' and Address.StateProvince != '':
+        addr += ', ' + Address.StateProvince
+    elif Address.StateProvince != '':
+        addr += Address.StateProvince
+    if addr != '' and Address.Country != '':
+        addr += ', ' + Address.Country
+    elif Address.Country != '':
+        addr += Address.Country
+    if addr != '' and Address.ZipPostalCode != '':
+        addr += ', ' + Address.ZipPostalCode
+    elif Address.ZipPostalCode != '':
+        addr += Address.ZipPostalCode
+
+    return addr
+    
+def addr_string_from_dict(Address):
+    addr = Address["AddrLine1"]
+    if addr != '' and Address["AddrLine2"] != '':
+        addr += ', ' + Address["AddrLine2"]
+    elif Address["AddrLine2"] != '':
+        addr += Address["AddrLine2"]
+    if addr != '' and Address["AddrLine3"] != '':
+        addr += ', ' + Address["AddrLine3"]
+    elif Address["AddrLine3"] != '':
+        addr += Address["AddrLine3"]
+    if addr != '' and Address["City"] != '':
+        addr += ', ' + Address["City"]
+    elif Address["City"] != '':
+        addr += Address["City"]
+    if addr != '' and Address["County"] != '':
+        addr += ', ' + Address["County"]
+    elif Address["County"] != '':
+        addr += Address["County"]
+    if addr != '' and Address["StateProvince"] != '':
+        addr += ', ' + Address["StateProvince"]
+    elif Address["StateProvince"] != '':
+        addr += Address["StateProvince"]
+    if addr != '' and Address["Country"] != '':
+        addr += ', ' + Address["Country"]
+    elif Address["Country"] != '':
+        addr += Address["Country"]
+    if addr != '' and Address["ZipPostalCode"] != '':
+        addr += ', ' + Address["ZipPostalCode"]
+    elif Address["ZipPostalCode"] != '':
+        addr += Address["ZipPostalCode"]
+
+    return addr
+
+    
+
 
 def apply_edits(ready_edits=None):
     """
@@ -48,7 +117,7 @@ def apply_edits(ready_edits=None):
     if ready_edits is None:
         ready_edits = Edit.objects.filter(
             ReviewStatus='A',
-            DateEffective__date=datetime.date.today()
+            DateEffective__lte=datetime.now()
         ).exclude(ApprovedBy=None)
     for edit in ready_edits:
         row = edit.get_edited_row()
@@ -61,6 +130,18 @@ def apply_edits(ready_edits=None):
             new_value = edit.NewValue
         setattr(row, edit.SourceColumn, new_value)
         row.save()
+        row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+        if edit.SourceTable == "Address":
+            addr_string = create_addr_string(row)
+            addr = AddressSerializer(row).data
+            print("Addr String: " + addr_string)
+            if addr_string != '':
+                loc = get_elevation(create_addr_string(row))
+                location = Location.objects.get(LocationID=row.LocationID.LocationID)
+                location.Elevation = loc['Elevation']['Value']
+                location.Longitude = loc['Longitude']['Value']
+                location.Latitude =  loc['Latitude']['Value']
+                location.save()
 
     # If an addition edit is rejected, set its status false
     # rejected_addition_edits = Edit.objects.filter(
@@ -223,6 +304,7 @@ def create_row(model, obj):
     rel_one_to_one = []
     rel_many_to_many = []
     for field, value in obj.items():
+        print(field,value)
         if value == '':
             continue
         elif type(value) is dict:
@@ -230,6 +312,11 @@ def create_row(model, obj):
             NOTE: This assumes the field name matches the name of its model!
             For example, a serialized 'Contact' has the field 'Address', and Address is a model
             """
+            if field == "Address":
+                addr = get_elevation(addr_string_from_dict(value))
+                value["Location"]["Longitude"] = addr["Longitude"]["Value"]
+                value["Location"]["Latitude"] = addr["Latitude"]["Value"]
+                value["Location"]["Elevation"] = addr["Elevation"]["Value"]
             rel_one_to_one.append(create_row(apps.get_model('ahj_app', field), value))
         elif type(value) is list:
             plurals_to_singular = {'Contacts': 'Contact'}
@@ -289,6 +376,7 @@ def edit_addition(request):
     """
     try:
         source_table = request.data.get('SourceTable')
+        print(source_table, request.data.get('AHJPK'), request.data.get('ParentTable'))
         response_data, response_status = [], status.HTTP_200_OK
         with transaction.atomic():
             model = apps.get_model('ahj_app', source_table)

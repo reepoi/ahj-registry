@@ -177,6 +177,14 @@
                         <label for="Description">Description</label>
                         <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
                         </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
+                        </div>
                 </div>
                 
                 <div style="margin:2px;margin-top:15px;">Created Contacts</div>
@@ -301,6 +309,14 @@
                          <b-form-select size="sm" id="addrtype" :options="consts.CHOICE_FIELDS.Address.AddressType" v-model="Address.AddressType" />
                         <label for="Description">Description</label>
                         <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
                         </div>
                         <div style="flex-basis:100%;margin-top:25px;"/>
                         <div class="edit-buttons">
@@ -490,10 +506,75 @@
             </div>
             </div>
         </div>
+        <div id="addressLoc" class="edits hide">
+            <div style="width:15px;height:15px;top:0px;float:right;position:sticky;color:red;" v-on:click="showBigDiv('addressLoc')" class="fas fa-times"></div>
+            <div class="big-div">
+                <div class="edit-title">Edit Address</div>
+                <div class="add-cont" style="flex-basis:100%;">
+                <div style="flex-basis: 100%;margin-bottom:50px;"/>
+                        <div class="add-breakup">
+                        <label for="Line1">Address Line 1</label>
+                        <input type="text" v-model="Address.AddrLine1" class="form-control" id="Line1" placeholder="Line 1">
+                        <label for="Line2">Address Line 2</label>
+                        <input type="text" v-model="Address.AddrLine2" class="form-control" id="Line2" placeholder="Line 2">
+                        <label for="Line3">Address Line 3</label>
+                        <input type="text" v-model="Address.AddrLine3" class="form-control" id="Line3" placeholder="Line 3">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="city">City</label>
+                        <input type="text" v-model="Address.City" class="form-control" id="city" placeholder="City">
+                        <label for="county">County</label>
+                        <input type="text" v-model="Address.County" class="form-control" id="county" placeholder="County">
+                        <label for="s/p">State/Province</label>
+                        <input type="text" v-model="Address.StateProvince" class="form-control" id="s/p" placeholder="State/Province">
+                        <label for="country">Country</label>
+                        <input type="text" v-model="Address.Country" class="form-control" id="country" placeholder="Country">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="zip">ZIP Code</label>
+                        <input type="text" v-model="Address.ZipPostalCode" class="form-control" id="zip" placeholder="ZIP Code">
+                        <label for="addrtype">Address Type</label>
+                         <b-form-select size="sm" id="addrtype" :options="consts.CHOICE_FIELDS.Address.AddressType" v-model="Address.AddressType" />
+                        <label for="Description">Description</label>
+                        <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
+                        </div>
+                        </div>
+                        <div class="edit-buttons">
+                            <!-- Adds contact to list of current contacts -->
+                            <a style="margin:0;padding:0;text-decoration: underline;margin-right:10px;" v-on:click="editAddress()">{{(this.replacingCont == -1) ?  "Add" : "Save"}}</a>
+                            <!-- Closes the window without adding contact to list -->
+                            <a style="margin:0;padding:0;text-decoration: underline;" v-on:click="clearAddrAndLocation();showBigDiv('addressLoc')">Cancel</a>
+                        </div>
+            </div>
+        </div>
         <!-- Window to display edits that were already submitted, i.e. Coming from the backend (see EditObject.vue) -->
         <div id="edits" class='edits hide'>
             <div style="width:15px;height:15px;top:0px;float:right;position:sticky;color:red;" v-on:click="showBigDiv('edits')" class="fas fa-times"></div>
             <div id="mid-edits" class='big-div'>
+                <div class="edit-title">AHJ</div>
+                <div id="Address-edits" class="edit-body">
+                    <div v-for="(e,index) in editList" v-bind:key="`ahjedit${index}`">
+                        <div v-if="baseFields.has(e.SourceColumn)">
+                            <edit-object v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-title">Address</div>
+                <div id="Address-edits" class="edit-body">
+                    <div v-for="(e,index) in editList" v-bind:key="`addredit${index}`">
+                        <div v-if="(e.SourceTable==='Address' && e.SourceRow==AHJInfo.Address.AddressID.Value) || (e.SourceTable==='Location' && e.SourceRow == AHJInfo.Address.Location.LocationID)">
+                            <edit-object v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                        </div>
+                    </div>
+                </div>
                 <!-- Loop through building Code edits and display -->
                 <div class="edit-title">Building Codes</div>
                 <div id="BuildingCode-edits" class="edit-body">
@@ -595,6 +676,8 @@
                             <!-- Loop through the edits made on this AHJ and find the ones that were made on this contact, i.e. edit.ContactID and contact.ContactID match -->
                         <div v-for="(e,index) in editList" v-bind:key="`c-e-${index}`">
                             <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===c.ContactID.Value && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="(e.SourceTable==='Address' && e.SourceRow==c.Address.AddressID.Value) || (e.SourceTable==='Location' && e.SourceRow==c.Address.Location.LocationID.Value)"
+                            v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                         </div>
                     </div>
@@ -869,7 +952,7 @@
             </div>
         </div>
         <!-- Header to page -->
-        <div id='titleCard'>
+        <div id='titleCard'  ref="titleInfo">
             <div id='mapDiv' ref="map">
 
             </div>
@@ -879,16 +962,52 @@
                 <h1 id='code'> {{ this.AHJInfo ? this.AHJInfo.AHJCode.Value : 'Loading' }} </h1>
                 <div class="break">
                 </div>
-                <div id="addr">
+                <div v-if="!isEditing" id="addr">
                     <h3> {{this.AddressString}}</h3>
+                </div>
+                <div style="height:18px" v-else>
+                    <a style="margin:0px;padding:0px;text-decoration: underline; cursor:pointer;" v-on:click="setAddrAndLocation();showBigDiv('addressLoc')">Edit this address</a>
                 </div>
                 <div>
                     <h3>AHJID: {{ this.AHJInfo ? this.AHJInfo.AHJID.Value : 'Loading' }}</h3>
                 </div>
-                                
                 <div class="break"/>
-                <div style="width:10px;"/>
-                <div id="edit-buttons">
+                <div style="height:10px;"/>
+                <div class="break"/>
+                <div style="position:absolute;right:50%;top:93%;">
+                    <h3 v-on:click="toggleMoreInfo()"> <i id="moreInfoChev" class="fa fa-chevron-down"/> More Info</h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Description: {{ this.AHJInfo ? this.AHJInfo.Description.Value : 'Loading' }}</h3>
+                    <h3 v-else> Description: <input type="text" v-model="Edits.Description" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3> AHJ Level Code: {{ this.AHJInfo ? this.AHJInfo.AHJLevelCode.Value : 'Loading' }} </h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Document Submission Method Notes: {{ this.AHJInfo ? this.AHJInfo.DocumentSubmissionMethodNotes.Value : 'Loading' }}</h3>
+                    <h3 v-else> Document Submission Method Notes: <input type="text" v-model="Edits.DocumentSubmissionMethodNotes" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Permit Issue Method Notes: {{ this.AHJInfo ? this.AHJInfo.PermitIssueMethodNotes.Value : 'Loading' }}</h3>
+                    <h3 v-else> Permit Issue Method Notes: <input type="text" v-model="Edits.PermitIssueMethodNotes" /></h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">URL: {{ this.AHJInfo ? this.AHJInfo.URL.Value : 'Loading' }}</h3>
+                    <h3 v-else> URL: <input type="text" v-model="Edits.URL" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">File Folder URL: {{ this.AHJInfo ? this.AHJInfo.FileFolderURL.Value : 'Loading' }}</h3>
+                    <h3 v-else> File Folder URL: <input type="text" v-model="Edits.FileFolderURL" /></h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Estimated Turnaround Days: {{ this.AHJInfo ? this.AHJInfo.EstimatedTurnaroundDays.Value : 'Loading' }}</h3>
+                    <h3 v-else> Estimated Turnaround Days: <input type="text" v-model="Edits.EstimatedTurnaroundDays" /></h3>
+                </div>
+                <div style="position:absolute;right:1%;top:92%;" id="edit-buttons">
                     <!-- OPen window to display edits on this page -->
                     <a v-if="!isEditing" style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;" v-on:click="showBigDiv('edits')">Show Edits</a>
                     <!-- Allow user to edit this AHJ -->
@@ -1146,7 +1265,13 @@ export default {
                 ResidentialCode: "",
                 ResidentialCodeNotes: "",
                 WindCode: "",
-                WindCodeNotes: ""
+                WindCodeNotes: "",
+                Description: "",
+                DocumentSubmissionMethodNotes: "",
+                PermitIssueMethodNotes: "",
+                EstimatedTurnaroundDays: "",
+                FileFolderURL: "",
+                URL: ""
             },
             //constants file
             consts: constants,
@@ -1317,6 +1442,11 @@ export default {
                 SourceTable: "PermitIssueMethod",
                 Value: []
             },
+            Location: {
+                Description: "",
+                LocationDeterminationMethod: "",
+                LocationType: ""
+            },
             //String for PIM v-model
             PIM: "",
             //these represent indeces within arrays when someone wants to edit an addition before submitting edits
@@ -1327,6 +1457,7 @@ export default {
             replacingFS: -1,
             AdditionOnInsp: [],
             inspEditing: -1,
+            editingCont: -1,
             //list of all edits
             editList: [],
             //these represent the combined confirmed and unconfirmed entities
@@ -1341,6 +1472,9 @@ export default {
             //Application upload file and status
             uploadedApplication: null,
             applicationStatus: null,
+            contactAdditionBackup: null,
+            showMore: false,
+            baseFields: new Set(["URL","Description","DocumentSubmissionMethodNotes","PermitIssueMethodNotes", "EstimatedTurnaroundDays","FileFolderURL"])
         }
     },
     computed: {
@@ -1632,7 +1766,7 @@ export default {
         },
         //create edit object to send to backend
         createEditObjects(){
-            this.editObjects = [];
+            //this.editObjects = [];
             let keys = Object.keys(this.Edits);
             for(var i = 0; i < keys.length; i++){
                 //check if edit is not empty or has been changed
@@ -1824,17 +1958,28 @@ export default {
             }
             //addition endpoint
             url = constants.API_ENDPOINT + 'edit/add/';
+            for(var i = 0; i < this.contactAddition.Value.length;i++){
+                let keys = Object.keys(this.contactAddition.Value[i].Address);
+                for(var j = 0; j < keys.length; j++){
+                    console.log(this.contactAddition.Value[i].Address[keys[j]]);
+                    this.contactAddition.Value[i].Address[keys[j]] = this.contactAddition.Value[i].Address[keys[j]];
+                }
+            }
+            this.contactAddition.Value = [...this.contactAddition.Value];
+            console.log(JSON.stringify(this.contactAddition));
             //submit all addition objects to backend (this order is random)
             axios
-                .post(url,this.contactAddition, {
+                .post(url,JSON.stringify(this.contactAddition), {
                     headers: {
-                        Authorization: this.$store.getters.authToken
+                        Authorization: this.$store.getters.authToken,
+                        'Content-type': 'application/json'
                     }
                 })
             axios
-                .post(url,this.inspectionAddition, {
+                .post(url,JSON.stringify(this.inspectionAddition), {
                     headers: {
-                        Authorization: this.$store.getters.authToken
+                        Authorization: this.$store.getters.authToken,
+                        'Content-type': 'application/json'
                     }
                 })
 
@@ -1973,11 +2118,18 @@ export default {
             this.Edits.FireCodeNotes = this.AHJInfo.FireCodeNotes.Value === 'None' ? '' : this.AHJInfo.FireCodeNotes.Value;
             this.Edits.WindCodeNotes = this.AHJInfo.WindCodeNotes.Value === 'None' ? '' : this.AHJInfo.WindCodeNotes.Value;
             this.Edits.ElectricCodeNotes = this.AHJInfo.ElectricCodeNotes.Value === 'None' ? '' : this.AHJInfo.ElectricCodeNotes.Value;
+            this.Edits.Description = this.AHJInfo.Description.Value === 'None' ? '' : this.AHJInfo.Description.Value;
+            this.Edits.EstimatedTurnaroundDays = this.AHJInfo.EstimatedTurnaroundDays.Value === 'None' ? '' : this.AHJInfo.EstimatedTurnaroundDays.Value;
+            this.Edits.DocumentSubmissionMethodNotes = this.AHJInfo.DocumentSubmissionMethodNotes.Value === 'None' ? '' : this.AHJInfo.DocumentSubmissionMethodNotes.Value;
+            this.Edits.PermitIssueMethodNotes = this.AHJInfo.PermitIssueMethodNotes.Value === 'None' ? '' : this.AHJInfo.PermitIssueMethodNotes.Value;
+            this.Edits.URL = this.AHJInfo.URL.Value === 'None' ? '' : this.AHJInfo.URL.Value;
+            this.Edits.FileFolderURL = this.AHJInfo.FileFolderURL.Value === 'None' ? '' : this.AHJInfo.FileFolderURL.Value;
         },
         //user creates a contact addition edit
         addContact(){
             //deep copy address into contact object
-            this.AddCont.Address = { ...this.Address };
+            this.$set(this.AddCont, 'Address',{ ...this.Address });
+            this.AddCont.Address.Location = {...this.Location};
             //if we are not replacing a contact
             if(this.replacingCont < 0){
                 //if we are not adding to an inspection, push to contact addition object
@@ -2058,6 +2210,7 @@ export default {
         addInspectionCont(){
             //deep copy address
             this.AddCont.Address = { ...this.Address };
+            this.AddCont.Address.Location = {...this.Location};
             //if not replacing an already made edit, push to addition object
             if(this.replacingInspCont < 0){
                 this.AddInsp.Contacts.push({ ...this.AddCont});
@@ -2282,6 +2435,100 @@ export default {
             if(type==="R"){
                 this.$refs[ref][0].style.backgroundColor = '#FFBEBE';
             }
+        },
+        clearAddrAndLocation(){
+            let keys = Object.keys(this.Address);
+            for(let i = 0; i < keys.length; i++){
+                this.Address[keys[i]] = '';
+            }
+            keys = Object.keys(this.Location);
+            for(let i = 0; i < keys.length; i++){
+                this.Location[keys[i]] = '';
+            }
+        },
+        editAddress(){
+            this.editObjects = [];
+            var contAddr = null;
+            console.log(this.editingCont);
+            if(this.editingCont > -1){
+                for(var i = 0; i  < this.$children.length; i++){
+                    if(this.$children[i].Type === 'Contact' && this.$children[i].data.ContactID.Value == this.editingCont){
+                        contAddr = {...this.$children[i].data.Address};
+                    }
+                }
+            }
+            else{
+                contAddr = {...this.AHJInfo.Address};
+            }
+            var keys = Object.keys(this.Address);
+            for(i = 0; i < keys.length; i++){
+                if(keys[i] !== 'Location'){
+                    if(contAddr[keys[i]].Value !== this.Address[keys[i]] && this.Address[keys[i]]){
+                        console.log(this.Address[keys[i]],contAddr[keys[i]].Value);
+                        var obj = {};
+                        obj['AHJPK'] = this.AHJInfo.AHJPK.Value;
+                        obj['SourceTable'] = 'Address'
+                        obj['SourceColumn'] = keys[i]
+                        obj['SourceRow'] = contAddr.AddressID.Value
+                        obj['OldValue'] = contAddr[keys[i]].Value
+                        obj['NewValue'] = this.Address[keys[i]] 
+                        this.editObjects.push(obj);
+                    }
+                }
+            }
+            keys = Object.keys(this.Location);
+            for(var j = 0; j < keys.length; j++){
+                        if(contAddr.Location[keys[j]].Value !== this.Location[keys[j]] && this.Location[keys[j]]){
+                            var obj2 = {};
+                            obj2['AHJPK'] = this.AHJInfo.AHJPK.Value;
+                            obj2['SourceTable'] = 'Location'
+                            obj2['SourceColumn'] = keys[j]
+                            obj2['SourceRow'] = contAddr.Location.LocationID.Value
+                            obj2['OldValue'] = contAddr.Location[keys[j]].Value
+                            obj2['NewValue'] = this.Location[keys[j]] 
+                            this.editObjects.push(obj2);
+                        }
+                    }
+            this.clearAddrAndLocation();
+            this.showBigDiv('addressLoc');
+            this.editingCont = -1;
+            return;
+        },
+        changeCont(index){
+            this.editingCont = index;
+        },
+        setAddrAndLocation(){
+            var contAddr = null;
+            console.log(this.editingCont);
+            if(this.editingCont > -1){
+                for(var i = 0; i  < this.$children.length; i++){
+                    if(this.$children[i].Type === 'Contact' && this.$children[i].data.ContactID.Value == this.editingCont){
+                        contAddr = {...this.$children[i].data.Address};
+                    }
+                }
+            }
+            else{
+                contAddr = {...this.AHJInfo.Address};
+            }
+            let keys = Object.keys(this.Address);
+            for(let i = 0; i < keys.length; i++){
+                this.Address[keys[i]] = contAddr[keys[i]].Value;
+            }
+            keys = Object.keys(this.Location);
+            for(let i = 0; i < keys.length; i++){
+                this.Location[keys[i]] = contAddr.Location[keys[i]].Value;
+            }
+        },
+        toggleMoreInfo(){
+            document.getElementById("moreInfoChev").classList.toggle('fa-chevron-down');
+            document.getElementById("moreInfoChev").classList.toggle('fa-chevron-up');
+            this.showMore = !this.showMore;
+            if(this.showMore){
+                this.$refs.titleInfo.style.height = "350px"
+            }
+            else{
+                this.$refs.titleInfo.style.height = "275px";
+            }
         }
     },
     watch: {
@@ -2304,6 +2551,7 @@ export default {
             this.reset();
             this.inspectionAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.inspectionAddition.ParentID = this.AHJInfo.AHJPK.Value;
+            this.inspectionContactAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.contactAddition.ParentID = this.AHJInfo.AHJPK.Value;
             this.contactAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.contactDeletions.AHJPK = this.AHJInfo.AHJPK.Value;
@@ -2542,5 +2790,8 @@ tr{
     border-bottom: 1px solid black;
     text-align: center;
     font-size: 25px;;
+}
+.tall{
+    height: 350px;
 }
 </style>

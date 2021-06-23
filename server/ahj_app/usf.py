@@ -336,11 +336,13 @@ def create_admin_user():
     admin = User.objects.create_user(
         Username=admin_username,
         Email=admin_email,
-        password=admin_password
+        password=admin_password,
+        Photo="No photo"
     )
     admin.is_active = True
     admin.is_staff = True
     admin.is_superuser = True
+    admin.Photo = ""
     admin.save()
     webpage_api_token = WebpageToken.objects.create(user=admin)
     api_token = APIToken.objects.create(user=admin)
@@ -413,6 +415,54 @@ def load_ahj_data_csv():
             i += 1
 
 
+def get_empty_loc():
+    loc = {}
+    loc['Altitude'] = None
+    loc['Elevation'] = None
+    loc['Latitude'] = None
+    loc['Longitude'] = None
+    loc['Description'] = ''
+    loc['LocationDeterminationMethod'] = None
+    loc['LocationType'] = None
+    return Location.objects.create(**loc)
+
+def get_empty_addr():
+    addr = {}
+    addr['AddrLine1'] = ''
+    addr['AddrLine2'] = ''
+    addr['AddrLine3'] = ''
+    addr['City'] = ''
+    addr['County'] = ''
+    addr['Country'] = ''
+    addr['StateProvince'] = ''
+    addr['ZipPostalCode'] = ''
+    addr['Description'] = ''
+    addr['AddressType'] = None
+    addr['LocationID'] = get_empty_loc()
+    return Address.objects.create(**addr)
+
+def locations_to_addresses():
+    addrs = Address.objects.filter(LocationID=None)
+    for a in addrs:
+        l = get_empty_loc()
+        l.save()
+        print(l)
+        a.LocationID = l
+        a.save()
+        print(a)
+
+def address_to_contacts():
+    conts = Contact.objects.filter(AddressID=None)
+    for c in conts:
+        a = get_empty_addr()
+        a.save()
+        print(a)
+        c.AddressID = a
+        c.save()
+        print(c)
+    return
+    
+# Dict to translate state FIPS codes to state abbreviations
 def load_ahj_census_names_csv():
     """
     Save AHJ census names from a CSV with columns: (AHJID, AHJCensusName, StateProvince)

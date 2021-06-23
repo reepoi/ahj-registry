@@ -235,4 +235,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-GOOGLE_MAPS_KEY = 'AIzaSyD9OcCLzrZugaBnSaORycJYDHgWgnDipVE'
+GOOGLE_MAPS_KEY = ''

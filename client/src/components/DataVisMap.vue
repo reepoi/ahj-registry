@@ -171,8 +171,9 @@ export default {
                     <span>${icon}</span>
                    </div>`,
             className: 'marker-cluster marker-cluster-small',
-          iconSize: new L.Point(40, 40)})
-        }).on('click', function (e) { // retrieve the polygon of the other marker clicked
+            iconSize: new L.Point(40, 40)
+          })
+        }).on('click', function (e) {
           let point = e.sourceTarget.options.markerData;
           that.getPolygon(point);
         }).on('mouseover', function (e) { // open popup on hover

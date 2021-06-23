@@ -100,6 +100,14 @@ def get_location_gecode_address_str(address):
         location['Longitude']['Value'] = longitude
     return location
 
+def get_elevation(Address):
+    loc = get_location_gecode_address_str(Address)
+    location = { 'lat': loc['Latitude']['Value'], 'lng': loc['Longitude']['Value'] }
+    elev = gmaps.elevation((loc['Latitude']['Value'],loc['Longitude']['Value']))
+    print(elev[0])
+    loc['Elevation'] = {'Value': 0}
+    loc['Elevation']['Value'] = elev[0]['elevation']
+    return loc
 
 def get_enum_value_row(enum_field, enum_value):
     """
@@ -343,7 +351,7 @@ def filter_ahjs(AHJName=None, AHJID=None, AHJPK=None, AHJCode=None, AHJLevelCode
 
 def order_ahj_list_AHJLevelCode_PolygonLandArea(ahj_list):
     ahj_list.sort(key=lambda ahj: int(ahj.PolygonID.LandArea) if ahj.PolygonID is not None else 0) # Sort first by landarea ascending
-    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode.Value) if ahj.AHJLevelCode is not None else 0) # Then sort by numerical value AHJLevelCode descending
+    ahj_list.sort(reverse=True, key=lambda ahj: int(ahj.AHJLevelCode.Value) if ahj.AHJLevelCode != '' and ahj.AHJLevelCode is not None else 0) # Then sort by numerical value AHJLevelCode descending
     return ahj_list
 
 

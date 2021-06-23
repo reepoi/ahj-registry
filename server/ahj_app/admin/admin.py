@@ -5,7 +5,6 @@ from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 from simple_history.admin import SimpleHistoryAdmin
 
-
 from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits, \
     edit_roll_back_edits, ExportCSVMixin, user_query_api_tokens, user_query_ahjs_is_ahj_official_of, \
     user_query_submitted_edits, user_query_approved_edits, edit_query_submitting_users, edit_query_approving_users, \
@@ -141,6 +140,7 @@ def get_default_model_admin_class(model, geo=False):
     if geo:
         class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin, ExportCSVMixin, SimpleHistoryAdmin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
+            history_list_display = ["status"]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
             actions = ['export_csv']
@@ -149,6 +149,7 @@ def get_default_model_admin_class(model, geo=False):
     else:
         class DefaultAdmin(SimpleHistoryAdmin, ExportCSVMixin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
+            history_list_display = ["status"]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
             actions = ['export_csv']
@@ -330,4 +331,4 @@ for action in admin_actions_to_add:
 Register all the admin models to admin site.
 """
 for v in model_admin_dict.values():
-    admin.site.register(v['model'], v['admin_model'])
+    admin.site.register(v['model'],SimpleHistoryAdmin)

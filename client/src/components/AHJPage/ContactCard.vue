@@ -43,8 +43,13 @@
                 </div>
                 <!-- Address (not editable) -->
                 <div id="addr" class='addr-info'>
-                    <h3 class="desc" v-if="this.AddressString !== ''">{{this.AddressString}}</h3>
-                    <h3 class="desc" v-else>No Address Provided</h3>
+                    <div v-if="!isEditing">
+                        <h3 class="desc" v-if="this.AddressString !== ''">{{this.AddressString}}</h3>
+                        <h3 class="desc" v-else>No Address Provided</h3>
+                    </div>
+                    <div class="desc" v-else>
+                        <a style="text-decoration: underline; cursor:pointer;font-size:15px;" v-on:click="editAddress()">Edit this address</a>
+                    </div>
                 </div>
                 <!-- Description or text box of editable -->
                 <div class="desc">
@@ -212,6 +217,12 @@ export default {
         getEditObjects(){
             // no editable child objects
             return [];
+        },
+        editAddress(){
+            this.$parent.changeCont(this.data.ContactID.Value);
+            this.$parent.editingCont = this.data.ContactID.Value;
+            this.$parent.editingCont = this.ID;
+            this.$parent.showBigDiv('addressLoc');
         }
     },
     watch: {

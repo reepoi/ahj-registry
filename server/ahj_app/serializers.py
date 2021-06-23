@@ -229,7 +229,7 @@ class UserCreateSerializer(UserCreateSerializer):
     """
     FirstName = serializers.CharField()
     LastName = serializers.CharField()
-
+    
     def validate(self, attrs):
         contact_fields = {field.name for field in Contact._meta.get_fields()}
         user_dict = OrderedDict({k: v for k, v in attrs.items() if k not in contact_fields})

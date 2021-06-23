@@ -11,7 +11,6 @@ import rest_framework.authtoken.models
 from taggit.managers import TaggableManager
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from simple_history.models import HistoricalRecords
-
 import uuid
 
 class AHJ(models.Model):
