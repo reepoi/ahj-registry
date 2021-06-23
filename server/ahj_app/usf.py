@@ -351,11 +351,13 @@ def create_admin_user():
     admin = User.objects.create_user(
         Username=admin_username,
         Email=admin_email,
-        password=admin_password
+        password=admin_password,
+        Photo="No photo"
     )
     admin.is_active = True
     admin.is_staff = True
     admin.is_superuser = True
+    admin.Photo = ""
     admin.save()
     webpage_api_token = WebpageToken.objects.create(user=admin)
     api_token = APIToken.objects.create(user=admin)

@@ -506,10 +506,6 @@
                     </div>
                 </div>
                 <!-- Loop through building Code edits and display -->
-        <div id="edits" class='edits hide'>
-            <div style="width:15px;height:15px;top:0px;float:right;position:sticky;color:red;" v-on:click="showBigDiv('edits')" class="fas fa-times"></div>
-            <div id="mid-edits" class='big-div'>
-                
                 <div class="edit-title">Building Codes</div>
                 <div id="BuildingCode-edits" class="edit-body">
                     <div v-for="(e,index) in editList" v-bind:key="`bcnot${index}`">

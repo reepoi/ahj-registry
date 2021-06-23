@@ -3,7 +3,7 @@ from operator import attrgetter
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
-
+from simple_history.admin import SimpleHistoryAdmin
 from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits
 from .form import UserChangeForm
 
@@ -108,14 +108,16 @@ def get_default_model_admin_class(model, geo=False):
     """
     model_fields = [field for field in model._meta.fields]
     if geo:
-        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin):
+        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin,SimpleHistoryAdmin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
+            history_list_display = ["status"]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
         return DefaultPolygonAdmin
     else:
-        class DefaultAdmin(admin.ModelAdmin):
+        class DefaultAdmin(SimpleHistoryAdmin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
+            history_list_display = ["status"]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
         return DefaultAdmin
@@ -253,4 +255,4 @@ for action in admin_actions_to_add:
 Register all the admin models to admin site.
 """
 for v in model_admin_dict.values():
-    admin.site.register(v['model'], v['admin_model'])
+    admin.site.register(v['model'],SimpleHistoryAdmin)

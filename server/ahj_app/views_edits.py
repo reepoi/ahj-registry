@@ -109,7 +109,7 @@ def apply_edits(ready_edits=None):
     if ready_edits is None:
         ready_edits = Edit.objects.filter(
             ReviewStatus='A',
-            DateEffective__date=datetime.date.today()
+            DateEffective__lte=datetime.now()
         ).exclude(ApprovedBy=None)
     for edit in ready_edits:
         model = apps.get_model('ahj_app', edit.SourceTable)
