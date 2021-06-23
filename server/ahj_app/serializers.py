@@ -151,10 +151,37 @@ class UserSerializer(serializers.Serializer):
     APIToken = serializers.CharField(source='get_API_token')
 
 class UserCreateSerializer(UserCreateSerializer):
+    FirstName = serializers.CharField()
+    LastName = serializers.CharField()
+
+    def validate(self, attrs):
+        contact_fields = {field.name for field in Contact._meta.get_fields()}
+        user_dict = OrderedDict({k: v for k, v in attrs.items() if k not in contact_fields})
+        super().validate(user_dict)
+        return attrs
+
+    def to_representation(self, user):
+        return UserSerializer(user).data
+
 
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = ('UserID', 'ContactID', 'Username', 'password', 'Email', 'is_staff', 'is_active', 'SignUpDate', 'PersonalBio', 'URL', 'CompanyAffiliation', 'Photo', 'CommunityScore', 'SecurityLevel')
+        fields = ('UserID',
+                  'ContactID',
+                  'Username',
+                  'password',
+                  'Email',
+                  'is_staff',
+                  'is_active',
+                  'SignUpDate',
+                  'PersonalBio',
+                  'URL',
+                  'CompanyAffiliation',
+                  'Photo',
+                  'CommunityScore',
+                  'SecurityLevel',
+                  'FirstName',
+                  'LastName')
 
 class CommentSerializer(serializers.Serializer):
     CommentID = OrangeButtonSerializer()

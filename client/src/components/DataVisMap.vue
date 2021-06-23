@@ -83,17 +83,18 @@ export default {
     setStateMarkers() {
       this.clearStateMarkers();
       for (let statePoint of this.statePoints) {
-        this.stateMarkerScale = d3.scaleLinear()
-          .domain([0, statePoint['numAHJs']])
-          .range([0, 255]);
+        this.stateMarkerScale = d3.scaleLinear().domain([0, statePoint['numAHJs']]).range([0, 255]);
         let that = this;
         let colorSaturation = this.stateMarkerScale(this.getCodeNumbersAvg(statePoint));
         this.stateMarkers[statePoint['PolygonID']] = L.marker([statePoint['InternalPLatitude'], statePoint['InternalPLongitude']],{
           markerData: statePoint,
-          icon: L.divIcon({ html: '<div style="' + this.getMarkerBackgroundColor([
-              255 - colorSaturation,
-              colorSaturation
-            ]) + '"><span>' + statePoint['numAHJs'] + '</span></div>', className: 'marker-cluster marker-cluster-large', iconSize: new L.Point(40, 40) })
+          icon: L.divIcon({
+            html: `<div style="${this.getMarkerBackgroundColor([255 - colorSaturation, colorSaturation])}">
+                    <span>${statePoint['numAHJs']}</span>
+                   </div>`,
+            className: 'marker-cluster marker-cluster-large',
+            iconSize: new L.Point(40, 40)
+          })
         }).on('click', function (e) {
           let markerData = e.sourceTarget.options.markerData;
           that.getOtherPoints(markerData['PolygonID']);
@@ -113,9 +114,7 @@ export default {
     },
     setOtherPoints() {
       this.clearOtherMarkers();
-      this.otherMarkerScale = d3.scaleLinear()
-          .domain([0, 1])
-          .range([0, 255]);
+      this.otherMarkerScale = d3.scaleLinear().domain([0, 1]).range([0, 255]);
       let that = this;
       this.selectedStateCluster = L.markerClusterGroup({
         chunkedLoading: true,
@@ -123,10 +122,13 @@ export default {
           let childCount = cluster.getChildCount();
           let mean = d3.mean(cluster.getAllChildMarkers(), d => that.getCodeNumbersAvg(d.options.markerData));
           let colorSaturation = that.otherMarkerScale(mean);
-          return L.divIcon({ html: '<div style="' + that.getMarkerBackgroundColor([
-              255 - colorSaturation,
-              colorSaturation
-            ]) + '"><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-medium', iconSize: new L.Point(40, 40) })
+          return L.divIcon({
+            html: `<div style="${that.getMarkerBackgroundColor([255 - colorSaturation, colorSaturation])}">
+                    <span>${childCount}</span>
+                   </div>`,
+            className: 'marker-cluster marker-cluster-medium',
+            iconSize: new L.Point(40, 40)
+          })
         }
       });
       for (let otherPoint of this.otherPoints) {
@@ -135,12 +137,12 @@ export default {
         this.selectedStateCluster.addLayer(L.marker([otherPoint['InternalPLatitude'], otherPoint['InternalPLongitude']], {
           markerData: otherPoint,
           icon: L.divIcon({
+            html: `<div style="${this.getMarkerBackgroundColor([255 - colorSaturation, colorSaturation])}">
+                    <span>${icon}</span>
+                   </div>`,
             className: 'marker-cluster marker-cluster-small',
-            html: '<div style="' + this.getMarkerBackgroundColor([
-              255 - colorSaturation,
-              colorSaturation
-            ]) + '"><span>' + icon + '</span></div>'}),
-          iconSize: new L.Point(40, 40)
+            iconSize: new L.Point(40, 40)
+          })
         }).on('click', function (e) {
           let point = e.sourceTarget.options.markerData;
           that.getPolygon(point);
@@ -150,7 +152,7 @@ export default {
         }).on('mouseout', function (e) {
           let marker = e.sourceTarget;
           marker.closePopup();
-        }).bindPopup(`<div>${otherPoint['AHJName'] ? otherPoint['AHJName'] : 'No AHJ paired to this polygon'}</div>`));
+        }).bindPopup(`<div>${otherPoint['AHJName'] ? otherPoint['AHJName'] : `No AHJ paired to this polygon<br>(${otherPoint['Name']})`}</div>`));
       }
       this.leafletMap.addLayer(this.selectedStateCluster);
     },
@@ -213,7 +215,6 @@ export default {
             '<span>Less</span><span style="float: right">More</span>';
         return div;
       };
-
       legend.addTo(this.leafletMap);
     }
   },

@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.urls import reverse, resolve
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
@@ -110,6 +111,31 @@ def ahj_obj_factory(db):
         ahj = AHJ.objects.create(AHJID=uuid.uuid4(), PolygonID=polygon, AddressID=address)
         return ahj
     return make_ahj
+
+
+def create_obj_from_dict(model_name, obj_dict):
+    for k, v in obj_dict.items():
+        if type(v) is dict:
+            sub_obj_model_name = v.pop('_model_name')
+            obj_dict[k] = create_obj_from_dict(sub_obj_model_name, v)
+    obj = apps.get_model('ahj_app', model_name).objects.create(**obj_dict)
+    return obj
+
+
+@pytest.fixture
+def create_minimal_obj(db):
+    def get_minimal_obj(model_name):
+        minimal_dicts = {'AHJ': {'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}},
+                         'Contact': {'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}},
+                         'Address': {'LocationID': {'_model_name': 'Location'}},
+                         'Location': {},
+                         'EngineeringReviewRequirement': {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
+                         'AHJInspection': {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}},
+                         'DocumentSubmissionMethod': {'Value': 'SolarApp'},
+                         'PermitIssueMethod': {'Value': 'SolarApp'},
+                         'FeeStructure': {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}}}
+        return create_obj_from_dict(model_name, minimal_dicts[model_name])
+    return get_minimal_obj
 
 
 """

@@ -4,7 +4,11 @@ from django.apps import apps
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
 from simple_history.admin import SimpleHistoryAdmin
-from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits
+
+from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits, \
+    edit_roll_back_edits, ExportCSVMixin, user_query_api_tokens, user_query_ahjs_is_ahj_official_of, \
+    user_query_submitted_edits, user_query_approved_edits, edit_query_submitting_users, edit_query_approving_users, \
+    comment_query_submitting_users, user_query_submitted_comments, ahj_query_ahj_official_users
 from .form import UserChangeForm
 
 USER_DATA_MODELS = {
@@ -12,10 +16,10 @@ USER_DATA_MODELS = {
     'Comment',
     'Edit',
     'User',
-    'WebpageToken'
 }
 
 POLYGON_DATA_MODELS = {
+    'Polygon',
     'StatePolygon',
     'CountyPolygon',
     'CityPolygon',
@@ -98,28 +102,58 @@ def is_related_field(model_field):
     return class_name == 'ForeignKey' or class_name == 'OneToOneField'
 
 
+def get_queryset(self, request):
+    """
+    Overridden to filter queryset by customized url query parameters.
+    These parameter key-value pairs are of the form:
+    - <field>=<value>,...<value>
+    The GET data before calling super().get_queryset so
+    that the queryset it returns is not filtered.
+    """
+    field_names = {field.name for field in self.model._meta.fields}
+    query_dict = {}
+    request.GET = request.GET.copy()
+    for k in request.GET.keys():
+        if k in field_names:
+            query_dict[f'{k}__in'] = [v for v in request.GET.get(k).split(',') if v != '']
+    for k in query_dict.keys():
+        field = k[:k.index('_')]
+        if field in request.GET.keys():
+            request.GET.pop(field)
+    qs = super(self.__class__, self).get_queryset(request)
+    if len(query_dict) != 0:
+        qs = qs.filter(**query_dict)
+    return qs
+
+
 def get_default_model_admin_class(model, geo=False):
     """
     For a given model, returns a default admin model with:
     - A search bar that searches all CharField fields of the model.
     - A table to display the primary key and all CharField fields of the model.
     - Turned-off dropdown selection of related models in the model detail view.
+    - CSV export admin action
+    - Customized get_queryset method to support multiple values to URL parameter keys.
     If geo=True, then creates a OSMGeoAdmin for a nicer view of the GIS features.
     """
     model_fields = [field for field in model._meta.fields]
     if geo:
-        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin,SimpleHistoryAdmin):
+        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin, ExportCSVMixin,SimpleHistoryAdmin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
             history_list_display = ["status"]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
+            actions = ['export_csv']
+            get_queryset = get_queryset
         return DefaultPolygonAdmin
     else:
-        class DefaultAdmin(SimpleHistoryAdmin):
+        class DefaultAdmin(SimpleHistoryAdmin, ExportCSVMixin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
             history_list_display = ["status"]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
+            actions = ['export_csv']
+            get_queryset = get_queryset
         return DefaultAdmin
 
 
@@ -201,6 +235,11 @@ Adding Admin Actions:
  - Reset Password.
  - Generate API Token.
  - Delete/Toggle API Token.
+ - Query API Tokens
+ - Query Is AHJ Official Of
+ - Query Submitted Edits
+ - Query Approved Edits
+ - Query Submitted Comments
 Removing from list_display:
  - The user's hashed password.
 """
@@ -209,6 +248,11 @@ admin_actions_to_add = []
 admin_actions_to_add.append(get_action_info_dict('user_reset_password', user_reset_password))
 admin_actions_to_add.append(get_action_info_dict('user_generate_api_token', user_generate_api_token))
 admin_actions_to_add.append(get_action_info_dict('user_delete_toggle_api_token', user_delete_toggle_api_token))
+admin_actions_to_add.append(get_action_info_dict('user_query_api_tokens', user_query_api_tokens))
+admin_actions_to_add.append(get_action_info_dict('user_query_ahjs_is_ahj_official_of', user_query_ahjs_is_ahj_official_of))
+admin_actions_to_add.append(get_action_info_dict('user_query_submitted_edits', user_query_submitted_edits))
+admin_actions_to_add.append(get_action_info_dict('user_query_approved_edits', user_query_approved_edits))
+admin_actions_to_add.append(get_action_info_dict('user_query_submitted_comments', user_query_submitted_comments))
 for action in admin_actions_to_add:
     setattr(user_admin_model, action['name'], action['function'])
     user_admin_model.actions.append(action['name'])
@@ -216,6 +260,32 @@ for action in admin_actions_to_add:
 user_admin_model.list_display.remove('password')
 user_admin_model.list_display.insert(0, user_admin_model.list_display.pop(user_admin_model.list_display.index('UserID')))
 user_admin_model.form = UserChangeForm
+
+
+"""
+Customizing AHJ Admin Model:
+Adding Admin Actions:
+ - Query AHJ Official Users
+"""
+ahj_admin_model = model_admin_dict['AHJ']['admin_model']
+admin_actions_to_add = []
+admin_actions_to_add.append(get_action_info_dict('ahj_query_ahj_official_users', ahj_query_ahj_official_users))
+for action in admin_actions_to_add:
+    setattr(ahj_admin_model, action['name'], action['function'])
+    ahj_admin_model.actions.append(action['name'])
+
+
+"""
+Customizing Comment Admin Model:
+Adding Admin Actions:
+ - Query Submitting Users
+"""
+comment_admin_model = model_admin_dict['Comment']['admin_model']
+admin_actions_to_add = []
+admin_actions_to_add.append(get_action_info_dict('comment_query_submitting_users', comment_query_submitting_users))
+for action in admin_actions_to_add:
+    setattr(comment_admin_model, action['name'], action['function'])
+    comment_admin_model.actions.append(action['name'])
 
 
 """
@@ -242,10 +312,16 @@ polygon_admin_model.list_display.remove('Polygon')
 Customizing Edit Admin Model:
 Adding Admin Actions:
  - Approve Edits
+ - Roll back Edits
+ - Query Submitting Users
+ - Query Approving Users
 """
 edit_admin_model = model_admin_dict['Edit']['admin_model']
 admin_actions_to_add = []
 admin_actions_to_add.append(get_action_info_dict('edit_approve_edits', edit_approve_edits))
+admin_actions_to_add.append(get_action_info_dict('edit_roll_back_edits', edit_roll_back_edits))
+admin_actions_to_add.append(get_action_info_dict('edit_query_submitting_users', edit_query_submitting_users))
+admin_actions_to_add.append(get_action_info_dict('edit_query_approving_users', edit_query_approving_users))
 for action in admin_actions_to_add:
     setattr(edit_admin_model, action['name'], action['function'])
     edit_admin_model.actions.append(action['name'])

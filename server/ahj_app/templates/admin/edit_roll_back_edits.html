@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<form action="" method="post">
+    {% csrf_token %}
+    <h1>
+        Each of these edits will be rolled back. The selected edits are categorized by how the edits will be rolled back.
+    </h1>
+    <h3>
+        These edits will be set pending and their changes undone, if any:
+    </h3>
+    <ul>
+        {% for edit in resettable_edits %}
+        <li>
+            <h2><b>
+                <a href="../edit/{{ edit.pk }}/" target="_blank">Edit({{ edit.EditID }})</a>: Revert <a href="../{{ edit.SourceTable.lower }}/{{ edit.SourceRow }}/" target="_blank">{{ edit.SourceTable }}({{ edit.SourceRow }})</a>.{{ edit.SourceColumn }} from '<span style="color: red">{{ edit.OldValue }}</span>' to '<span style="color: green">{{ edit.NewValue }}</span>'.
+            </b></h2>
+            <input type="hidden" name="_selected_action" value="{{ edit.pk }}">
+        </li>
+        {% endfor %}
+    </ul>
+    <h3>
+        New edits will be created to reverse the changes of these edits:
+    </h3>
+    <ul>
+        {% for edit in non_resettable_edits %}
+        <li>
+            <h2><b>
+                <a href="../edit/{{ edit.pk }}/" target="_blank">Edit({{ edit.EditID }})</a>: Revert <a href="../{{ edit.SourceTable.lower }}/{{ edit.SourceRow }}/" target="_blank">{{ edit.SourceTable }}({{ edit.SourceRow }})</a>.{{ edit.SourceColumn }} from '<span style="color: red">{{ edit.OldValue }}</span>' to '<span style="color: green">{{ edit.NewValue }}</span>'.
+            </b></h2>
+            <input type="hidden" name="_selected_action" value="{{ edit.pk }}">
+        </li>
+        {% endfor %}
+    </ul>
+    <h3>
+        These edits are still pending, so no action will be taken:
+    </h3>
+    <ul>
+        {% for edit in pending_edits %}
+        <li>
+            <h2><b>
+                <a href="../edit/{{ edit.pk }}/" target="_blank">Edit({{ edit.EditID }})</a>: <a href="../{{ edit.SourceTable.lower }}/{{ edit.SourceRow }}/" target="_blank">{{ edit.SourceTable }}({{ edit.SourceRow }})</a>.{{ edit.SourceColumn }} from '<span style="color: red">{{ edit.OldValue }}</span>' to '<span style="color: green">{{ edit.NewValue }}</span>'.
+            </b></h2>
+            <input type="hidden" name="_selected_action" value="{{ edit.pk }}">
+        </li>
+        {% endfor %}
+    </ul>
+    <input type="hidden" name="action" value="edit_roll_back_edits" />
+    <p style="padding-top: 1em; text-align: center">
+  <span style="padding-right: 2em">
+    <a href="{{ request.get_full_path }}">
+      <input type="button" name="Cancel" value="Cancel">
+    </a>
+  </span>
+        <span>
+    <input type="submit" name="apply" value="Confirm"/>
+  </span>
+    </p>
+</form>
+{% endblock %}

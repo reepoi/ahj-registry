@@ -4,8 +4,9 @@
 <form action="" method="post">
   {% csrf_token %}
   <p>
-  For each edit, please select when the edit should be applied:
-  Note if today is selected, the edit will be applied immediately.
+  For each edit, please select when the edit should be applied ('---' indicates to do nothing):
+    <br>
+  Note if today or earlier is selected, the edit will be applied immediately. <b>The server runs on UTC 0:00 time, so it may be on a different day.</b>
   </p>
   <br>
   <label>
@@ -78,7 +79,7 @@
   <br>
   {% for tuple in edits_and_forms %}
     <h2><b>
-      <a href="../edit/{{ tuple.0.pk }}/" target="_blank">Edit({{ tuple.0.EditID }}): Changes {{ tuple.0.SourceTable }}({{ tuple.0.SourceRow }}).{{ tuple.0.SourceColumn }} from '{{ tuple.0.OldValue }}' to '{{ tuple.0.NewValue }}'.</a>
+      <a href="../edit/{{ tuple.0.pk }}/" target="_blank">Edit({{ tuple.0.EditID }})</a>: <a href="../{{ tuple.0.SourceTable.lower }}/{{ tuple.0.SourceRow }}/" target="_blank">{{ tuple.0.SourceTable }}({{ tuple.0.SourceRow }})</a>.{{ tuple.0.SourceColumn }} from '<span style="color: red">{{ tuple.0.OldValue }}</span>' to '<span style="color: green">{{ tuple.0.NewValue }}</span>'.
     </b></h2>
     {{ tuple.1 }}
   <input type="hidden" name="edit_to_form" value="{{ tuple.0.pk }}.{{ tuple.1.prefix }}">
@@ -110,9 +111,9 @@
       let monthSelect = document.getElementById('setAllMonth');
       let daySelect = document.getElementById('setAllDay');
       let today = new Date();
-      yearSelect.value = today.getFullYear();
-      monthSelect.value = today.getMonth() + 1;
-      daySelect.value = today.getDate();
+      yearSelect.value = today.getUTCFullYear();
+      monthSelect.value = today.getUTCMonth() + 1;
+      daySelect.value = today.getUTCDate();
       yearSelect.dispatchEvent(new Event('change'));
       monthSelect.dispatchEvent(new Event('change'));
       daySelect.dispatchEvent(new Event('change'));

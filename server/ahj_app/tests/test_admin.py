@@ -1,8 +1,5 @@
 from django.contrib.auth import hashers
-from django.db import connection
-from django.urls import reverse
-from django.http import HttpRequest, QueryDict
-from django.test import Client
+from django.http import QueryDict
 import ahj_app.admin.actions as admin_actions
 import ahj_app.admin.form as admin_form
 from django.utils import timezone
@@ -10,11 +7,22 @@ from django.utils import timezone
 from fixtures import *
 import pytest
 import datetime
-import requests
 
-from ahj_app.models import AHJ, User, APIToken, AHJUserMaintains, Edit
+from ahj_app.models import AHJ, User, APIToken, AHJUserMaintains, Edit, Location, Address
+from ahj_app.models_field_enums import LocationDeterminationMethod
 
 from ahj_app.views_edits import apply_edits
+
+
+@pytest.mark.django_db
+def test_get_value_or_primary_key():
+    ldm = LocationDeterminationMethod.objects.create(Value='GPS')
+    location = Location.objects.create(Description='desc', LocationDeterminationMethod=ldm)
+    address = Address.objects.create(LocationID=location)
+    assert admin_actions.get_value_or_primary_key(location, 'Description') == 'desc'
+    assert admin_actions.get_value_or_primary_key(location, 'LocationDeterminationMethod') == 'GPS'
+    assert admin_actions.get_value_or_primary_key(address, 'LocationID') == location.LocationID
+    assert admin_actions.get_value_or_primary_key(address, 'AddressType') == ''
 
 
 @pytest.mark.parametrize(
@@ -194,11 +202,22 @@ def test_assign_ahj_official_status(num_existing, num_kept, num_new, ahj_obj_fac
     # Test applying the changes
     admin_form.assign_ahj_official_status(user, num_kept_ahjs + num_new_ahjs)
 
-    assigned_ahjs = AHJUserMaintains.objects.filter(UserID=user, MaintainerStatus=True).values_list('AHJPK', flat=True)
+    all_time_assigned_ahjs = AHJUserMaintains.objects.filter(UserID=user)
+    assigned_ahjs = all_time_assigned_ahjs.filter(MaintainerStatus=True).values_list('AHJPK', flat=True)
+    former_ahjs = all_time_assigned_ahjs.filter(MaintainerStatus=False).values_list('AHJPK', flat=True)
     for ahj in num_kept_ahjs + num_new_ahjs:
         assert ahj.AHJPK in assigned_ahjs
     for ahj in (num_existing_ahjs[num_kept:] if num_kept < len(num_existing_ahjs) else []):
-        assert ahj.AHJPK not in assigned_ahjs
+        assert ahj.AHJPK in former_ahjs
+
+
+@pytest.mark.django_db
+def test_assign_ahj_official_status__reassign_ahj(create_user, ahj_obj):
+    user = create_user()
+    assignment = AHJUserMaintains.objects.create(UserID=user, AHJPK=ahj_obj, MaintainerStatus=False)
+    admin_form.assign_ahj_official_status(user, [ahj_obj])
+    assignment = AHJUserMaintains.objects.get(MaintainerID=assignment.MaintainerID)
+    assert assignment.MaintainerStatus is True
 
 
 @pytest.mark.parametrize(
@@ -221,6 +240,7 @@ def test_set_date_from_str(date_str):
 @pytest.mark.parametrize(
     'date_effective', [
         timezone.now(),
+        timezone.now() + datetime.timedelta(days=1),
         timezone.make_aware(datetime.datetime(1, 1, 1))
     ]
 )
@@ -246,6 +266,8 @@ def test_process_approve_edits_data(date_effective, create_user, ahj_obj):
     for x in range(len(edits)):
         assert results[x]['edit'].EditID == edits[x].EditID
         assert results[x]['approved_by'].UserID == approving_user.UserID
+        if date_effective <= timezone.now():
+            date_effective = timezone.now()
         assert results[x]['date_effective'].date() == date_effective.date()
         assert results[x]['apply_now'] == (date_effective.date() == datetime.date.today())
 
@@ -297,3 +319,11 @@ def test_approve_edit(apply_now, create_user, ahj_obj):
         apply_edits()
         ahj = AHJ.objects.get(AHJPK=ahj_obj.pk)
         assert ahj.AHJName == 'NewName'
+
+
+@pytest.mark.django_db
+def test_build_url_parameters_for_change_list_filtering(ahj_obj_factory):
+    ahj1 = ahj_obj_factory()
+    ahj2 = ahj_obj_factory()
+    ahj3 = ahj_obj_factory()
+    assert admin_actions.build_url_parameters_for_change_list_filtering(AHJ.objects.all(), [admin_actions.field_key_pair('AHJPK', 'AHJPK')]) == f'?AHJPK={ahj1.pk},{ahj2.pk},{ahj3.pk}&'

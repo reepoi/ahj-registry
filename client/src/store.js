@@ -53,7 +53,7 @@ export default new Vuex.Store({
     getters: {
         apiData: state => state.apiData,
         loggedIn: state => state.loginStatus.authToken !== "",
-        authToken: state => state.loginStatus.authToken ? state.loginStatus.authToken : constants.TOKEN_AUTH
+        authToken: state => state.loginStatus.authToken
     },
     mutations: {
         callAPI(state, queryPayload) {
@@ -115,6 +115,7 @@ export default new Vuex.Store({
             return;
           }
           state.resultsDownloading = true;
+          let that = this;
           let gatherAllObjects = function(url, searchPayload, ahjJSONObjs, offset) {
             if (url === null) {
               let filename = "results";
@@ -135,18 +136,18 @@ export default new Vuex.Store({
               axios
                 .post(url, searchPayload,{
                   headers: {
-                    Authorization: constants.TOKEN_AUTH_PUBLIC_API
+                    Authorization: that.getters.authToken
                   }
                 })
                 .then(response => {
-                  ahjJSONObjs = ahjJSONObjs.concat(response.data['AuthorityHavingJurisdictions']);
+                  ahjJSONObjs = ahjJSONObjs.concat(response.data.results.ahjlist);
                   offset += 20; // the django rest framework pagination configuration
                   state.downloadCompletionPercent = (offset / response.data.count * 100).toFixed();
                   gatherAllObjects(response.data.next, searchPayload, ahjJSONObjs, offset);
                 });
             }
           };
-          let url = constants.API_ENDPOINT + "ahj/";
+          let url = constants.API_ENDPOINT + "ahj-private/";
           let searchPayload = utils.value_to_ob_value_primitive(state.searchedQuery);
           if (state.searchedQuery.Address) {
               /* If an address was searched, the lat,lon coordinates are returned from callAPI.
@@ -158,6 +159,8 @@ export default new Vuex.Store({
           if (state.searchedGeoJSON) {
             searchPayload['FeatureCollection'] = state.searchedGeoJSON;
           }
+          // Tell endpoint to send JSON for user consumption.
+          searchPayload['use_public_view'] = true;
           gatherAllObjects(url, searchPayload, [], 0);
         },
         changeUserLoginStatus(state, payload) {
