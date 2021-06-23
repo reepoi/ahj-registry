@@ -78,10 +78,6 @@ export default {
                 axios.post(constants.API_ENDPOINT + "auth/token/login/", {
                     "Email": this.Email,
                     "password": this.Password
-                    }, {
-                    headers: {
-                        'Authorization': `${this.$store.getters.authToken}`
-                    }
                 }).then(response => {
                     this.SubmitStatus = 'OK';
                     let loginStatus = {
@@ -101,7 +97,7 @@ export default {
                     else
                         this.errorMessage = "Something went wrong with logging you in."
                     this.showDismissibleAlert = true;
-                    });   
+                });
             }
         }
     },

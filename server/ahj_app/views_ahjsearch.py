@@ -52,7 +52,7 @@ def webpage_ahj_list(request):
 
     serializer = AHJSerializer
     paginator = LimitOffsetPagination()
-    context = {'fields_to_drop': []}
+    context = {'is_public_view': request.data.get('use_public_view', False)}
     page = paginator.paginate_queryset(ahjs, request)
 
     if str_location is not None or polygon is not None:

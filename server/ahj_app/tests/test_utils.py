@@ -334,3 +334,11 @@ def test_filter_ahjs__search_filters_and_location(ahj_filter_ahjs, ahj_filter_lo
     ahj_list = filter_ahjs(AHJLevelCode='061', location=ahj_filter_location)
     assert len(ahj_list) == 1
     assert ahj_list[0].AHJPK == 3
+
+
+@pytest.mark.django_db
+def test_filter_dict_keys():
+    dict_to_filter = {'key1': 'value1', 'key2': 'value2'}
+    keys_to_keep = {'key1'}
+    filtered_dict = filter_dict_keys(dict_to_filter, keys_to_keep)
+    assert filtered_dict == {'key1': 'value1'}
