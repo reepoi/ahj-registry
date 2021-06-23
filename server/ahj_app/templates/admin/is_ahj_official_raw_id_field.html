@@ -1,0 +1,74 @@
+<input type="hidden"
+       name="{{ widget.name }}"
+       {% if widget.value != None %}
+       value="{{ widget.value|stringformat:'s' }}"
+       {% endif %}
+       onchange="AdminRawIdFieldRelatedSearchFunctions.updateLinkPairList(this)"
+       {% include "django/forms/widgets/attrs.html" %}>
+
+    <a href="{{ related_url }}"
+       class="related-lookup"
+       id="lookup_id_{{ widget.name }}"
+       title="{{ link_title }}"></a>
+
+<ul id="link-pair-list" style="padding-top: 1em"></ul>
+
+<script>
+    AdminRawIdFieldRelatedSearchFunctions = {
+        /**
+         * Remove the selected AHJPK from the hidden form input
+         * and then update the AHJ list displayed.
+         * @param source The button clicked.
+         */
+        deleteAHJUserMaintains: function(source) {
+            const elem = document.getElementById('id_IsAHJOfficialOf');
+            const ahjpk = source.dataset.ahjpk;
+            let current_ahjpks = elem.value.split(',').filter(a => a !== '');
+            current_ahjpks = current_ahjpks.filter(a => a !== ahjpk);
+            elem.value = current_ahjpks.join(',');
+            this.updateLinkPairList(elem);
+        },
+        /**
+         * Update the AHJ list displayed.
+         * @param source The hidden form input.
+         */
+        updateLinkPairList: function(source) {
+            let ahjpks = [...new Set(source.value.split(',').filter(a => a !== ''))];
+            source.value = ahjpks.join(',');
+            let link_pair_list = document.getElementById('link-pair-list');
+            link_pair_list.innerHTML = ahjpks.reduce((result, ahjpk) => {
+                result += this.getLinkPairInnerHTML(ahjpk);
+                return result;
+            }, '');
+        },
+        /**
+         * Create an <li> element to display the AHJ in a list.
+         * @param ahjpk
+         * @returns string The <li> html.
+         */
+        getLinkPairInnerHTML: function(ahjpk) {
+            return `<li><strong><a style="padding-right: 2em"  href=${"{{ base_change_url }}".replace('%(pk)s', ahjpk)}>{{ object_label }} (${ahjpk})</a><button class="button" data-ahjpk="${ahjpk}" onclick="AdminRawIdFieldRelatedSearchFunctions.deleteAHJUserMaintains(this)">Delete</button></strong></li>`
+        }
+    }
+
+    /**
+     * Django JavaScript function that appends the primary key of the instance
+     * selected in Django's related lookup popup.
+     * Overridden to fire a 'change' event.
+     * @param win the popup window.
+     * @param chosenId the primary key of the instance selected.
+     */
+    dismissRelatedLookupPopup = function (win, chosenId) {
+        const name = win.name;
+        const elem = document.getElementById(name);
+        if (elem.classList.contains('vManyToManyRawIdAdminField') && elem.value) {
+            elem.value += ',' + chosenId;
+        } else {
+            document.getElementById(name).value = chosenId;
+        }
+        elem.dispatchEvent(new Event('change'));
+        win.close();
+    }
+    // Update the list of AHJs when the script loads.
+    AdminRawIdFieldRelatedSearchFunctions.updateLinkPairList(document.getElementById('id_IsAHJOfficialOf'));
+</script>

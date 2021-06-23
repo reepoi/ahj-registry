@@ -1,4 +1,4 @@
-webpageTokenUrls= [ 
+webpageTokenUrls = [
     ('ahj-private', {}),
     ('single_ahj', {}),
     ('ahj-set-maintainer', {}), 
@@ -9,10 +9,7 @@ webpageTokenUrls= [
     ('edit-update', {}), 
     ('edit-deletion', {}), 
     ('edit-addition', {}),
-    ('user-create', {}),
-    ('user-login', {}),
-    ('user-logout', {}),
-    ('user-update', {'username':'test'}), 
+    ('user-update', {}),
     ('user-edits', {}), 
     ('user-comments', {}),
     ('active-user-info', {}), 
@@ -21,10 +18,10 @@ webpageTokenUrls= [
     ('data-map', {}), 
     ('data-map-polygon', {}), 
     ('send-support-email', {}),
-    ('form-validator', {}), 
-    ('user-create', {}), 
-    ('user-login', {}),
-    ('user-logout', {}),
+    ('form-validator', {}),
+    ('djoser:user-list', {}),
+    ('djoser-authtoken:login', {}),
+    ('djoser-authtoken:logout', {}),
     ('confirm-reset-password', {})
 ]
 
@@ -32,4 +29,8 @@ apiTokenUrls = [
     ('ahj-public', {}), 
     ('ahj-geo-address', {}), 
     ('ahj-geo-location', {}), 
+]
+
+noAuthTokenUrls = [
+    ('form-validator', {})
 ]

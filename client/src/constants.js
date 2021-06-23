@@ -1,17 +1,8 @@
-/*
- * Constants used throughout the application
- */
-const API_ENDPOINT = "http://localhost:8000/api/v1/"; // Base Django API endpoint
-const AUTH_TOKEN = ""; // Webpage's Django webpage API token
-const AUTH_TOKEN_PUBLIC_API = ""; // Webpage's Django public API token
-const IP_GEOLOCATION_ENDPOINT = ""; // API endpoint for finding user's lat-lon by their ip; only 20,000 requests per month
+const API_ENDPOINT = "http://localhost:8000/api/v1/";
 
 export default {
   API_ENDPOINT: API_ENDPOINT,
-  TOKEN_AUTH: AUTH_TOKEN,
-  TOKEN_AUTH_PUBLIC_API: AUTH_TOKEN_PUBLIC_API,
-  IP_GEOLOCATION_ENDPOINT: IP_GEOLOCATION_ENDPOINT,
-  AHJ_FIELDS: { // Template for Orange Button AHJ object
+  AHJ_FIELDS: {
     AHJCode: "",
     AHJName: "",
     BuildingCode: "",

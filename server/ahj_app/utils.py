@@ -8,7 +8,33 @@ from .serializers import *
 import googlemaps
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 
-from .usf import get_enum_value_row
+
+ENUM_FIELDS = {
+    'BuildingCode',
+    'ElectricCode',
+    'FireCode',
+    'ResidentialCode',
+    'WindCode',
+    'AHJLevelCode',
+    'DocumentSubmissionMethod',
+    'PermitIssueMethod',
+    'AddressType',
+    'LocationDeterminationMethod',
+    'LocationType',
+    'ContactType',
+    'PreferredContactMethod',
+    'EngineeringReviewType',
+    'RequirementLevel',
+    'StampType',
+    'FeeStructureType',
+    'InspectionType'
+}
+
+ENUM_PLURALS_TRANSLATE = {
+    'DocumentSubmissionMethods': 'DocumentSubmissionMethod',
+    'PermitIssueMethods': 'PermitIssueMethod'
+}
+
 
 gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_KEY)
 
@@ -73,6 +99,15 @@ def get_location_gecode_address_str(address):
         location['Latitude']['Value'] = latitude
         location['Longitude']['Value'] = longitude
     return location
+
+
+def get_enum_value_row(enum_field, enum_value):
+    """
+    Finds the row of the enum table given the field name and its enum value.
+    """
+    # Translate plural, if given
+    enum_field = ENUM_PLURALS_TRANSLATE[enum_field] if enum_field in ENUM_PLURALS_TRANSLATE else enum_field
+    return apps.get_model('ahj_app', enum_field).objects.get(Value=enum_value)
 
 
 def get_enum_value_row_else_null(enum_field, enum_value):
@@ -324,3 +359,15 @@ def dictfetchall(cursor):
         dict(zip(columns, row))
         for row in cursor.fetchall()
     ]
+
+
+def filter_dict_keys(dict_to_filter, keys_to_keep):
+    return {k: v for k, v in dict_to_filter.items() if k in keys_to_keep}
+
+
+def get_model_field_names(model):
+    return {field.name for field in model._meta.get_fields()}
+
+
+def filter_dict_model_fields(dict_to_filter, model):
+    return filter_dict_keys(dict_to_filter, get_model_field_names(model))

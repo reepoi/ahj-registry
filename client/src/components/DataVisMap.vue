@@ -95,18 +95,19 @@ export default {
     setStateMarkers() {
       this.clearStateMarkers();
       for (let statePoint of this.statePoints) {
-        this.stateMarkerScale = d3.scaleLinear()
-          .domain([0, statePoint['numAHJs']])
-          .range([0, 255]);
+        this.stateMarkerScale = d3.scaleLinear().domain([0, statePoint['numAHJs']]).range([0, 255]);
         let that = this;
         let colorSaturation = this.stateMarkerScale(this.getCodeNumbersAvg(statePoint));
         this.stateMarkers[statePoint['PolygonID']] = L.marker([statePoint['InternalPLatitude'], statePoint['InternalPLongitude']],{
           markerData: statePoint,
-          icon: L.divIcon({ html: '<div style="' + this.getMarkerBackgroundColor([
-              255 - colorSaturation,
-              colorSaturation
-            ]) + '"><span>' + statePoint['numAHJs'] + '</span></div>', className: 'marker-cluster marker-cluster-large', iconSize: new L.Point(40, 40) })
-        }).on('click', function (e) { // Register handler for when user clicks on the state marker to retrieve other markers
+          icon: L.divIcon({
+            html: `<div style="${this.getMarkerBackgroundColor([255 - colorSaturation, colorSaturation])}">
+                    <span>${statePoint['numAHJs']}</span>
+                   </div>`,
+            className: 'marker-cluster marker-cluster-large',
+            iconSize: new L.Point(40, 40)
+          })
+        }).on('click', function (e) {
           let markerData = e.sourceTarget.options.markerData;
 
           // get the other markers
@@ -139,9 +140,7 @@ export default {
     setOtherPoints() {
       // remove the other points from a previously selected state, if any
       this.clearOtherMarkers();
-      this.otherMarkerScale = d3.scaleLinear()
-          .domain([0, 1])
-          .range([0, 255]);
+      this.otherMarkerScale = d3.scaleLinear().domain([0, 1]).range([0, 255]);
       let that = this;
 
       // add the other markers to cluster groups to collect together on zoom-out
@@ -151,10 +150,13 @@ export default {
           let childCount = cluster.getChildCount();
           let mean = d3.mean(cluster.getAllChildMarkers(), d => that.getCodeNumbersAvg(d.options.markerData));
           let colorSaturation = that.otherMarkerScale(mean);
-          return L.divIcon({ html: '<div style="' + that.getMarkerBackgroundColor([
-              255 - colorSaturation,
-              colorSaturation
-            ]) + '"><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-medium', iconSize: new L.Point(40, 40) })
+          return L.divIcon({
+            html: `<div style="${that.getMarkerBackgroundColor([255 - colorSaturation, colorSaturation])}">
+                    <span>${childCount}</span>
+                   </div>`,
+            className: 'marker-cluster marker-cluster-medium',
+            iconSize: new L.Point(40, 40)
+          })
         }
       });
 
@@ -165,12 +167,11 @@ export default {
         this.selectedStateCluster.addLayer(L.marker([otherPoint['InternalPLatitude'], otherPoint['InternalPLongitude']], {
           markerData: otherPoint,
           icon: L.divIcon({
+            html: `<div style="${this.getMarkerBackgroundColor([255 - colorSaturation, colorSaturation])}">
+                    <span>${icon}</span>
+                   </div>`,
             className: 'marker-cluster marker-cluster-small',
-            html: '<div style="' + this.getMarkerBackgroundColor([
-              255 - colorSaturation,
-              colorSaturation
-            ]) + '"><span>' + icon + '</span></div>'}),
-          iconSize: new L.Point(40, 40)
+          iconSize: new L.Point(40, 40)})
         }).on('click', function (e) { // retrieve the polygon of the other marker clicked
           let point = e.sourceTarget.options.markerData;
           that.getPolygon(point);
@@ -180,7 +181,7 @@ export default {
         }).on('mouseout', function (e) { // close popup on off-hover
           let marker = e.sourceTarget;
           marker.closePopup();
-        }).bindPopup(`<div>${otherPoint['AHJName'] ? otherPoint['AHJName'] : 'No AHJ paired to this polygon'}</div>`));
+        }).bindPopup(`<div>${otherPoint['AHJName'] ? otherPoint['AHJName'] : `No AHJ paired to this polygon<br>(${otherPoint['Name']})`}</div>`));
       }
       this.leafletMap.addLayer(this.selectedStateCluster);
     },
@@ -265,7 +266,6 @@ export default {
             '<span>Less</span><span style="float: right">More</span>';
         return div;
       };
-
       legend.addTo(this.leafletMap);
     }
   },

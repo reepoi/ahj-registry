@@ -161,15 +161,13 @@ export default {
                 axios.post(constants.API_ENDPOINT + "auth/users/", {
                     "Email": this.Email,
                     "password": this.Password,
-                    "Username": this.Username}, {
-                    headers: {
-                        'Authorization': `${this.$store.getters.authToken}`
-                    }
+                    "Username": this.Username,
+                    "FirstName": this.FirstName,
+                    "LastName": this.LastName
                 }).then(() => {
                     this.submitStatus = 'OK';
                     document.getElementById("registration-form").reset();
-                })
-                .catch(error => {
+                }).catch(error => {
                     this.submitStatus = 'ERROR';
                     if (error.response){
                         // If password error, display the password error underneath the password field
