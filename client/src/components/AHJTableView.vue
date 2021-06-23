@@ -36,14 +36,16 @@
           </b-button>
         </template>
         <template #row-details="row">
-          <b-row class="mb-2">
-            <b-col sm="3" class="text-sm-right"><b>Address:</b></b-col>
-            <b-col v-html="rowGetAHJAddress(row)"></b-col>
-          </b-row>
-          <b-row class="mb-2">
-            <b-col sm="4" class="text-sm-right"><b>Visit this AHJ's Page:</b></b-col>
-            <b-col><b-button size="sm" @click="$router.push({ name: 'view-ahj', params: { AHJID: row.item.AHJPK.Value }})" class="mr-2">AHJ Page</b-button></b-col>
-          </b-row>
+          <b-card>
+            <b-row class="mb-2">
+              <b-col sm="3" class="text-sm-right"><b>Address:</b></b-col>
+              <b-col v-html="rowGetAHJAddress(row)"></b-col>
+            </b-row>
+            <b-row class="mb-2">
+              <b-col sm="4" class="text-sm-right"><b>Visit this AHJ's Page:</b></b-col>
+              <b-col><b-button size="sm" @click="$router.push({ name: 'view-ahj', params: { AHJID: row.item.AHJPK.Value }})" class="mr-2">AHJ Page</b-button></b-col>
+            </b-row>
+          </b-card>
         </template>
       </b-table>
     </div>

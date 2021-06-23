@@ -1,12 +1,9 @@
 import csv
 import os
-import traceback
-from functools import lru_cache
-import datetime
-from django.apps import apps
 from django.contrib.gis.utils import LayerMapping
 from .models import *
 from .models_field_enums import *
+from .utils import ENUM_FIELDS, get_enum_value_row
 
 BASE_DIR = os.path.expanduser('~/AHJRegistryData/')
 BASE_DIR_SHP = BASE_DIR + '2020CensusPolygons/'
@@ -183,33 +180,6 @@ def translate_countysubdivisions():
         i += 1
 
 
-ENUM_FIELDS = {
-    'BuildingCode',
-    'ElectricCode',
-    'FireCode',
-    'ResidentialCode',
-    'WindCode',
-    'AHJLevelCode',
-    'DocumentSubmissionMethod',
-    'PermitIssueMethod',
-    'AddressType',
-    'LocationDeterminationMethod',
-    'LocationType',
-    'ContactType',
-    'PreferredContactMethod',
-    'EngineeringReviewType',
-    'RequirementLevel',
-    'StampType',
-    'FeeStructureType',
-    'InspectionType'
-}
-
-ENUM_PLURALS_TRANSLATE = {
-    'DocumentSubmissionMethods': 'DocumentSubmissionMethod',
-    'PermitIssueMethods': 'PermitIssueMethod'
-}
-
-
 def add_enum_values():
     """
     Adds all enum values to their enum tables.
@@ -292,15 +262,6 @@ def create_contact(contact_dict):
     else:
         contact_dict['AddressID'] = Address.objects.create()
     return Contact.objects.create(**contact_dict)
-
-
-def get_enum_value_row(enum_field, enum_value):
-    """
-    Finds the row of the enum table given the field name and its enum value.
-    """
-    # Translate plural, if given
-    enum_field = ENUM_PLURALS_TRANSLATE[enum_field] if enum_field in ENUM_PLURALS_TRANSLATE else enum_field
-    return apps.get_model('ahj_app', enum_field).objects.get(Value=enum_value)
 
 
 def enum_values_to_primary_key(ahj_dict):

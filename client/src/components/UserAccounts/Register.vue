@@ -127,35 +127,19 @@ export default {
     methods: {
          submitRegistration() {
             this.$v.$touch();
-            let that = this;
             if (!this.$v.$invalid) {
                 this.submitStatus = 'PENDING';
                 this.backendErrorOccurred = false;
                 axios.post(constants.API_ENDPOINT + "auth/users/", {
                     "Email": this.Email,
                     "password": this.Password,
-                    "Username": this.Username}, {
-                    headers: {
-                        'Authorization': `${this.$store.getters.authToken}`
-                    }
+                    "Username": this.Username,
+                    "FirstName": this.FirstName,
+                    "LastName": this.LastName
                 }).then(() => {
                     this.submitStatus = 'OK';
                     document.getElementById("registration-form").reset();
-                    // Send user first and last name to backend (ideally we will consolidate all this into one API call). 
-                    axios.post(constants.API_ENDPOINT + "user/update/" + that.Username + "/", 
-                        {
-                            "FirstName" : that.FirstName,
-                            "LastName" : that.LastName
-                        },
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `${this.$store.getters.authToken}`
-                            }
-                        }
-                    )
-                })
-                .catch(error => {
+                }).catch(error => {
                     this.submitStatus = 'ERROR';
                     if (error.response){
                         if (error.response.data.password){
@@ -178,11 +162,8 @@ export default {
             else    
                 params['Email'] = this.Email;
             return axios.get(constants.API_ENDPOINT + "auth/form-validator/",{ 
-                    params,
-                    headers: {
-                        Authorization: `${this.$store.getters.authToken}`
-                    }}
-                    ).catch(() => {return 'BACKEND ERROR'});
+                params
+            }).catch(() => {return 'BACKEND ERROR'});
         }
     },
     mounted() { 

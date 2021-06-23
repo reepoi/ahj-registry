@@ -454,17 +454,16 @@ class UserManager(BaseUserManager):
     use_in_migrations = True
 
     def create_user(self, **extra_fields):
-        Email = extra_fields.get('Email', '')
-        Username = extra_fields.get('Username', '')
-        password = extra_fields.get('password', '')
-        ContactID = Contact.objects.create(Email=Email, AddressID=Address.objects.create())
-
-        user = self.model(
-            Email=self.normalize_email(Email),
-            ContactID=ContactID,
-            Username=Username,
-            SignUpDate=datetime.date.today(),
-        )
+        extra_fields['Email'] = self.normalize_email(extra_fields['Email'])
+        user_fields = {field.name for field in self.model._meta.get_fields()}
+        user_dict = {k: v for k, v in extra_fields.items() if k in user_fields}
+        contact_fields = {field.name for field in Contact._meta.get_fields()}
+        contact_dict = {k: v for k, v in extra_fields.items() if k in contact_fields}
+        contact_dict['AddressID'] = Address.objects.create(LocationID=Location.objects.create())
+        user_dict['SignUpDate'] = datetime.date.today()
+        user_dict['ContactID'] = Contact.objects.create(**contact_dict)
+        password = user_dict.pop('password')
+        user = self.model(**user_dict)
         user.set_password(password)
         user.save(using=self._db)
         return user

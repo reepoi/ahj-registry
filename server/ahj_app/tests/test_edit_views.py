@@ -3,14 +3,14 @@ import uuid
 from decimal import Decimal
 
 from django.apps import apps
-from ahj_app.models import User, Edit, Comment, AHJInspection, Contact, Address, Location, AHJ
+from ahj_app.models import User, Edit, Comment, AHJInspection, Contact, Address, Location, AHJ, AHJUserMaintains
 from django.urls import reverse
 from django.utils import timezone
 
 import pytest
 import datetime
 from fixtures import create_user, ahj_obj, generate_client_with_webpage_credentials, api_client, create_minimal_obj
-from ahj_app.usf import ENUM_FIELDS, get_enum_value_row
+from ahj_app.utils import ENUM_FIELDS, get_enum_value_row
 
 from ahj_app.models_field_enums import RequirementLevel, LocationDeterminationMethod
 
@@ -70,36 +70,72 @@ def check_edit_exists(edit_dict):
     return filter_to_edit(edit_dict).exists()
 
 
+@pytest.mark.parametrize(
+    'user_type', [
+        'Admin',
+        'AHJOfficial'
+    ]
+)
 @pytest.mark.django_db
-def test_edit_review__normal_use(generate_client_with_webpage_credentials):
+def test_edit_review__authenticated_normal_use(user_type, generate_client_with_webpage_credentials, ahj_obj):
     client = generate_client_with_webpage_credentials(Username='someone')
     user = User.objects.get(Username='someone')
-    Edit.objects.create(EditID=1, ChangedBy=user, EditType='A', SourceTable='AHJ', SourceColumn='BuildingCode', SourceRow='2118', DateRequested=timezone.now())
+    if user_type == 'Admin':
+        user.is_superuser = True
+        user.save()
+    elif user_type == 'AHJOfficial':
+        AHJUserMaintains.objects.create(UserID=user, AHJPK=ahj_obj, MaintainerStatus=True)
+    edit_dict = {'ChangedBy': user, 'ApprovedBy': None,
+                 'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
+                 'OldValue': 'oldname', 'NewValue': 'newname',
+                 'DateRequested': timezone.now(), 'DateEffective': None,
+                 'ReviewStatus': 'P', 'EditType': 'U', 'AHJPK': ahj_obj}
+    edit = Edit.objects.create(**edit_dict)
     url = reverse('edit-review')
-    response = client.post(url, {'EditID':'1', 'Status': 'A'})
+    response = client.post(url, {'EditID': edit.EditID, 'Status': 'A'})
+    print(response)
     assert response.status_code == 200
-    changedEdit = Edit.objects.get(EditID=1)
-    assert changedEdit.ReviewStatus == 'A'
-    assert changedEdit.ApprovedBy == user
+    edit = Edit.objects.get(EditID=edit.EditID)
+    assert edit.ReviewStatus == 'A'
+    assert edit.ApprovedBy == user
     tomorrow = timezone.now() + datetime.timedelta(days=1)
-    assert changedEdit.DateEffective.date() == tomorrow.date()
+    assert edit.DateEffective.date() == tomorrow.date()
+
 
 @pytest.mark.django_db
-def test_edit_review__invalid_status(generate_client_with_webpage_credentials):
+def test_edit_review__no_auth_normal_use(generate_client_with_webpage_credentials, ahj_obj):
     client = generate_client_with_webpage_credentials(Username='someone')
     user = User.objects.get(Username='someone')
-    Edit.objects.create(EditID=1, ChangedBy=user, EditType='A', SourceTable='AHJ', SourceColumn='BuildingCode', SourceRow='2118', DateRequested=timezone.now())
+    edit_dict = {'ChangedBy': user, 'ApprovedBy': None,
+                 'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
+                 'OldValue': 'oldname', 'NewValue': 'newname',
+                 'DateRequested': timezone.now(), 'DateEffective': None,
+                 'ReviewStatus': 'P', 'EditType': 'U', 'AHJPK': ahj_obj}
+    edit = Edit.objects.create(**edit_dict)
     url = reverse('edit-review')
-    response = client.post(url, {'EditID':'1', 'Status': 'Z'})
+    response = client.post(url, {'EditID': edit.EditID, 'Status': 'A'})
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_edit_review__invalid_status(generate_client_with_webpage_credentials, ahj_obj):
+    client = generate_client_with_webpage_credentials(Username='someone')
+    user = User.objects.get(Username='someone')
+    edit_dict = {'ChangedBy': user, 'ApprovedBy': None,
+                 'SourceTable': 'AHJ', 'SourceRow': ahj_obj.pk, 'SourceColumn': 'AHJName',
+                 'OldValue': 'oldname', 'NewValue': 'newname',
+                 'DateRequested': timezone.now(), 'DateEffective': None,
+                 'ReviewStatus': 'P', 'EditType': 'U', 'AHJPK': ahj_obj}
+    edit = Edit.objects.create(**edit_dict)
+    url = reverse('edit-review')
+    response = client.post(url, {'EditID': edit.EditID, 'Status': 'Z'})
     assert response.status_code == 400
 
 @pytest.mark.django_db
 def test_edit_review__edit_does_not_exist(generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
-    user = User.objects.get(Username='someone')
-    Edit.objects.create(EditID=1, ChangedBy=user, EditType='A', SourceTable='AHJ', SourceColumn='BuildingCode', SourceRow='2118', DateRequested=timezone.now())
     url = reverse('edit-review')
-    response = client.post(url, {'EditID':'100', 'Status': 'A'})
+    response = client.post(url, {'EditID': 0, 'Status': 'A'})
     assert response.status_code == 400
 
 @pytest.mark.django_db

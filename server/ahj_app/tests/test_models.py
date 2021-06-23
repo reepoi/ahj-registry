@@ -4,6 +4,8 @@ from fixtures import *
 import pytest
 import datetime
 
+from ahj_app.models import Contact
+
 
 @pytest.fixture
 def mpoly_obj():
@@ -441,10 +443,30 @@ def test_permit_issue_method_use_get_relation_status_field(two_ahjs, permit_issu
 """
     User Model
 """
+@pytest.mark.parametrize(
+    'is_superuser', [
+        False,
+        True
+    ]
+)
 @pytest.mark.django_db
-def test_user_create_user():
-    user = get_user_model().objects.create_user(Email='a@a.com', Username='test', password='fhieusdnjds34')
+def test_user_create_user(is_superuser):
+    user_dict = {'Email': 'a@a.com', 'Username': 'test', 'password': 'fhieusdnjds34',
+                 'FirstName': 'First', 'LastName': 'Last'}
+    if is_superuser:
+        user = get_user_model().objects.create_superuser(**user_dict)
+    else:
+        user = get_user_model().objects.create_user(**user_dict)
+    if is_superuser:
+        assert user.is_superuser is True
     assert user.Email == 'a@a.com'
+    contact = Contact.objects.get(ContactID=user.ContactID.ContactID)
+    assert contact.Email == 'a@a.com'
+    assert contact.FirstName == 'First'
+    assert contact.LastName == 'Last'
+    assert contact.AddressID is not None
+    assert contact.AddressID.LocationID is not None
+
 
 @pytest.mark.django_db
 def test_user_get_email_field_name(create_user):

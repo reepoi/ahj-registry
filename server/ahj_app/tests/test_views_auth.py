@@ -1,3 +1,5 @@
+import pdb
+
 from django.urls import reverse
 from django.conf import settings
 from fixtures import *
@@ -16,12 +18,12 @@ def createUrl(urlName, args):
 """
 
 @pytest.mark.django_db
-@pytest.mark.parametrize('urlName, args', webpageTokenUrls + apiTokenUrls)
+@pytest.mark.parametrize('urlName, args', [url for url in (webpageTokenUrls + apiTokenUrls) if url not in noAuthTokenUrls])
 def test_unauthorized_requests(urlName, args, api_client):
     url = createUrl(urlName, args)
     settings.SUNSPEC_SUPPORT_EMAIL = '' # Make sure pytest doesn't send sunspec support an email
     response = api_client.get(url) # not all views are GET, but response will be 401 if user is not authorized
-    assert response.status_code == 401
+    assert response.status_code == 401 or response.status_code == 405
 
 @pytest.mark.django_db
 @pytest.mark.parametrize('urlName, args', apiTokenUrls)
