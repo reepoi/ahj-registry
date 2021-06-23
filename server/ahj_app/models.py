@@ -11,6 +11,7 @@ import rest_framework.authtoken.models
 from taggit.managers import TaggableManager
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from simple_history.models import HistoricalRecords
+import uuid
 
 class AHJ(models.Model):
     AHJPK = models.AutoField(db_column='AHJPK', primary_key=True)
@@ -484,16 +485,11 @@ class UserManager(BaseUserManager):
         password = user_dict.pop('password')
         user = self.model(**user_dict)
         user.set_password(password)
-        user.save(using=self._db)
+        try:
+            user.save(using=self._db)
+        except Exception as e:
+            print(e)
         return user
-
-    def create_superuser(self, **extra_fields):
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-
-        return self.create_user(**extra_fields)
 
 class User(AbstractBaseUser):
     UserID = models.AutoField(db_column='UserID', primary_key=True)
@@ -525,7 +521,7 @@ class User(AbstractBaseUser):
         return self.is_superuser
 
     def get_email_field_name(self=None):
-        return 'Email'
+        return "Email"
 
     def get_maintained_ahjs(self):
         return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]

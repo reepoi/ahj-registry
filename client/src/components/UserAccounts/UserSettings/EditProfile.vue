@@ -12,21 +12,34 @@
                 </div>
             </div>
             <form @submit.prevent id="registration-form">
+
                 <div class="form-spacing">
                     <label>Name</label>
                     <div class="flex-row">
                         <b-form-input size="lg" class="form__input" type="text" placeholder="First Name" :state="$v.formFirstNameCapital.$dirty ? !$v.formFirstNameCapital.$error : null" required v-model="formFirstNameCapital" alt="First Name"></b-form-input>
                         <b-form-input size="lg" class="form__input" type="text" placeholder="Last Name" :state="$v.formLastNameCapital.$dirty ? !$v.formLastNameCapital.$error : null" required v-model="formLastNameCapital" alt="Last Name"></b-form-input>
                     </div>
-                    
                 </div>
+                <!-- If the validation object ($v) has been touched, check to see if the form satisfies the validators (in this case, first and last are only required)-->
                 <div v-if="$v.$dirty">
                     <div class="error" v-if="!$v.formFirstNameCapital.required || !$v.formLastNameCapital.required">First and Last name are required.</div>
+                </div>
+                <div class="form-spacing">
+                    <label class="form-label">Username</label>
+                    <div class='spinner-row'>
+                        <b-spinner class="spinner" variant="secondary" v-if="usernameCheckPending"></b-spinner>
+                        <b-form-input size="lg" class="form-input" type="text" placeholder="Username" required v-model="FormUsername" v-on:input="CheckUsernameUnique" :state="($v.FormUsername.$dirty && !usernameCheckPending) ? usernameIsUnique && !$v.FormUsername.$error : null" alt="Username"></b-form-input>
+                    </div>
+                </div>
+                <div v-if="$v.FormUsername.$dirty">
+                    <div class="error" v-if="!$v.FormUsername.required">Username is required.</div>
+                    <div class="error" v-if="!this.usernameIsUnique && !this.usernameCheckPending">Username is already taken.</div> 
                 </div>
                 <div class="form-spacing">
                     <label>Work Phone</label>
                     <b-form-input size="lg" class="form__input" type="text" placeholder="Work Phone" :state="$v.WorkPhone.$dirty ? !$v.WorkPhone.$error : null" v-model="WorkPhone" alt="Work Phone"></b-form-input>
                 </div>
+                <!-- Same as above validator, except this time it checks the format of the phone. This was a custom validator written.-->
                 <div v-if="$v.$dirty">
                     <div class="error" v-if="!$v.WorkPhone.PhoneFormat">Incorrect Phone Format. Recommended format: 123-456-7890</div>
                 </div>
@@ -35,7 +48,7 @@
                 </div>
                 <div class="form-spacing">
                     <label>Preferred Contact Method</label>
-                    <b-form-select v-model="userInfo.PreferredContactMethod" class="search-input" :options="['Email', 'Phone']" />
+                    <b-form-select v-model="userInfo.PreferredContactMethod" class="search-input" :options="['Email', 'WorkPhone']" />
                 </div>
                 <div class="form-spacing">
                     <label>Bio</label>
@@ -53,7 +66,7 @@
                     <label>Company Affiliation</label>
                     <b-form-input size="lg" class="form__input" type="text" placeholder="Company Affiliation" required v-model="userInfo.CompanyAffiliation" alt="CompanyAffiliation"></b-form-input>
                 </div>
-                <b-button id="edit-profile-button" @click="UpdateDatabase" :disabled="this.SubmitStatus === 'PENDING'" block pill variant="primary">
+                <b-button id="edit-profile-button" @click="UpdateDatabase" :disabled="this.SubmitStatus === 'PENDING' || usernameCheckPending || !this.usernameIsUnique" block pill variant="primary">
                     Update Profile
                 </b-button>
                 <h4 class="api-status-text" v-if="this.SubmitStatus === 'PENDING'"> Updating profile... </h4>
@@ -70,11 +83,13 @@
 <script>
 import axios from "axios";
 import constants from "../../../constants.js";
-import { required } from 'vuelidate/lib/validators';
+import { required, helpers } from 'vuelidate/lib/validators';
 
-let PhoneFormat = constants.VALID_PHONE;
+// Enforce phone format but also evaluate to true if empty string (not a required field)
+let PhoneFormat = (value) => !helpers.req(value) || constants.VALID_PHONE(value);
 export default {
     computed: {
+        // Getters and setters to always give the first name and last name inputs a capital letter
         formFirstNameCapital: {
             get: function () {
                     return this.userInfo.FirstName;
@@ -93,6 +108,14 @@ export default {
                 this.userInfo.LastName = this.CapitalizeFirstLetter(newLastName);
             }
         },
+        FormUsername: {
+            get: function () {
+                    return this.userInfo.Username;
+                },
+            set: function (newUsername) {
+                this.userInfo.Username = newUsername;
+            }
+        },
         WorkPhone: {
             get: function() {
                 return this.userInfo.WorkPhone;
@@ -100,115 +123,166 @@ export default {
             set: function (newWorkPhone) {
                 this.userInfo.WorkPhone = newWorkPhone;
             }
-        }
+        },
+        UserData() {
+            return this.$store.getters.currentUserInfo;
+        },
     },
     data() {
-            return {
-                userInfo: {
-                    FirstName: null,
-                    LastName: null,
-                    PersonalBio: null,
-                    URL: null,
-                    Title: null,
-                    CompanyAffiliation: null,
-                    WorkPhone: null,
-                    PreferredContactMethod: null
-                },
+        return {
+            // UserInfo object that corresponds to values on a typical user object
+            userInfo: {
+                FirstName: null,
+                LastName: null,
+                PersonalBio: null,
+                URL: null,
+                Title: null,
+                CompanyAffiliation: null,
+                WorkPhone: null,
+                PreferredContactMethod: null,
                 Username: null,
-                Photo: '../../../assets/images/profile-image-default.jpeg',
-                SubmitStatus: '',
-                profileInfoLoaded: false
+            },
+            OriginalUsername: null,
+            Photo: '../../../assets/images/profile-image-default.jpeg',
+            SubmitStatus: '',
+            profileInfoLoaded: false,
+            usernameIsUnique: true,
+            usernameCheckPending: false
+        }
+    },
+    methods: {
+        // When we retrieve the logged in user's info when page loaded, update the values of the form's fields.
+        UpdateComponentData(StoreProfileData) {
+            if (StoreProfileData !== null){
+                let that = this;
+                // All fields are either on the surface level user object or within the Contact object (accessed by COntactID)
+                // Iterate through all and update our locally stored userInfo variable.
+                Object.keys(that.userInfo).map(function(key) {
+                    if (StoreProfileData[key])
+                        that.userInfo[key] = StoreProfileData[key];
+                    else if (StoreProfileData['ContactID'][key])
+                        that.userInfo[key] = StoreProfileData['ContactID'][key].Value;
+                });
+                this.userInfo.FirstName = StoreProfileData.ContactID['FirstName'].Value;
+                this.userInfo.LastName = StoreProfileData.ContactID['LastName'].Value;
+                this.userInfo.URL = StoreProfileData.ContactID['URL'].Value;
+                this.userInfo.Title = StoreProfileData.ContactID['Title'].Value;
+                this.userInfo.WorkPhone = StoreProfileData.ContactID['WorkPhone'].Value;
+                this.userInfo.PreferredContactMethod = StoreProfileData.ContactID['PreferredContactMethod'].Value;
+                this.Username = StoreProfileData['Username'];
+                this.OriginalUsername = StoreProfileData['Username'];
             }
         },
-  methods: {
-      GetUserInfo(){
-        let query = constants.API_ENDPOINT + "user-one/" + this.$store.state.loginStatus.Username;
-        axios.get(query, {
-                headers: {
-                    Authorization: `${this.$store.getters.authToken}`
+        // Query the database with the new data inputted into the form.
+        UpdateDatabase(){
+            // We don't want to mark fields as incorrect until the user has tried each one. Touching the $v object will
+            // make it so that if any validations fail, then we now mark those fields as incorrect.
+            this.$v.$touch();
+            // only proceed if all validations passed
+            if (!this.$v.$invalid && !this.usernameCheckPending && this.usernameIsUnique) {
+                this.SubmitStatus = "PENDING";
+                // Only reformat workphone if there is any input
+                if (this.userInfo.WorkPhone)
+                    this.userInfo.WorkPhone = this.FormatPhone(this.userInfo.WorkPhone);
+
+                // Put all data we want to send to the server into a FormData object
+                let fd = new FormData();
+                for (let userAttr in this.userInfo){
+                    // If the user attribute is non-empty, add to FormData object
+                    if (this.userInfo[userAttr])
+                        fd.append(`${userAttr}`, this.userInfo[userAttr]);
                 }
-            })
-            .then(response => {
-              let profileInfo = response.data;
-              this.$store.commit("changeCurrentUserInfo", response.data);
-              this.UpdateLocalProfileData(profileInfo);
-              this.profileInfoLoaded = true;
-            })
-            .catch(() => {
-            });
-      },
-      UpdateLocalProfileData(StoreProfileData) {
-        if (StoreProfileData !== null){
-            let that = this;
-            Object.keys(that.userInfo).map(function(key, index) {
-                    if (StoreProfileData[key])
-                        that.userInfo[key] = StoreProfileData[key]
-                    index;
-                });
-            this.userInfo.FirstName = StoreProfileData.ContactID['FirstName'].Value;
-            this.userInfo.LastName = StoreProfileData.ContactID['LastName'].Value;
-            this.userInfo.URL = StoreProfileData.ContactID['URL'].Value;
-            this.userInfo.Title = StoreProfileData.ContactID['Title'].Value;
-            this.userInfo.WorkPhone = StoreProfileData.ContactID['WorkPhone'].Value;
-            this.userInfo.PreferredContactMethod = StoreProfileData.ContactID['PreferredContactMethod'].Value;
-            //this.Photo = StoreProfileData['Photo'];
-            this.Username = StoreProfileData['Username'];
-        }
-      },
-      UpdateDatabase(){
-        this.$v.$touch();
-        if (!this.$v.$invalid) {
-            this.SubmitStatus = "PENDING";
-            this.WorkPhone = this.FormatPhone(this.WorkPhone);
-            // Create deep copy of user info and delete userInfo attributes that are empty
-            let userInfo = JSON.parse(JSON.stringify(this.userInfo));
-            for (let userAttr in userInfo){
-                if (!userInfo[userAttr]){
-                    delete userInfo[userAttr];
-                }
+                axios.post(constants.API_ENDPOINT + "user/update/" + this.OriginalUsername + "/", fd,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                            Authorization: `${this.$store.getters.authToken}`
+                        }
+                    }
+                )
+                .then(() => { 
+                    this.SubmitStatus = "OK"; 
+                    this.UpdateStore(fd);
+                })
+                .catch(() => { this.SubmitStatus = "ERROR"; });
             }
-            axios.post(constants.API_ENDPOINT + "user/update/",
-                userInfo,
-                {
+        },
+        // Update the store's currentUserInfo variable with the new values
+        UpdateStore(fd){
+            let currUserInfo = this.$store.state.currentUserInfo;
+            for (let key in fd.keys()){
+                if (currUserInfo[key])
+                    currUserInfo[key] = fd.get(key);
+                else if (currUserInfo['ContactID'][key])
+                    currUserInfo['ContactID'][key] = fd.get(key);
+            }
+            if (fd.has('Photo'))
+                currUserInfo.Photo = URL.createObjectURL(fd.get('Photo'));
+        },
+        CapitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        },
+        FormatPhone(phone){
+            phone = phone.replaceAll('-',"");
+            phone = phone.replaceAll('(',"");
+            phone = phone.replaceAll(')',"");
+            return `(${phone.slice(0,3)})${phone.slice(3,6)}-${phone.slice(6,10)}`
+        },
+        UpdatePhoto() {
+            let url = URL.createObjectURL(document.getElementById("image-picker").files[0]);
+            this.Photo = url;
+        },
+        async CheckUsernameAvailable(){
+            let params = { 'Username' : this.userInfo.Username };
+            axios.get(constants.API_ENDPOINT + "auth/form-validator/",{
+                    params,
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `${this.$store.getters.authToken}`
                     }
-                }
-            )
-            .then(() => {
-                this.SubmitStatus = "OK";
-            })
-            .catch(() => {
-                this.SubmitStatus = "ERROR";
-            });
-        }
-      },
-      CapitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+                })
+                .then(response => {
+                    if (this.usernameCheckPending){
+                        this.usernameCheckPending = false;
+
+                        if (this.userInfo.Username !== this.OriginalUsername){
+                            this.usernameIsUnique = !response.data.UsernameExists;
+                        }
+                        else {
+                            this.usernameIsUnique = true;
+                        }
+                        this.$v.FormUsername.$touch();
+                    }
+                }).catch(() => {return 'BACKEND ERROR'});
         },
-    FormatPhone(phone){
-        phone = phone.replaceAll('-',"");
-        phone = phone.replaceAll('(',"");
-        phone = phone.replaceAll(')',"");
-        return `(${phone.slice(0,3)})${phone.slice(3,6)}-${phone.slice(6,10)}`
-    }   
-  },
+        CheckUsernameUnique(){
+            this.usernameCheckPending = true;
+            clearTimeout(this.usernameTimer);
+            this.usernameTimer = setTimeout(this.CheckUsernameAvailable, 1000);
+        },
+    },
   mounted() {
-    this.GetUserInfo();
+    // Get user's info if the store isn't already currently fetching it (which happens on app reload). 
+    if (this.$store.getters.currentUserInfo)
+        this.$store.dispatch('getUserInfo');
   },
   watch: {
-    "$store.state.currentUserInfo": function(newVal) {
-        this.UpdateLocalProfileData(newVal);
+      // If store had to call API to get user info, update this component's data when API request is finished.
+      '$store.state.currentUserInfo' : function(newval) {
+        this.UpdateComponentData(newval);
         this.profileInfoLoaded = true;
-    }
+      }
   },
+  // validations that must be passed for the corresponding field
   validations: {
         formFirstNameCapital: {
             required
         },
         formLastNameCapital: {
             required
+        },
+        FormUsername: {
+            required,
         },
         WorkPhone: {
             PhoneFormat
@@ -265,8 +339,10 @@ label {
 
 .user-photo {
   width: 8em;
+  height: 8em;
   border-radius: 8em;
   margin-right: 1em;
+  object-fit: cover;
 }
 
 #edit-profile-button{
@@ -276,6 +352,7 @@ label {
 
 .header {
     display: flex;
+    margin: 1em;
 }
 
 .header-user-identifiers > *{
@@ -300,10 +377,33 @@ label {
     font-size: 1rem;
 }
 
+#image-picker {
+    margin-left: 0.5em;
+}
+
+.spinner {
+    position: absolute;
+    left: 95%;
+    top: 14px;
+    width: 1.5em; 
+    height: 1.5em;
+}
+
+.spinner-row {
+    position: relative;
+}
+
+@media (max-width: 1300px){
+    .spinner {
+        left: 92%;
+    }
+}
+
 @media (max-width: 650px){
     .user-photo {
-        width: 5em;
-        border-radius: 5em;
+        width: 6em;
+        height: 6em;
+        border-radius: 6em;
         margin-right: 1em;
     }
     .header-user-identifiers h2{
