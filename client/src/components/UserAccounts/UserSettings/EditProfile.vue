@@ -167,7 +167,7 @@ export default {
                     delete userInfo[userAttr];
                 }
             }
-            axios.post(constants.API_ENDPOINT + "user/update/" + this.Username + "/",
+            axios.post(constants.API_ENDPOINT + "user/update/",
                 userInfo,
                 {
                     headers: {
