@@ -85,4 +85,4 @@ def test_send_support_email__valid_usage(client_with_webpage_credentials):
     url = reverse('send-support-email')
     settings.SUNSPEC_SUPPORT_EMAIL = 'ahjregistry@gmail.com'
     response = client_with_webpage_credentials.post(url, {'Email': 'test@test.abcdef', 'Subject': 'A subject.', 'Message': 'A message.'})
-    assert response.status_code == 200 
+    assert response.status_code == 200

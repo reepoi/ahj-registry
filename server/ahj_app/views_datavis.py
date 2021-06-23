@@ -65,7 +65,10 @@ def data_map(request):
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
 def data_map_get_polygon(request):
+    """
+    Returns a polygon in GeoJSON given its ID
+    """
     try:
-        return Response(PolygonSerializer(Polygon.objects.get(PolygonID=request.query_params.get('PolygonID', None))).data, status=status.HTTP_200_OK)
+        return Response(PolygonSerializer(Polygon.objects.get(PolygonID=request.query_params.get('PolygonID', None))).data,  status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

@@ -4,7 +4,6 @@
             <h1 class='modal-title'>{{`AHJ Registry Feedback Form`}}</h1>
         </template>
         <b-overlay :show="SubmitStatus == 'PENDING'" opacity="0.6">
-
         <div v-if='SubmitStatus != `SUCCESS`'>
             <h4 class='feedback-form-top-text'>Have some feedback for us or need some help?</h4>
             <h4 class='feedback-form-bottom-text'>Email our team at support@sunspec.org or use the form below.</h4>
