@@ -53,7 +53,7 @@ export default new Vuex.Store({
     getters: {
         apiData: state => state.apiData,
         loggedIn: state => state.loginStatus.authToken !== "",
-        authToken: state => state.loginStatus.authToken ? state.loginStatus.authToken : constants.TOKEN_AUTH
+        authToken: state => state.loginStatus.authToken
     },
     mutations: {
         callAPI(state, queryPayload) {

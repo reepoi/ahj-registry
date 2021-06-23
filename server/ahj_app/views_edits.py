@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .authentication import WebpageTokenAuth
-from .models import AHJ, Edit
+from .models import AHJ, Edit, AHJUserMaintains
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
     FeeStructureSerializer, AHJInspectionSerializer
@@ -201,14 +201,18 @@ def edit_review(request):
         stat = request.data['Status']  # required
         if stat != 'A' and stat != 'R':
             raise ValueError('Invalid edit status ' + str(status))
-        with transaction.atomic():
-            edit = Edit.objects.get(EditID=int(eid))
-            edit.ReviewStatus = stat
-            edit.ApprovedBy = request.user
-            tomorrow = timezone.now() + datetime.timedelta(days=1)
-            if not edit.DateEffective or edit.DateEffective < tomorrow:
-                edit.DateEffective = tomorrow
-            edit.save()  # commit changes
+        user = request.user
+        edit = Edit.objects.get(EditID=eid)
+        if not user.is_superuser and not AHJUserMaintains.objects.filter(UserID=user,
+                                                                         AHJPK=edit.AHJPK,
+                                                                         MaintainerStatus=True).exists():
+            return Response('You do not have permission to perform this action', status=status.HTTP_403_FORBIDDEN)
+        edit.ReviewStatus = stat
+        edit.ApprovedBy = request.user
+        tomorrow = timezone.now() + datetime.timedelta(days=1)
+        if not edit.DateEffective or edit.DateEffective < tomorrow:
+            edit.DateEffective = tomorrow
+        edit.save()  # commit changes
         return Response('Success!', status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

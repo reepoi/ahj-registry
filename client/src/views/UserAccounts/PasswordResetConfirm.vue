@@ -77,12 +77,7 @@ export default {
                     "new_password": this.NewPassword,
                     "re_new_password": this.ReNewPassword
                 }
-                let headers = {
-                    headers: {
-                        'Authorization': `${constants.TOKEN_AUTH}`
-                    }
-                }
-                axios.post(constants.API_ENDPOINT + "auth/users/reset_password_confirm/", data, headers)
+                axios.post(constants.API_ENDPOINT + "auth/users/reset_password_confirm/", data)
                 .then(() => {
                     this.Loading = false;
                 }).catch(error => {

@@ -12,25 +12,9 @@ from django.db import transaction
 
 from .authentication import WebpageTokenAuth
 from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, PreferredContactMethod
+from .permissions import IsSuperuser
 from .serializers import UserSerializer
 from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
-
-
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
-class RegisterUser(UserViewSet):
-    pass
-
-
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
-class LoginUser(TokenCreateView):
-    pass
-
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
-class LogoutUser(TokenDestroyView):
-    pass
 
 
 @authentication_classes([WebpageTokenAuth])
@@ -107,7 +91,7 @@ def user_update(request, username):
 
 @api_view(['GET'])
 @authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsSuperuser])
 def create_api_token(request):
     user = request.user
     APIToken.objects.filter(user=user).delete()
@@ -117,7 +101,7 @@ def create_api_token(request):
 
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsSuperuser])
 def set_ahj_maintainer(request):
     """
     View to assign a user as a data maintainer of an AHJ
@@ -140,7 +124,7 @@ def set_ahj_maintainer(request):
 
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsSuperuser])
 def remove_ahj_maintainer(request):
     """
     View to revoke a user as a data maintainer of an AHJ

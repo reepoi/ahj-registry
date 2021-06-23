@@ -1,9 +1,7 @@
 const API_ENDPOINT = "http://localhost:8000/api/v1/";
-const AUTH_TOKEN = "Token ";
 
 export default {
   API_ENDPOINT: API_ENDPOINT,
-  TOKEN_AUTH: AUTH_TOKEN,
   AHJ_FIELDS: {
     AHJCode: "",
     AHJName: "",
