@@ -237,7 +237,7 @@ def test_comment_get_replies(two_ahjs, three_users):
     assert len(comment1.get_replies()) == 2
     assert len(comment2.get_replies()) == 1
 
-"""
+"""    
     Contact Model
 """
 @pytest.fixture
@@ -491,7 +491,7 @@ def test_WebpageToken_str(create_user):
     APIToken Model
 """
 @pytest.mark.django_db
-def test_WebpageToken_str(create_user):
+def test_APIToken_str(create_user):
     user = create_user(Email='a@a.com')
     token = APIToken.objects.create(user=user)
     assert str(token) == 'APIToken(' + token.key + ')'

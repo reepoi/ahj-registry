@@ -1,7 +1,11 @@
 export function jsonToCSV(json) {
   let csv = "";
+
+  // function to flatten json to a list of fields with unique names based on position in the json
   let flattenJSON = function(json) {
     let result = {};
+
+    // function to walk the json object
     function recurse(cur, prop) {
       if (Object(cur) !== cur) {
         result[prop] = cur;
@@ -21,6 +25,8 @@ export function jsonToCSV(json) {
     recurse(json, "");
     return result;
   };
+
+  // Create a unique set of column names for all included fields in the array of ahjs
   let keys = Array.from(
     new Set(
       Object.keys(flattenJSON(json)).map(
@@ -28,8 +34,12 @@ export function jsonToCSV(json) {
       )
     )
   );
+
+  // Keep only the column names that point to primitives (no column names that point to an object)
   keys = keys.filter(key => ["Value", "Decimals", "Precision", "StartTime", "EndTime", "Unit"].includes(key.substring(key.lastIndexOf(".") + 1)));
   csv += keys.join(",") + "\n";
+
+  // build a string representing the csv file
   for (let line of json) {
     csv +=
       keys
