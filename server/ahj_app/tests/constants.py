@@ -9,7 +9,7 @@ webpageTokenUrls = [
     ('edit-update', {}), 
     ('edit-deletion', {}), 
     ('edit-addition', {}),
-    ('user-update', {'username': 'test'}),
+    ('user-update', {}),
     ('user-edits', {}), 
     ('user-comments', {}),
     ('single-user-info', {'username': 'test'}), 

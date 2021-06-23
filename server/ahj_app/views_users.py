@@ -14,7 +14,9 @@ from .authentication import WebpageTokenAuth
 from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, PreferredContactMethod
 from .permissions import IsSuperuser
 from .serializers import UserSerializer
-from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
+from djoser.views import UserViewSet
+
+from .utils import get_enum_value_row, filter_dict_keys, ENUM_FIELDS
 
 
 @authentication_classes([WebpageTokenAuth])
@@ -59,34 +61,20 @@ def get_single_user(request, username):
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
-def user_update(request, username):
+def user_update(request):
     """
-    Update the user profile associated with `username` with all of the
-    { Key : Value } pairs send in the POST data.
+    Update the user profile associated with the requesting user.
     """
-    changeableFields = ['Username', 'FirstName', 'LastName', 'PersonalBio', 'URL', 'CompanyAffiliation', 'WorkPhone', 'PreferredContactMethod', 'Title']
-    try:
-        user = User.objects.get(Username=username)
-        contact = user.ContactID
-        # request.data is an immutable QueryDict, so we must make a copy
-        data = request.data.copy()
-        with transaction.atomic():
-            for (key, value) in data.items():
-                if key in changeableFields:
-                    if key == 'PreferredContactMethod': # We must update enum fields seperately
-                        contactMethodID = PreferredContactMethod.objects.get(Value=value) # Find the matching preferredContactMethodID
-                        setattr(contact, 'PreferredContactMethod', contactMethodID)
-                    else:
-                        setattr(user, key, value)
-                        setattr(contact, key, value)
-                else:
-                    raise Exception("The "+ key +" field cannot be changed.")
-            user.save()
-            contact.save()
-        return Response('Success', status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
-
+    changeable_user_fields = {'Username', 'PersonalBio', 'URL', 'CompanyAffiliation'}
+    changeable_contact_fields = {'FirstName', 'LastName', 'URL', 'WorkPhone', 'PreferredContactMethod', 'Title'}
+    user_data = filter_dict_keys(request.data, changeable_user_fields)
+    contact_data = filter_dict_keys(request.data, changeable_contact_fields)
+    for field in ENUM_FIELDS.intersection(contact_data.keys()):
+        contact_data[field] = get_enum_value_row(field, contact_data[field])
+    user = request.user
+    User.objects.filter(UserID=user.UserID).update(**user_data)
+    Contact.objects.filter(ContactID=user.ContactID.ContactID).update(**contact_data)
+    return Response('Success', status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

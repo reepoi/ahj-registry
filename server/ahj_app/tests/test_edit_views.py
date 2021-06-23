@@ -10,7 +10,7 @@ from django.utils import timezone
 import pytest
 import datetime
 from fixtures import create_user, ahj_obj, generate_client_with_webpage_credentials, api_client
-from ahj_app.usf import ENUM_FIELDS, get_enum_value_row
+from ahj_app.utils import ENUM_FIELDS, get_enum_value_row
 
 from ahj_app.models_field_enums import RequirementLevel, LocationDeterminationMethod
 

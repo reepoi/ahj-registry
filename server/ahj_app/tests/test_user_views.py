@@ -37,7 +37,7 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
         'Title': 'title'
     }
     # send update to user-update path 
-    url = reverse('user-update', kwargs={'username': 'someone'})
+    url = reverse('user-update')
     response = client.post(url, newUserData)
     # Update contact and user objects
     user = User.objects.get(Username='username')
@@ -54,19 +54,6 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials):
                 assert getattr(ContactID, field.name) == newUserData[field.name]
     
     assert response.status_code == 200
-
-@pytest.mark.django_db
-def test_update_user__unchangable_field_changed(generate_client_with_webpage_credentials):
-    client = generate_client_with_webpage_credentials(Username='someone')
-    url = reverse('user-update', kwargs={'username': 'someone'})
-    response = client.post(url, {'Email': 'new@new.com'})
-    assert response.status_code == 400
-
-@pytest.mark.django_db
-def test_update_user__user_does_not_exist(client_with_webpage_credentials):
-    url = reverse('user-update', kwargs={'username': 'notexist'})
-    response = client_with_webpage_credentials.post(url, {'Username': 'usernamechange'})
-    assert response.status_code == 400
 
 
 @pytest.mark.parametrize(

@@ -13,7 +13,7 @@ from .models import AHJ, Edit, AHJUserMaintains
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
     FeeStructureSerializer, AHJInspectionSerializer
-from .usf import ENUM_FIELDS, get_enum_value_row
+from .utils import ENUM_FIELDS, get_enum_value_row
 
 
 def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=None):
