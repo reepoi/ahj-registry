@@ -182,7 +182,6 @@ class AHJInspection(models.Model):
     TechnicianRequired = models.BooleanField(db_column='TechnicianRequired', null=True)
     InspectionStatus = models.BooleanField(db_column='InspectionStatus', null=True)
     history = HistoricalRecords()
-
     def get_contacts(self):
         return [contact for contact in Contact.objects.filter(ParentTable='AHJInspection', ParentID=self.InspectionID) if contact.ContactStatus is True]
 

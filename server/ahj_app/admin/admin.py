@@ -138,7 +138,7 @@ def get_default_model_admin_class(model, geo=False):
     """
     model_fields = [field for field in model._meta.fields]
     if geo:
-        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin, ExportCSVMixin,SimpleHistoryAdmin):
+        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin, ExportCSVMixin, SimpleHistoryAdmin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
             history_list_display = ["status"]
             search_fields = list_display

@@ -50,7 +50,7 @@ state: {
     getters: {
         apiData: state => state.apiData,
         loggedIn: state => state.authToken !== "",
-        authToken: state => "Token " + state.authToken,
+        authToken: state => "Token " + state.authToken, // gets webpage's webpage api token or currently logged in api token
         currentUserInfo: state => state.currentUserInfo,
     },
     mutations: {

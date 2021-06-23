@@ -50,12 +50,7 @@ def get_active_user(request):
     Endpoint for getting the active user
     through the authtoken
     """
-    # Get authtoken from request header
-    authtoken = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
-    token = WebpageToken.objects.get(key=authtoken)
-    user = User.objects.get(UserID=token.user_id)
-    payload = UserSerializer(user, context={'fields_to_drop': []})
-    return Response(payload.data, status=status.HTTP_200_OK)
+    return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

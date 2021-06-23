@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'django_filters',
     'ahj_app.apps.AhjConfig',
     'djoser',
-    'corsheaders'
+    'corsheaders',
+    'simple_history'
 ]
 
 MIDDLEWARE = [
@@ -62,7 +63,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'ahj_app.middleware.LoggingMiddleware.SkipRequestLoggingMiddleware'
+    'ahj_app.middleware.LoggingMiddleware.SkipRequestLoggingMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True # If this is used then `CORS_ORIGIN_WHITELIST` will not have any effect
@@ -116,15 +118,15 @@ WSGI_APPLICATION = 'TheAHJRegistry.wsgi.application'
 
 DATABASES = {
     'default': {
-        'NAME': '',
+        'NAME': 'taosschema',
         'ENGINE': 'django.contrib.gis.db.backends.mysql',
         'OPTIONS': {
             'sql_mode': 'STRICT_ALL_TABLES',
         },
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': ''
+        'USER': 'admin',
+        'PASSWORD': 'mF23tqzrI7OPIBv8J9Xc',
+        'HOST': 'ahj-reg-sandbox.cbxmbhi4tcxc.us-west-2.rds.amazonaws.com',
+        'PORT': '3306'
     }
 }
 

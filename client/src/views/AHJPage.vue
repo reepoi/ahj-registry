@@ -2393,7 +2393,7 @@ export default {
         },
         //see if this AHJ is managed by the current user
         assertIsManaged(){
-            if(this.$store.state.loginStatus.IsSuperuser){
+            if(this.$store.state.currentUserInfo.is_superuser){
                 this.isManaged = true;
                 return;
             }
