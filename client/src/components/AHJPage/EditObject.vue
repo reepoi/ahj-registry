@@ -13,6 +13,8 @@
 </template>
 
 <script>
+import moment from "moment";
+
 export default {
     props: {
         data: {
@@ -21,6 +23,7 @@ export default {
     },
     mounted: function(){
         this.changeStatus();
+        this.data.DateRequested = moment(this.data.DateRequested).format('MMMM Do YYYY, h:mm:ss a');
     },
     methods: {
         //change edit status on acceptance / rejection
