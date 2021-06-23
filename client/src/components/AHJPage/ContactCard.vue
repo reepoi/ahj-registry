@@ -8,11 +8,11 @@
                 <input style="flex-basis:33%;" type="text" v-model="Edits.MiddleName">
                 <input style="flex-basis:33%;" type="text" v-model="Edits.LastName">
             </div>
-            <div style="display:flex;">
+            <div style="display:flex;margin-right:10px;">
                             <div v-if="eID >= 0">
                                 <!-- if this is an edit object and user manages this AHJ, allow acceptance / rejections -->
             <i style="margin-right:10px" v-if="$parent.isManaged && editstatus==='P'" v-on:click="$emit('official',{Type:'Accept',eID: eID});editstatus = 'A';changeStatus();" class="fa fa-check"></i>
-            <i style="margin-right:10px" v-if="$parent.isManaged && editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus()" class="fa fa-thumbs-down"></i>
+            <i style="margin-right:10px" v-if="$parent.isManaged && editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus()" class="fa fa-times"></i>
             </div>
             <div style="display:flex;" v-if="isEditing">
                 <i ref='chev' style="height:100%;margin-right: 10px;" class="fa fa-chevron-down" v-on:click="showInfo('c-info')"></i>
@@ -43,8 +43,13 @@
                 </div>
                 <!-- Address (not editable) -->
                 <div id="addr" class='addr-info'>
-                    <h3 class="desc" v-if="this.AddressString !== ''">{{this.AddressString}}</h3>
-                    <h3 class="desc" v-else>No Address Provided</h3>
+                    <div v-if="!isEditing">
+                        <h3 class="desc" v-if="this.AddressString !== ''">{{this.AddressString}}</h3>
+                        <h3 class="desc" v-else>No Address Provided</h3>
+                    </div>
+                    <div class="desc" v-else>
+                        <a style="text-decoration: underline; cursor:pointer;font-size:15px;" v-on:click="editAddress()">Edit this address</a>
+                    </div>
                 </div>
                 <!-- Description or text box of editable -->
                 <div class="desc">
@@ -212,6 +217,12 @@ export default {
         getEditObjects(){
             // no editable child objects
             return [];
+        },
+        editAddress(){
+            this.$parent.changeCont(this.data.ContactID.Value);
+            this.$parent.editingCont = this.data.ContactID.Value;
+            this.$parent.editingCont = this.ID;
+            this.$parent.showBigDiv('addressLoc');
         }
     },
     watch: {

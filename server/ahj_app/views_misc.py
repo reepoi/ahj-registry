@@ -13,8 +13,6 @@ import datetime
 
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def form_validator(request):
     """
     API call to validate the form information when a new user signs up
@@ -69,8 +67,6 @@ def user_edits(request):
     return Response(EditSerializer(edits, many=True).data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def send_support_email(request):
     """
     Endpoint to send mail to SunSpec's support email address.
