@@ -3,6 +3,8 @@ from operator import attrgetter
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
+from simple_history.admin import SimpleHistoryAdmin
+
 
 from .actions import user_reset_password, user_generate_api_token, user_delete_toggle_api_token, edit_approve_edits, \
     edit_roll_back_edits, ExportCSVMixin, user_query_api_tokens, user_query_ahjs_is_ahj_official_of, \
@@ -137,7 +139,7 @@ def get_default_model_admin_class(model, geo=False):
     """
     model_fields = [field for field in model._meta.fields]
     if geo:
-        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin, ExportCSVMixin):
+        class DefaultPolygonAdmin(geo_admin.OSMGeoAdmin, ExportCSVMixin, SimpleHistoryAdmin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]
@@ -145,7 +147,7 @@ def get_default_model_admin_class(model, geo=False):
             get_queryset = get_queryset
         return DefaultPolygonAdmin
     else:
-        class DefaultAdmin(admin.ModelAdmin, ExportCSVMixin):
+        class DefaultAdmin(SimpleHistoryAdmin, ExportCSVMixin):
             list_display = [field.name for field in model_fields if not is_related_field(field)]
             search_fields = list_display
             raw_id_fields = [field.name for field in model_fields if is_related_field(field)]

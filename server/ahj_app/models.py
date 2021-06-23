@@ -10,6 +10,8 @@ from django.utils.timezone import now
 import rest_framework.authtoken.models
 from taggit.managers import TaggableManager
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from simple_history.models import HistoricalRecords
+
 
 class AHJ(models.Model):
     AHJPK = models.AutoField(db_column='AHJPK', primary_key=True)
@@ -35,6 +37,7 @@ class AHJ(models.Model):
     ResidentialCodeNotes = models.CharField(db_column='ResidentialCodeNotes', max_length=255, blank=True)
     WindCode = models.ForeignKey('WindCode', on_delete=models.DO_NOTHING, db_column='WindCode', null=True)
     WindCodeNotes = models.CharField(db_column='WindCodeNotes', max_length=255, blank=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -92,6 +95,7 @@ class Comment(models.Model):
     AHJPK = models.IntegerField(db_column='AHJPK', null=True)
     Date = models.DateTimeField(db_column='Date', default=now)
     ReplyingTo = models.IntegerField(db_column='ReplyingTo', null=True)
+    history = HistoricalRecords()
 
     def get_replies(self):
         return [comment for comment in Comment.objects.filter(ReplyingTo=self.CommentID).order_by('-Date')]
@@ -115,6 +119,7 @@ class Address(models.Model):
     ZipPostalCode = models.CharField(db_column='ZipPostalCode', max_length=100, blank=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     AddressType = models.ForeignKey('AddressType', on_delete=models.DO_NOTHING, db_column='AddressType', null=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -143,6 +148,7 @@ class Contact(models.Model):
     URL = models.CharField(db_column='URL', max_length=255, blank=True)
     PreferredContactMethod = models.ForeignKey('PreferredContactMethod', on_delete=models.DO_NOTHING, db_column='PreferredContactMethod', null=True)
     ContactStatus = models.BooleanField(db_column='ContactStatus', null=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -175,7 +181,7 @@ class AHJInspection(models.Model):
     FileFolderURL = models.CharField(db_column='FileFolderURL', max_length=255, blank=True)
     TechnicianRequired = models.BooleanField(db_column='TechnicianRequired', null=True)
     InspectionStatus = models.BooleanField(db_column='InspectionStatus', null=True)
-
+    history = HistoricalRecords()
     def get_contacts(self):
         return [contact for contact in Contact.objects.filter(ParentTable='AHJInspection', ParentID=self.InspectionID) if contact.ContactStatus is True]
 
@@ -209,6 +215,7 @@ class FeeStructure(models.Model):
     FeeStructureType = models.ForeignKey('FeeStructureType', on_delete=models.DO_NOTHING, db_column='FeeStructureType', null=True)
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     FeeStructureStatus = models.BooleanField(db_column='FeeStructureStatus', null=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -246,6 +253,7 @@ class Edit(models.Model):
     #Edit type: A = addition, D = deletion, U = update
     EditType = models.CharField(db_column='EditType', max_length=1, default='U')
     DataSourceComment = models.CharField(db_column='DataSourceComment', max_length=255, blank=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -268,6 +276,7 @@ class Location(models.Model):
     Description = models.CharField(db_column='Description', max_length=255, blank=True)
     LocationDeterminationMethod = models.ForeignKey('LocationDeterminationMethod', on_delete=models.DO_NOTHING, db_column='LocationDeterminationMethod', null=True)
     LocationType = models.ForeignKey('LocationType', on_delete=models.DO_NOTHING, db_column='LocationType', null=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -286,6 +295,7 @@ class EngineeringReviewRequirement(models.Model):
     RequirementNotes = models.CharField(db_column='RequirementNotes', max_length=255, blank=True)
     StampType = models.ForeignKey('StampType', on_delete=models.DO_NOTHING, db_column='StampType', null=True)
     EngineeringReviewRequirementStatus = models.BooleanField(db_column='EngineeringReviewRequirementStatus', null=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -308,6 +318,7 @@ class EngineeringReviewRequirement(models.Model):
 class DocumentSubmissionMethod(models.Model):
     DocumentSubmissionMethodID = models.AutoField(db_column='DocumentSubmissionMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', choices=DOCUMENT_SUBMISSION_METHOD_CHOICES, unique=True, max_length=11)
+    history = HistoricalRecords()
 
     def create_relation_to(self, to):
         status_fields = {
@@ -332,6 +343,7 @@ class AHJDocumentSubmissionMethodUse(models.Model):
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     DocumentSubmissionMethodID = models.ForeignKey('DocumentSubmissionMethod', models.DO_NOTHING, db_column='DocumentSubmissionMethodID')
     MethodStatus = models.BooleanField(db_column='MethodStatus', null=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -351,6 +363,7 @@ class AHJDocumentSubmissionMethodUse(models.Model):
 class PermitIssueMethod(models.Model):
     PermitIssueMethodID = models.AutoField(db_column='PermitIssueMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', choices=PERMIT_ISSUE_METHOD_CHOICES, unique=True, max_length=11)
+    history = HistoricalRecords()
 
     def create_relation_to(self, to):
         status_fields = {
@@ -375,6 +388,7 @@ class AHJPermitIssueMethodUse(models.Model):
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     PermitIssueMethodID = models.ForeignKey('PermitIssueMethod', models.DO_NOTHING, db_column='PermitIssueMethodID')
     MethodStatus = models.BooleanField(db_column='MethodStatus', null=True)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -400,6 +414,7 @@ class Polygon(models.Model):
     WaterArea = models.BigIntegerField(db_column='WaterArea')
     InternalPLatitude = models.DecimalField(db_column='InternalPLatitude', max_digits=10, decimal_places=8)
     InternalPLongitude = models.DecimalField(db_column='InternalPLongitude', max_digits=11, decimal_places=8)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -410,6 +425,7 @@ class Polygon(models.Model):
 class StatePolygon(models.Model):
     PolygonID = models.OneToOneField(Polygon, models.DO_NOTHING, db_column='PolygonID', primary_key=True)
     FIPSCode = models.CharField(db_column='FIPSCode', max_length=2)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -421,6 +437,7 @@ class CountyPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
     StatePolygonID = models.ForeignKey('StatePolygon', models.DO_NOTHING, db_column='StatePolygonID')
     LSAreaCodeName = models.CharField(db_column='LSAreaCodeName', max_length=100)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -432,6 +449,7 @@ class CityPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
     StatePolygonID = models.ForeignKey('StatePolygon', models.DO_NOTHING, db_column='StatePolygonID')
     LSAreaCodeName = models.CharField(db_column='LSAreaCodeName', max_length=100)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -443,6 +461,7 @@ class CountySubdivisionPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
     StatePolygonID = models.ForeignKey('StatePolygon', models.DO_NOTHING, db_column='StatePolygonID')
     LSAreaCodeName = models.CharField(db_column='LSAreaCodeName', max_length=100)
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -495,6 +514,7 @@ class User(AbstractBaseUser):
     CommunityScore = models.IntegerField(db_column='CommunityScore', default=0)
     SecurityLevel = models.IntegerField(db_column='SecurityLevel', default=3)
     IsSuperuser = models.BooleanField(db_column='IsSuperUser', default=False)
+    history = HistoricalRecords()
 
     USERNAME_FIELD = 'Email'
     objects = UserManager()
@@ -531,6 +551,7 @@ class AHJUserMaintains(models.Model):
     AHJPK = models.ForeignKey(AHJ, models.DO_NOTHING, db_column='AHJPK')
     UserID = models.ForeignKey(User, models.DO_NOTHING, db_column='UserID')
     MaintainerStatus = models.BooleanField(db_column='MaintainerStatus')
+    history = HistoricalRecords()
 
     class Meta:
         managed = True
@@ -543,6 +564,7 @@ class WebpageToken(rest_framework.authtoken.models.Token):
     key = models.CharField(max_length=40, primary_key=True, serialize=False, verbose_name='Key')
     created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
     user = models.OneToOneField(on_delete=models.CASCADE, related_name='webpage_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
+    history = HistoricalRecords()
 
     def get_user(self):
         return self.user
@@ -560,6 +582,7 @@ class APIToken(rest_framework.authtoken.models.Token):
     expires = models.DateTimeField(verbose_name='Expires', default=None, null=True)
     user = models.OneToOneField(on_delete=models.CASCADE, related_name='api_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
     is_active = models.BooleanField(default=True)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'API Token'
@@ -575,6 +598,7 @@ class StateTemp(models.Model):
     AWATER = models.BigIntegerField()
     INTPTLAT = models.CharField(max_length=11)
     INTPTLON = models.CharField(max_length=12)
+    history = HistoricalRecords()
 
     mpoly = models.MultiPolygonField()
 
@@ -595,6 +619,7 @@ class CountyTemp(models.Model):
     AWATER = models.BigIntegerField()
     INTPTLAT = models.CharField(max_length=11)
     INTPTLON = models.CharField(max_length=12)
+    history = HistoricalRecords()
 
     mpoly = models.MultiPolygonField()
 
@@ -615,6 +640,7 @@ class CousubTemp(models.Model):
     AWATER = models.BigIntegerField()
     INTPTLAT = models.CharField(max_length=11)
     INTPTLON = models.CharField(max_length=12)
+    history = HistoricalRecords()
 
     mpoly = models.MultiPolygonField()
 
@@ -635,6 +661,7 @@ class CityTemp(models.Model):
     AWATER = models.BigIntegerField()
     INTPTLAT = models.CharField(max_length=11)
     INTPTLON = models.CharField(max_length=12)
+    history = HistoricalRecords()
 
     mpoly = models.MultiPolygonField()
 
@@ -649,6 +676,7 @@ class AHJCensusName(models.Model):
     AHJPK = models.OneToOneField('AHJ', on_delete=models.DO_NOTHING, db_column='AHJPK', primary_key=True)
     AHJCensusName = models.CharField(db_column='AHJCensusName', max_length=100)
     StateProvince = models.CharField(db_column='StateProvince', max_length=2)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'AHJ Census Name'
