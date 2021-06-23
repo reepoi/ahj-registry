@@ -1,5 +1,3 @@
-import datetime
-
 import django.contrib.admin
 from django import forms
 from django.contrib.admin.widgets import ManyToManyRawIdWidget
@@ -58,15 +56,17 @@ def assign_ahj_official_status(user, ahjs):
     of only the given AHJs.
     """
     # The AHJPK of the AHJs the User is related to.
-    current_ahjpks = AHJUserMaintains.objects.filter(UserID=user).values_list('AHJPK', flat=True)
+    all_time_ahjs = AHJUserMaintains.objects.filter(UserID=user)
+    # Restore assignment for AHJs previously unassigned AHJs that have been reassigned.
+    all_time_ahjs.filter(MaintainerStatus=False, AHJPK__in=ahjs).update(MaintainerStatus=True)
+    current_ahjpks = all_time_ahjs.filter(MaintainerStatus=True).values_list('AHJPK', flat=True)
     # Create relations for the newly added AHJs.
-    ahjs_to_save = [ahj for ahj in ahjs if ahj.AHJPK not in current_ahjpks]
+    newly_assigned_ahjs = [ahj for ahj in ahjs if ahj.AHJPK not in current_ahjpks]
     AHJUserMaintains.objects.bulk_create([
-        AHJUserMaintains(UserID=user, AHJPK=ahj, MaintainerStatus=True) for ahj in ahjs_to_save
-    ])
+        AHJUserMaintains(UserID=user, AHJPK=ahj, MaintainerStatus=True) for ahj in newly_assigned_ahjs])
     # Delete relations of the removed AHJs.
-    ahjs_to_delete = AHJUserMaintains.objects.filter(UserID=user).exclude(AHJPK__in=ahjs)
-    ahjs_to_delete.delete()
+    ahjs_to_unassign = all_time_ahjs.exclude(AHJPK__in=ahjs)
+    ahjs_to_unassign.update(MaintainerStatus=False)
 
 
 class UserChangeForm(forms.ModelForm):
@@ -85,7 +85,8 @@ class UserChangeForm(forms.ModelForm):
                          empty_permitted, instance, use_required_attribute,
                          renderer)
         if instance is not None:
-            self.fields['IsAHJOfficialOf'].initial = AHJUserMaintains.objects.filter(UserID=instance).values_list('AHJPK', flat=True)
+            self.fields['IsAHJOfficialOf'].initial = AHJUserMaintains.objects.filter(UserID=instance,
+                                                                                     MaintainerStatus=True).values_list('AHJPK', flat=True)
 
     def save(self, commit=True):
         """

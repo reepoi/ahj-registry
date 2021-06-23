@@ -202,11 +202,22 @@ def test_assign_ahj_official_status(num_existing, num_kept, num_new, ahj_obj_fac
     # Test applying the changes
     admin_form.assign_ahj_official_status(user, num_kept_ahjs + num_new_ahjs)
 
-    assigned_ahjs = AHJUserMaintains.objects.filter(UserID=user, MaintainerStatus=True).values_list('AHJPK', flat=True)
+    all_time_assigned_ahjs = AHJUserMaintains.objects.filter(UserID=user)
+    assigned_ahjs = all_time_assigned_ahjs.filter(MaintainerStatus=True).values_list('AHJPK', flat=True)
+    former_ahjs = all_time_assigned_ahjs.filter(MaintainerStatus=False).values_list('AHJPK', flat=True)
     for ahj in num_kept_ahjs + num_new_ahjs:
         assert ahj.AHJPK in assigned_ahjs
     for ahj in (num_existing_ahjs[num_kept:] if num_kept < len(num_existing_ahjs) else []):
-        assert ahj.AHJPK not in assigned_ahjs
+        assert ahj.AHJPK in former_ahjs
+
+
+@pytest.mark.django_db
+def test_assign_ahj_official_status__reassign_ahj(create_user, ahj_obj):
+    user = create_user()
+    assignment = AHJUserMaintains.objects.create(UserID=user, AHJPK=ahj_obj, MaintainerStatus=False)
+    admin_form.assign_ahj_official_status(user, [ahj_obj])
+    assignment = AHJUserMaintains.objects.get(MaintainerID=assignment.MaintainerID)
+    assert assignment.MaintainerStatus is True
 
 
 @pytest.mark.parametrize(
