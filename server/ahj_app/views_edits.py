@@ -9,10 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .authentication import WebpageTokenAuth
-from .models import AHJ, Edit, Location
+from .models import AHJ, Edit, Location, AHJUserMaintains
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
-    FeeStructureSerializer, AHJInspectionSerializer, AddressSerializer
+    FeeStructureSerializer, AHJInspectionSerializer
 from .usf import ENUM_FIELDS, get_enum_value_row
 from .utils import get_elevation
 
@@ -24,7 +24,7 @@ def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=N
     """
     edit = Edit()
     edit.ChangedBy = edit_dict.get('User')
-    edit.DateRequested = datetime.datetime.today()
+    edit.DateRequested = timezone.now()
     edit.AHJPK = edit_dict.get('AHJPK')
     edit.SourceTable = edit_dict.get('SourceTable')
     edit.SourceColumn = edit_dict.get('SourceColumn')
@@ -115,10 +115,8 @@ def apply_edits(ready_edits=None):
     For rejected edit additions, this sets the SourceColumn of the edited row to False.
     """
     if ready_edits is None:
-        ready_edits = Edit.objects.filter(
-            ReviewStatus='A',
-            DateEffective__lte=datetime.now()
-        ).exclude(ApprovedBy=None)
+        ready_edits = Edit.objects.filter(ReviewStatus='A',
+                                          DateEffective__date=datetime.date.today()).exclude(ApprovedBy=None)
     for edit in ready_edits:
         row = edit.get_edited_row()
         if edit.SourceColumn in ENUM_FIELDS:
@@ -130,11 +128,9 @@ def apply_edits(ready_edits=None):
             new_value = edit.NewValue
         setattr(row, edit.SourceColumn, new_value)
         row.save()
-        row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+
         if edit.SourceTable == "Address":
             addr_string = create_addr_string(row)
-            addr = AddressSerializer(row).data
-            print("Addr String: " + addr_string)
             if addr_string != '':
                 loc = get_elevation(create_addr_string(row))
                 location = Location.objects.get(LocationID=row.LocationID.LocationID)
@@ -144,15 +140,13 @@ def apply_edits(ready_edits=None):
                 location.save()
 
     # If an addition edit is rejected, set its status false
-    # rejected_addition_edits = Edit.objects.filter(
-    #     ReviewStatus='R',
-    #     EditType='A',
-    #     DateEffective__date=datetime.date.today()
-    # ).exclude(ApprovedBy=None)
-    # for edit in rejected_addition_edits:
-    #     row = edit.get_edited_row()
-    #     setattr(row, row.get_relation_status_field(), False)
-    #     row.save()
+    rejected_addition_edits = Edit.objects.filter(ReviewStatus='R',
+                                                  EditType='A',
+                                                  DateEffective__date=datetime.date.today()).exclude(ApprovedBy=None)
+    for edit in rejected_addition_edits:
+        row = edit.get_edited_row()
+        setattr(row, row.get_relation_status_field(), False)
+        row.save()
 
 
 def revert_edit(user, edit):
@@ -304,7 +298,6 @@ def create_row(model, obj):
     rel_one_to_one = []
     rel_many_to_many = []
     for field, value in obj.items():
-        print(field,value)
         if value == '':
             continue
         elif type(value) is dict:
@@ -376,7 +369,6 @@ def edit_addition(request):
     """
     try:
         source_table = request.data.get('SourceTable')
-        print(source_table, request.data.get('AHJPK'), request.data.get('ParentTable'))
         response_data, response_status = [], status.HTTP_200_OK
         with transaction.atomic():
             model = apps.get_model('ahj_app', source_table)
@@ -412,7 +404,6 @@ def edit_addition(request):
                 edits.append(edit)
 
                 response_data.append(get_serializer(row)(edit_info_row).data)
-            #apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_addition', str(e))
@@ -483,7 +474,6 @@ def edit_update(request):
                 edit = add_edit(e)
                 edits.append(edit)
                 response_data.append(EditSerializer(edit).data)
-            #apply_edits(ready_edits=edits)
         return Response(response_data, status=response_status)
     except Exception as e:
         print('ERROR in edit_update', str(e))

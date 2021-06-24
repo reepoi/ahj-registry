@@ -118,15 +118,15 @@ WSGI_APPLICATION = 'TheAHJRegistry.wsgi.application'
 
 DATABASES = {
     'default': {
-        'NAME': 'taosschema',
+        'NAME': '',
         'ENGINE': 'django.contrib.gis.db.backends.mysql',
         'OPTIONS': {
             'sql_mode': 'STRICT_ALL_TABLES',
         },
-        'USER': 'admin',
-        'PASSWORD': 'mF23tqzrI7OPIBv8J9Xc',
-        'HOST': 'ahj-reg-sandbox.cbxmbhi4tcxc.us-west-2.rds.amazonaws.com',
-        'PORT': '3306'
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': ''
     }
 }
 

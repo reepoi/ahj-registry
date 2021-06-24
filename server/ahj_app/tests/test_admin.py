@@ -314,6 +314,7 @@ def test_approve_edit(apply_now, create_user, ahj_obj):
     if apply_now:
         assert ahj.AHJName == 'NewName'
     else:
+        ahj = AHJ.objects.get(AHJPK=ahj_obj.pk)
         assert ahj.AHJName != 'NewName'
         # NOTE: apply_edits is tested separately in test_view_edits.py
         apply_edits()

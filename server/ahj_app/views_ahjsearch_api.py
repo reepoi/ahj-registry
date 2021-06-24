@@ -1,7 +1,6 @@
 from collections import OrderedDict
-import datetime
 
-from django.apps import apps
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from rest_framework.pagination import LimitOffsetPagination
@@ -9,14 +8,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .authentication import APITokenAuth
+from .models import APIToken
 from .serializers import AHJSerializer
 from .utils import order_ahj_list_AHJLevelCode_PolygonLandArea, filter_ahjs, get_str_location, \
     get_public_api_serializer_context, get_ob_value_primitive, get_str_address, get_location_gecode_address_str, check_address_empty
 
 
-def remove_expired_tokens():
-    model = apps.get_model('ahj_app','APIToken')
-    model.objects.filter(expires__lte=datetime.datetime.now()).delete()
+def deactivate_expired_api_tokens():
+    APIToken.objects.filter(is_active=True, expires__lte=timezone.now()).update(is_active=False)
+
 
 @api_view(['POST'])
 @authentication_classes([APITokenAuth])
