@@ -331,4 +331,4 @@ for action in admin_actions_to_add:
 Register all the admin models to admin site.
 """
 for v in model_admin_dict.values():
-    admin.site.register(v['model'],SimpleHistoryAdmin)
+    admin.site.register(v['model'],v['admin_model'])
