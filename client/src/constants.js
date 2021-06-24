@@ -109,6 +109,7 @@ export default {
         { value: "", text: "AHJ Level Code" },
         { value: "040", text: "State (040)" },
         { value: "050", text: "County (050)" },
+        { value: "061", text: "MCD (061)" },
         { value: "162", text: "Place (162)" }
       ],
       BuildingCode: [
@@ -126,6 +127,7 @@ export default {
         { value: "2017NEC", text: "2017 NEC" },
         { value: "2014NEC", text: "2014 NEC" },
         { value: "2011NEC", text: "2011 NEC" },
+        { value: "2008NEC", text: "2008 NEC" },
         { value: "NoSolarRegulations", text: "No Solar Regulations" }
       ],
       FireCode: [
