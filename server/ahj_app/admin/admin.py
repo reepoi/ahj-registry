@@ -71,7 +71,7 @@ class AHJRegistryAdminSite(admin.AdminSite):
         Puts the ahj_app models into these categories: User Data, AHJ Data, Polygon Data.
         """
         user_data_models = [model for model in ahj_app['models'] if model['object_name'] in USER_DATA_MODELS]
-        ahj_data_models = [model for model in ahj_app['models'] if model['object_name'] not in USER_DATA_MODELS.union(POLYGON_DATA_MODELS)]
+        ahj_data_models = [model for model in ahj_app['models'] if model['object_name'] not in USER_DATA_MODELS.union(POLYGON_DATA_MODELS) and not model['object_name'].startswith('Historical')]
         polygon_data_models = [model for model in ahj_app['models'] if model['object_name'] in POLYGON_DATA_MODELS]
         new_app_list = []
         new_app_list.append(self.get_custom_app_dict('User Data', 'user_data', ahj_app['app_url'], ahj_app['has_module_perms'], user_data_models))

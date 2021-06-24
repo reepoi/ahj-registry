@@ -484,11 +484,17 @@ class UserManager(BaseUserManager):
         password = user_dict.pop('password')
         user = self.model(**user_dict)
         user.set_password(password)
-        try:
-            user.save(using=self._db)
-        except Exception as e:
-            print(e)
+        user.save(using=self._db)
         return user
+
+    def create_superuser(self, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(**extra_fields)
+
 
 class User(AbstractBaseUser):
     UserID = models.AutoField(db_column='UserID', primary_key=True)
@@ -559,7 +565,6 @@ class WebpageToken(rest_framework.authtoken.models.Token):
     created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
     user = models.OneToOneField(on_delete=models.CASCADE, related_name='webpage_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
     history = HistoricalRecords()
-
     def get_user(self):
         return self.user
 

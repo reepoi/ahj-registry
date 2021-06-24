@@ -104,7 +104,6 @@ def get_elevation(Address):
     loc = get_location_gecode_address_str(Address)
     location = { 'lat': loc['Latitude']['Value'], 'lng': loc['Longitude']['Value'] }
     elev = gmaps.elevation((loc['Latitude']['Value'],loc['Longitude']['Value']))
-    print(elev[0])
     loc['Elevation'] = {'Value': 0}
     loc['Elevation']['Value'] = elev[0]['elevation']
     return loc

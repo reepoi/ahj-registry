@@ -93,7 +93,6 @@ def test_edit_review__authenticated_normal_use(user_type, generate_client_with_w
     edit = Edit.objects.create(**edit_dict)
     url = reverse('edit-review')
     response = client.post(url, {'EditID': edit.EditID, 'Status': 'A'})
-    print(response)
     assert response.status_code == 200
     edit = Edit.objects.get(EditID=edit.EditID)
     assert edit.ReviewStatus == 'A'
@@ -282,48 +281,6 @@ def test_edit_list__missing_param(generate_client_with_webpage_credentials):
     url = reverse('edit-list')
     response = client.get(url)
     assert response.status_code == 400
-
-
-@pytest.mark.django_db
-def test_edit_addition__applied_immediately(ahj_obj, generate_client_with_webpage_credentials):
-    """
-    This tests that edits are applied to what they are editing immediately.
-    It is temporary functionality to be removed after the 2.0 release.
-    """
-    client = generate_client_with_webpage_credentials(Username='someone')
-    user = User.objects.get(Username='someone')
-    url = reverse('edit-addition')
-
-    response = client.post(url, {'SourceTable': 'Contact',
-                                 'AHJPK': ahj_obj.AHJPK,
-                                 'ParentTable': 'AHJ',
-                                 'ParentID': ahj_obj.AHJPK,
-                                 'Value': [{}]}, format='json')
-    assert response.status_code == 200
-    contact_id = response.data[0]['ContactID']['Value']
-    assert Contact.objects.filter(ContactID=contact_id).exists()
-    assert Edit.objects.get(AHJPK=ahj_obj.AHJPK).ReviewStatus == 'A'
-
-
-@pytest.mark.django_db
-def test_edit_update__applied_immediately(ahj_obj, generate_client_with_webpage_credentials):
-    """
-    This tests that edits are applied to what they are editing immediately.
-    It is temporary functionality to be removed after the 2.0 release.
-    """
-    client = generate_client_with_webpage_credentials(Username='someone')
-    user = User.objects.get(Username='someone')
-    url = reverse('edit-update')
-
-    contact = Contact.objects.create(ParentTable='AHJ', ParentID=ahj_obj.AHJPK)
-    response = client.post(url, [{'SourceTable': 'Contact',
-                                 'SourceRow': contact.ContactID,
-                                 'SourceColumn': 'FirstName',
-                                 'NewValue': 'NewName',
-                                 'AHJPK': ahj_obj.AHJPK}], format='json')
-    assert response.status_code == 200
-    assert Contact.objects.get(ContactID=contact.ContactID).FirstName == 'NewName'
-    assert Edit.objects.get(AHJPK=ahj_obj.AHJPK).ReviewStatus == 'A'
 
 
 @pytest.mark.parametrize(
@@ -534,7 +491,6 @@ def test_edit_is_resettable(date_effective1, date_effective2, edit_status, expec
                  'OldValue': old_value, 'NewValue': new_value,
                  'DateRequested': date_effective1, 'DateEffective': date_effective1,
                  'ReviewStatus': edit_status, 'EditType': 'U', 'AHJPK': ahj_obj}
-    print(edit_status, edit_dict)
     edit1 = Edit.objects.create(**edit_dict)
     edit_dict['DateRequested'], edit_dict['DateEffective'] = date_effective2, date_effective2
     edit2 = Edit.objects.create(**edit_dict)
