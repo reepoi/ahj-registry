@@ -4,12 +4,10 @@ File of helper methods for uploading 2020 Census Bureau shapefile polygons and A
 
 import csv
 import os
-from functools import lru_cache
-import datetime
-from django.apps import apps
 from django.contrib.gis.utils import LayerMapping
 from .models import *
 from .models_field_enums import *
+from .utils import ENUM_FIELDS, get_enum_value_row
 
 BASE_DIR = os.path.expanduser('~/AHJRegistryData/')
 BASE_DIR_SHP = BASE_DIR + '2020CensusPolygons/'
@@ -206,33 +204,6 @@ def translate_countysubdivisions():
         i += 1
 
 
-ENUM_FIELDS = {
-    'BuildingCode',
-    'ElectricCode',
-    'FireCode',
-    'ResidentialCode',
-    'WindCode',
-    'AHJLevelCode',
-    'DocumentSubmissionMethod',
-    'PermitIssueMethod',
-    'AddressType',
-    'LocationDeterminationMethod',
-    'LocationType',
-    'ContactType',
-    'PreferredContactMethod',
-    'EngineeringReviewType',
-    'RequirementLevel',
-    'StampType',
-    'FeeStructureType',
-    'InspectionType'
-}
-
-ENUM_PLURALS_TRANSLATE = {
-    'DocumentSubmissionMethods': 'DocumentSubmissionMethod',
-    'PermitIssueMethods': 'PermitIssueMethod'
-}
-
-
 def add_enum_values():
     """
     Adds all enum values to their enum tables.
@@ -317,16 +288,6 @@ def create_contact(contact_dict):
     return Contact.objects.create(**contact_dict)
 
 
-@lru_cache(maxsize=None)
-def get_enum_value_row(enum_field, enum_value):
-    """
-    Finds the row of the enum table given the field name and its enum value.
-    """
-    # Translate plural, if given
-    enum_field = ENUM_PLURALS_TRANSLATE[enum_field] if enum_field in ENUM_PLURALS_TRANSLATE else enum_field
-    return apps.get_model('ahj_app', enum_field).objects.get(Value=enum_value)
-
-
 def enum_values_to_primary_key(ahj_dict):
     """
     Replace enum values in a dict with the row of the value in its enum model.
@@ -375,10 +336,13 @@ def create_admin_user():
     admin = User.objects.create_user(
         Username=admin_username,
         Email=admin_email,
-        password=admin_password
+        password=admin_password,
+        Photo="No photo"
     )
     admin.is_active = True
     admin.is_staff = True
+    admin.is_superuser = True
+    admin.Photo = ""
     admin.save()
     webpage_api_token = WebpageToken.objects.create(user=admin)
     api_token = APIToken.objects.create(user=admin)
@@ -451,6 +415,54 @@ def load_ahj_data_csv():
             i += 1
 
 
+def get_empty_loc():
+    loc = {}
+    loc['Altitude'] = None
+    loc['Elevation'] = None
+    loc['Latitude'] = None
+    loc['Longitude'] = None
+    loc['Description'] = ''
+    loc['LocationDeterminationMethod'] = None
+    loc['LocationType'] = None
+    return Location.objects.create(**loc)
+
+def get_empty_addr():
+    addr = {}
+    addr['AddrLine1'] = ''
+    addr['AddrLine2'] = ''
+    addr['AddrLine3'] = ''
+    addr['City'] = ''
+    addr['County'] = ''
+    addr['Country'] = ''
+    addr['StateProvince'] = ''
+    addr['ZipPostalCode'] = ''
+    addr['Description'] = ''
+    addr['AddressType'] = None
+    addr['LocationID'] = get_empty_loc()
+    return Address.objects.create(**addr)
+
+def locations_to_addresses():
+    addrs = Address.objects.filter(LocationID=None)
+    for a in addrs:
+        l = get_empty_loc()
+        l.save()
+        print(l)
+        a.LocationID = l
+        a.save()
+        print(a)
+
+def address_to_contacts():
+    conts = Contact.objects.filter(AddressID=None)
+    for c in conts:
+        a = get_empty_addr()
+        a.save()
+        print(a)
+        c.AddressID = a
+        c.save()
+        print(c)
+    return
+    
+# Dict to translate state FIPS codes to state abbreviations
 def load_ahj_census_names_csv():
     """
     Save AHJ census names from a CSV with columns: (AHJID, AHJCensusName, StateProvince)

@@ -9,9 +9,9 @@ from django.conf import settings
 
 
 def start():
-    pass
-    # scheduler = BackgroundScheduler()
-    # if settings.DEBUG:
-    #     scheduler.add_job(editTasks.test_proc, 'interval', seconds=60)
-    # scheduler.add_job(editTasks.edits_take_effect, 'cron', hour=3, jitter=10)
-    # scheduler.start()
+    scheduler = BackgroundScheduler()
+    if settings.DEBUG:
+        scheduler.add_job(editTasks.test_proc, 'interval', seconds=60)
+    scheduler.add_job(editTasks.edits_take_effect, 'cron', hour=3, jitter=10)
+    scheduler.add_job(editTasks.deactivate_expired_api_tokens, 'cron', hour=3, jitter=10)
+    scheduler.start()

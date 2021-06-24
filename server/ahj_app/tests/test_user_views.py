@@ -47,7 +47,7 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials, crea
         'Title': 'title'
     }
     # send update to user-update path 
-    url = reverse('user-update', kwargs={'username': 'someone'})
+    url = reverse('user-update')
     response = client.post(url, newUserData)
     # Update contact and user objects
     user = User.objects.get(Username='username')
@@ -65,64 +65,53 @@ def test_update_user__user_exists(generate_client_with_webpage_credentials, crea
     
     assert response.status_code == 200
 
-@pytest.mark.django_db
-def test_update_user__user_updating_another_user(create_user, client_with_webpage_credentials):
-    user2 = create_user(Username='test')
-    url = reverse('user-update', kwargs={'username': 'test'})
-    response = client_with_webpage_credentials.post(url, {'Username': 'usernamechange'})
-    assert response.status_code == 400
 
+@pytest.mark.parametrize(
+    'is_admin, token_exists', [
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False)
+    ]
+)
 @pytest.mark.django_db
-def test_update_user__unchangable_field_changed(generate_client_with_webpage_credentials):
+def test_create_api_token(is_admin, token_exists, generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
-    url = reverse('user-update', kwargs={'username': 'someone'})
-    response = client.post(url, {'Email': 'new@new.com'})
-    assert response.status_code == 400
-
-@pytest.mark.django_db
-def test_update_user__user_does_not_exist(client_with_webpage_credentials):
-    url = reverse('user-update', kwargs={'username': 'notexist'})
-    response = client_with_webpage_credentials.post(url, {'Username': 'usernamechange'})
-    assert response.status_code == 400
-
-@pytest.mark.django_db
-def test_create_api_token__token_does_not_exist(client_with_webpage_credentials):
+    User.objects.filter(Username='someone').update(is_superuser=is_admin)
     url = reverse('create-api-token')
-    response = client_with_webpage_credentials.get(url)
-    assert response.status_code == 201
+    response = client.get(url)
+    if token_exists:
+        response = client.get(url)
+    assert response.status_code == (201 if is_admin else 403)
 
-@pytest.mark.django_db
-def test_create_api_token__token_already_exist(client_with_webpage_credentials):
-    url = reverse('create-api-token')
-    client_with_webpage_credentials.get(url) # Create token, then call token creation view again
-    response = client_with_webpage_credentials.get(url)
-    assert response.status_code == 201
 
+@pytest.mark.parametrize(
+    'is_admin, already_maintains', [
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False)
+    ]
+)
 @pytest.mark.django_db
-def test_set_ahj_maintainer__already_maintains(ahj_obj, generate_client_with_webpage_credentials):
+def test_set_ahj_maintainer(is_admin, already_maintains, ahj_obj, generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
+    User.objects.filter(Username='someone').update(is_superuser=is_admin)
     user = User.objects.get(Username='someone')
 
-    AHJMaintainer = AHJUserMaintains.objects.create(AHJPK=ahj_obj, UserID=user, MaintainerStatus=1)
+    if already_maintains:
+        AHJUserMaintains.objects.create(AHJPK=ahj_obj, UserID=user, MaintainerStatus=True)
     
     userData = {'Username': user.Username, 'AHJPK': ahj_obj.AHJPK}
     url = reverse('ahj-set-maintainer')
     response = client.post(url, userData)
-    assert response.status_code == 200
+    assert response.status_code == (200 if is_admin else 403)
 
-@pytest.mark.django_db
-def test_set_ahj_maintainer__does_not_already_maintain(ahj_obj, generate_client_with_webpage_credentials):
-    client = generate_client_with_webpage_credentials(Username='someone')
-    user = User.objects.get(Username='someone')
-    
-    userData = {'Username': user.Username, 'AHJPK': ahj_obj.AHJPK}
-    url = reverse('ahj-set-maintainer')
-    response = client.post(url, userData)
-    assert response.status_code == 200
 
 @pytest.mark.django_db
 def test_set_ahj_maintainer__invalid_params(generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
+    User.objects.filter(Username='someone').update(is_superuser=True)
     # invalid username
     userData = {'Username': 'notexist'}
     url = reverse('ahj-set-maintainer')
@@ -134,33 +123,39 @@ def test_set_ahj_maintainer__invalid_params(generate_client_with_webpage_credent
     response = client.post(url, userData)
     assert response.status_code == 400
 
+
+@pytest.mark.parametrize(
+    'is_admin, already_maintains', [
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False)
+    ]
+)
 @pytest.mark.django_db
-def test_remove_ahj_maintainer__maintainer_exists(ahj_obj, generate_client_with_webpage_credentials):
+def test_remove_ahj_maintainer(is_admin, already_maintains, ahj_obj, generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
+    User.objects.filter(Username='someone').update(is_superuser=is_admin)
     user = User.objects.get(Username='someone')
 
-    AHJMaintainer = AHJUserMaintains.objects.create(AHJPK=ahj_obj, UserID=user, MaintainerStatus=1)
-    assert AHJUserMaintains.objects.get(UserID=user.UserID).MaintainerStatus == 1 # Check before we change the status
-    
-    userData = {'Username': 'someone', 'AHJPK': ahj_obj.AHJPK}
-    url = reverse('ahj-remove-maintainer')
-    response = client.post(url, userData)
-    assert AHJUserMaintains.objects.get(UserID=user.UserID).MaintainerStatus == 0
-    assert response.status_code == 200
+    if already_maintains:
+        AHJUserMaintains.objects.create(AHJPK=ahj_obj, UserID=user, MaintainerStatus=True)
 
-@pytest.mark.django_db
-def test_remove_ahj_maintainer__maintainer_does_not_exist(ahj_obj, generate_client_with_webpage_credentials):
-    client = generate_client_with_webpage_credentials(Username='someone')
-    
     userData = {'Username': 'someone', 'AHJPK': ahj_obj.AHJPK}
     url = reverse('ahj-remove-maintainer')
     response = client.post(url, userData)
-    # If we are removing maintainer privileges from a user that already didn't have maintainer privileges, still return 200
-    assert response.status_code == 200
+    if is_admin:
+        assert response.status_code == 200
+        if already_maintains:
+            assert AHJUserMaintains.objects.get(UserID=user.UserID).MaintainerStatus is False
+    else:
+        assert response.status_code == 403
+
 
 @pytest.mark.django_db
 def test_remove_ahj_maintainer__invalid_params(generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
+    User.objects.filter(Username='someone').update(is_superuser=True)
     # invalid username
     userData = {'Username': 'notexist'}
     url = reverse('ahj-remove-maintainer')

@@ -1,6 +1,8 @@
 from django.urls import reverse
 from django.conf import settings
 from ahj_app.models import User, Edit, Comment
+from django.utils import timezone
+
 from fixtures import *
 import pytest
 import datetime
@@ -63,8 +65,8 @@ def test_comment_submit__no_comment(ahj_obj, client_with_webpage_credentials):
 def test_user_edits__edits_exist(ahj_obj, generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
     user = User.objects.get(Username='someone')
-    edit1 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=datetime.datetime.now())
-    edit2 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=datetime.datetime.now())
+    edit1 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=timezone.now())
+    edit2 = Edit.objects.create(ChangedBy= user, AHJPK=ahj_obj, SourceTable='Contact', SourceColumn='Title', SourceRow='143', DateRequested=timezone.now())
 
     url = reverse('user-edits')
     response = client.get(url, {'UserID': user.UserID})

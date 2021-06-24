@@ -1,17 +1,8 @@
-/*
- * Constants used throughout the application
- */
-const API_ENDPOINT = "http://localhost:8000/api/v1/"; // Base Django API endpoint
-const AUTH_TOKEN = ""; // Webpage's Django webpage API token
-const AUTH_TOKEN_PUBLIC_API = ""; // Webpage's Django public API token
-const IP_GEOLOCATION_ENDPOINT = ""; // API endpoint for finding user's lat-lon by their ip; only 20,000 requests per month
+const API_ENDPOINT = "http://localhost:8000/api/v1/";
 
 export default {
   API_ENDPOINT: API_ENDPOINT,
-  TOKEN_AUTH: AUTH_TOKEN,
-  TOKEN_AUTH_PUBLIC_API: AUTH_TOKEN_PUBLIC_API,
-  IP_GEOLOCATION_ENDPOINT: IP_GEOLOCATION_ENDPOINT,
-  AHJ_FIELDS: { // Template for Orange Button AHJ object
+  AHJ_FIELDS: {
     AHJCode: "",
     AHJName: "",
     BuildingCode: "",
@@ -118,6 +109,7 @@ export default {
         { value: "", text: "AHJ Level Code" },
         { value: "040", text: "State (040)" },
         { value: "050", text: "County (050)" },
+        { value: "061", text: "MCD (061)" },
         { value: "162", text: "Place (162)" }
       ],
       BuildingCode: [
@@ -135,6 +127,7 @@ export default {
         { value: "2017NEC", text: "2017 NEC" },
         { value: "2014NEC", text: "2014 NEC" },
         { value: "2011NEC", text: "2011 NEC" },
+        { value: "2008NEC", text: "2008 NEC" },
         { value: "NoSolarRegulations", text: "No Solar Regulations" }
       ],
       FireCode: [

@@ -4,10 +4,9 @@
             <!-- display ERR type as head of this object -->
             <h2>{{ (this.data.EngineeringReviewType === null || this.data.EngineeringReviewType.Value === "") && !this.isEditing ? "Unspecified" : this.isEditing ? "" : this.data.EngineeringReviewType.Value}} <b-form-select size="sm" style="width:75%" v-if="isEditing" v-model="Edits.EngineeringReviewType" :options="consts.CHOICE_FIELDS.EngineeringReviewRequirement.EngineeringReviewType"/> </h2>
             <div style="display:flex">
-            <div style="width: 50px;" v-if="eID >= 0">
-                <!-- if user manages this ahj and this is an edit object allow acceptance / rejections -->
+            <div style="width: 50px;margin-right:10px;" v-if="eID >= 0">
                 <i style="margin-right:10px;margin-top:10px;" v-if="$parent.isManaged && this.editstatus==='P'" v-on:click="$emit('official',{Type:'Accept',eID: eID});editstatus = 'A';changeStatus();" class="fa fa-check"></i>
-                <i style="margin-right:5px;" v-if="$parent.isManaged && this.editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus();" class="fa fa-thumbs-down"></i>
+                <i style="margin-right:5px;" v-if="$parent.isManaged && this.editstatus==='P'" v-on:click="$emit('official',{Type:'Reject',eID: eID});editstatus='R';changeStatus();" class="fa fa-times"></i>
             </div>
             <i ref='chev' style="height:100%;margin-right: 10px;margin-top:10px;" class="fa fa-chevron-down" v-on:click="showInfo()"></i>
             <div style="float: right;" v-if="isEditing">

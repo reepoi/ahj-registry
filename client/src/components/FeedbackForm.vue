@@ -86,10 +86,6 @@ export default {
             "Email": this.Email,
             "Subject": this.Subject,
             "Message": this.Message
-            },{
-            headers: {
-                'Authorization': `${this.$store.getters.authToken}`
-            }
         }).then(() => {
             that.SubmitStatus = 'SUCCESS';
         })
