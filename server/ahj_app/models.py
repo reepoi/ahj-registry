@@ -565,7 +565,6 @@ class WebpageToken(rest_framework.authtoken.models.Token):
     created = models.DateTimeField(auto_now_add=True, verbose_name='Created')
     user = models.OneToOneField(on_delete=models.CASCADE, related_name='webpage_token', to=settings.AUTH_USER_MODEL, verbose_name='User')
     history = HistoricalRecords()
-
     def get_user(self):
         return self.user
 
