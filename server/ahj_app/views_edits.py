@@ -132,7 +132,7 @@ def apply_edits(ready_edits=None):
             new_value = edit.NewValue
         setattr(row, edit.SourceColumn, new_value)
         row.save()
-        row = model.objects.get(**{model._meta.pk.name: edit.SourceRow})
+
         if edit.SourceTable == "Address":
             addr_string = create_addr_string(row)
             addr = AddressSerializer(row).data

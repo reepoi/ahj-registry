@@ -277,10 +277,10 @@ def test_edit_list__normal_use(ahj_obj, generate_client_with_webpage_credentials
 @pytest.mark.django_db
 def test_edit_list__missing_param(generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Username='someone')
-    
     url = reverse('edit-list')
     response = client.get(url)
-    assert response.status_code == 400
+    assert response.status_code == 200
+    assert len(response.data) == 0
 
 
 @pytest.mark.parametrize(
