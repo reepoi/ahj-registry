@@ -39,6 +39,7 @@ def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=N
     edit.save()
     return edit
 
+
 def create_addr_string(Address):
     addr = Address.AddrLine1
     if addr != '' and Address.AddrLine2 != '':
@@ -71,7 +72,8 @@ def create_addr_string(Address):
         addr += Address.ZipPostalCode
 
     return addr
-    
+
+
 def addr_string_from_dict(Address):
     addr = Address["AddrLine1"]
     if addr != '' and Address["AddrLine2"] != '':
@@ -104,8 +106,6 @@ def addr_string_from_dict(Address):
         addr += Address["ZipPostalCode"]
 
     return addr
-
-    
 
 
 def apply_edits(ready_edits=None):
@@ -263,6 +263,7 @@ def reset_edit(user, edit, force_resettable=False, skip_undo=False):
 
 ####################
 
+
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
@@ -345,6 +346,7 @@ def create_row(model, obj):
 
     return row
 
+
 def get_serializer(row):
     serializers = {
         'AHJ': AHJSerializer,
@@ -408,6 +410,7 @@ def edit_addition(request):
     except Exception as e:
         print('ERROR in edit_addition', str(e))
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
@@ -479,22 +482,26 @@ def edit_update(request):
         print('ERROR in edit_update', str(e))
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
-def edit_list(request):
-    # Filtering by SourceTable, SourceRow, and SourceColumn
-    source_row = request.query_params.get('AHJPK', None)
-    if source_row is None:
-        return Response('An AHJPK must be provided', status=status.HTTP_400_BAD_REQUEST)
-    edits = Edit.objects.filter(AHJPK=source_row)
-    edits = EditSerializer(edits, many=True, context={'drop_users': True}).data
-    return Response(edits, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+def edit_list(request):
+    """
+    Endpoint returning all edits made to an AHJ specified by AHJPK.
+    """
+    try:
+        edits = Edit.objects.filter(AHJPK=request.query_params.get('AHJPK'))
+        return Response(EditSerializer(edits, many=True, context={'drop_users': True}).data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
 def user_edits(request):
-    UserID = request.query_params.get('UserID', None)
-    edits = Edit.objects.filter(ChangedBy=UserID)
-    return Response(EditSerializer(edits, many=True).data, status=status.HTTP_200_OK)
+    """
+    Endpoint returning all edits made a user specified by UserID.
+    """
+    try:
+        edits = Edit.objects.filter(ChangedBy=request.query_params.get('UserID'))
+        return Response(EditSerializer(edits, many=True, context={'drop_users': True}).data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
