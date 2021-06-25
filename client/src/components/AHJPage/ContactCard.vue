@@ -222,6 +222,7 @@ export default {
             this.$parent.changeCont(this.data.ContactID.Value);
             this.$parent.editingCont = this.data.ContactID.Value;
             this.$parent.editingCont = this.ID;
+            this.$parent.setAddrAndLocation();
             this.$parent.showBigDiv('addressLoc');
         }
     },

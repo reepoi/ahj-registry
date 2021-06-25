@@ -549,9 +549,9 @@
                         </div>
                         <div class="edit-buttons">
                             <!-- Adds contact to list of current contacts -->
-                            <a style="margin:0;padding:0;text-decoration: underline;margin-right:10px;" v-on:click="editAddress()">{{(this.replacingCont == -1) ?  "Add" : "Save"}}</a>
+                            <a style="margin:0;padding:0;text-decoration: underline;margin-right:10px;" v-on:click="editAddress()">{{(this.editingCont == -1) ?  "Add" : "Save"}}</a>
                             <!-- Closes the window without adding contact to list -->
-                            <a style="margin:0;padding:0;text-decoration: underline;" v-on:click="clearAddrAndLocation();showBigDiv('addressLoc')">Cancel</a>
+                            <a style="margin:0;padding:0;text-decoration: underline;" v-on:click="clearAddrAndLocation();showBigDiv('addressLoc');editingCont = -1">Cancel</a>
                         </div>
             </div>
         </div>
@@ -570,7 +570,7 @@
                 <div class="edit-title">Address</div>
                 <div id="Address-edits" class="edit-body">
                     <div v-for="(e,index) in editList" v-bind:key="`addredit${index}`">
-                        <div v-if="(e.SourceTable==='Address' && e.SourceRow==AHJInfo.Address.AddressID.Value) || (e.SourceTable==='Location' && e.SourceRow == AHJInfo.Address.Location.LocationID)">
+                        <div v-if="AHJInfo && (e.SourceTable==='Address' && e.SourceRow==AHJInfo.Address.AddressID.Value) || (e.SourceTable==='Location' && e.SourceRow == AHJInfo.Address.Location.LocationID)">
                             <edit-object v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                     </div>
@@ -1921,12 +1921,10 @@ export default {
             for(var i = 0; i < this.contactAddition.Value.length;i++){
                 let keys = Object.keys(this.contactAddition.Value[i].Address);
                 for(var j = 0; j < keys.length; j++){
-                    console.log(this.contactAddition.Value[i].Address[keys[j]]);
                     this.contactAddition.Value[i].Address[keys[j]] = this.contactAddition.Value[i].Address[keys[j]];
                 }
             }
             this.contactAddition.Value = [...this.contactAddition.Value];
-            console.log(JSON.stringify(this.contactAddition));
             //submit all addition objects to backend (this order is random)
             axios
                 .post(url,JSON.stringify(this.contactAddition), {
@@ -2413,7 +2411,6 @@ export default {
         editAddress(){
             this.editObjects = [];
             var contAddr = null;
-            console.log(this.editingCont);
             if(this.editingCont > -1){
                 for(var i = 0; i  < this.$children.length; i++){
                     if(this.$children[i].Type === 'Contact' && this.$children[i].data.ContactID.Value == this.editingCont){
@@ -2428,7 +2425,6 @@ export default {
             for(i = 0; i < keys.length; i++){
                 if(keys[i] !== 'Location'){
                     if(contAddr[keys[i]].Value !== this.Address[keys[i]] && this.Address[keys[i]]){
-                        console.log(this.Address[keys[i]],contAddr[keys[i]].Value);
                         var obj = {};
                         obj['AHJPK'] = this.AHJInfo.AHJPK.Value;
                         obj['SourceTable'] = 'Address'
@@ -2463,7 +2459,6 @@ export default {
         },
         setAddrAndLocation(){
             var contAddr = null;
-            console.log(this.editingCont);
             if(this.editingCont > -1){
                 for(var i = 0; i  < this.$children.length; i++){
                     if(this.$children[i].Type === 'Contact' && this.$children[i].data.ContactID.Value == this.editingCont){
@@ -2549,7 +2544,6 @@ export default {
         '$store.state.editList': function(){
             var list = this.$store.state.editList;
             this.editList = [...list];
-            console.log(this.editList);
         }
     }
 }
