@@ -4,7 +4,7 @@ import * as settings from './test_settings.js';
 
 jest.setTimeout(600000);
 
-// These tests pass on there own, but seem to interfere with all the other tests.
+// These tests pass on their own, but seem to interfere with all the other tests.
 // const ANON_THROTTLE_QUOTA = 10;
 //
 // describe('Anonymous users are throttled', () => {

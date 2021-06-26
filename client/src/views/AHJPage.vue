@@ -141,7 +141,7 @@
                         <input type="text" v-model="AddCont.Description" class="form-control" id="Description" placeholder="Description">
                         </div>
                         <div class="add-breakup">
-                        <label for="Title">Time Zone</label>
+                        <label for="Title">Title</label>
                         <input type="text" id="Title" v-model="AddCont.Title" class="form-control" placeholder="Title"/>
                         <label for="TimeZone">Time Zone</label>
                         <input type="text" v-model="AddCont.ContactTimezone" class="form-control" id="TimeZone" placeholder="Time Zone">
