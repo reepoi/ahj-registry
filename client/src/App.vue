@@ -41,6 +41,7 @@ export default {
     Navbar,
   },
   mounted() {
+    this.$store.commit('resetAPIErrorInfo');
     if (this.$store.getters.loggedIn) {
       this.$store.dispatch('getUserInfo')
     }

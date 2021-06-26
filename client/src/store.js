@@ -207,6 +207,9 @@ state: {
                     state.apiLoading = false;
                 })
         },
+        resetAPIErrorInfo(state) {
+            state.apiErrorInfo = { status: null, msg: '' }
+        },
         clearState(state){ // reset fields in the store
             state.callData = [];
             state.leafletMap = null;
