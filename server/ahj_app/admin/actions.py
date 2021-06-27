@@ -302,7 +302,7 @@ def user_query_ahjs_is_ahj_official_of(self, request, queryset):
     """
     model_name = 'ahj'
     field_key_pairs = [field_key_pair('AHJPK', 'AHJPK')]
-    queryset = AHJUserMaintains.objects.filter(UserID__in=queryset)
+    queryset = AHJUserMaintains.objects.filter(UserID__in=queryset, MaintainerStatus=True)
     return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
 
 
@@ -491,7 +491,7 @@ def ahj_query_ahj_official_users(self, request, queryset):
     """
     model_name = 'user'
     field_key_pairs = [field_key_pair('UserID', 'UserID')]
-    queryset = AHJUserMaintains.objects.filter(AHJPK__in=queryset)
+    queryset = AHJUserMaintains.objects.filter(AHJPK__in=queryset, MaintainerStatus=True)
     return load_change_list_with_queryset(request, queryset, model_name, field_key_pairs)
 
 

@@ -1555,7 +1555,9 @@ export default {
         ahjCodeFormatter(value) {
             if(value) {
                 if (value === "NoSolarRegulations") {
-                return "No Solar Regulations";
+                  return "No Solar Regulations";
+                } else if (value === "SpecialWindZone") {
+                  return "Special Wind Zone";
                 }
                 //Add spaces between identifier and code data i.e. 2020IBC -> 2020 IBC
                 return value.substring(0, 4) + " " + value.substring(4);

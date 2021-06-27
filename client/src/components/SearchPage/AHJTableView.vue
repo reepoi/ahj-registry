@@ -152,6 +152,8 @@ export default {
       if(value) {
         if (value === "NoSolarRegulations") {
           return "No Solar Regulations";
+        } else if (value === "SpecialWindZone") {
+          return "Special Wind Zone";
         }
         return value.substring(0, 4) + " " + value.substring(4);
       }
