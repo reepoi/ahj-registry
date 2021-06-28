@@ -1,10 +1,9 @@
 from rest_framework import status
-from rest_framework.decorators import permission_classes, authentication_classes, api_view
+from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 
-from .authentication import WebpageTokenAuth
 from .models import AHJ
 from .serializers import AHJSerializer
 from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
@@ -12,8 +11,7 @@ from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
 
 
 @api_view(['POST'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+@throttle_classes([AnonRateThrottle])
 def webpage_ahj_list(request):
     """
     Functional view for the WebPageAHJList
@@ -70,13 +68,12 @@ def webpage_ahj_list(request):
 
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def get_single_ahj(request):
     """
     Endpoint to get a single ahj given an AHJPK
     """
-    AHJPK = request.GET.get('AHJPK')
-    ahj = AHJ.objects.filter(AHJPK=AHJPK)
-    context = {'fields_to_drop': []}
-    return Response(AHJSerializer(ahj, context=context, many=True).data, status=status.HTTP_200_OK)
+    try:
+        ahj = AHJ.objects.get(AHJPK=request.query_params.get('AHJPK'))
+        return Response(AHJSerializer(ahj).data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
