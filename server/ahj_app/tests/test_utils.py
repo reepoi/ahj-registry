@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.db import connection
 from django.urls import reverse
 from django.http import HttpRequest
@@ -342,3 +344,64 @@ def test_filter_dict_keys():
     keys_to_keep = {'key1'}
     filtered_dict = filter_dict_keys(dict_to_filter, keys_to_keep)
     assert filtered_dict == {'key1': 'value1'}
+
+
+@pytest.mark.parametrize(
+    'obj, expected_value', [
+        ({'Value': 'name'}, {'Value': 'name'}),
+        ({'AHJName': {'Value': 'name'}}, {'AHJName.Value': 'name'}),
+        ({'Address': {'Location': {'LocationType': {'Value': 'DeviceSpecific'}}}}, {'Address.Location.LocationType.Value': 'DeviceSpecific'}),
+        ({'DocumentSubmissionMethods': [{'Value': 'SolarApp'}]}, {'DocumentSubmissionMethods[0].Value': 'SolarApp'}),
+        ({'Contacts': [{'FirstName': {'Value': 'name'}}]}, {'Contacts[0].FirstName.Value': 'name'}),
+        ([{'AHJName': {'Value': 'name'}}], {'[0].AHJName.Value': 'name'}),
+        ({'Address': OrderedDict({'Location': OrderedDict({'LocationType': {'Value': 'DeviceSpecific'}})})}, {'Address.Location.LocationType.Value': 'DeviceSpecific'}),
+    ]
+)
+def test_flatten_dict(obj, expected_value):
+    assert flatten_dict(obj) == expected_value
+
+
+@pytest.mark.parametrize(
+    'key, expected_value', [
+        ('AHJName.Value', ['AHJName', 'Value']),
+        ('Address.Location.LocationType.Value', ['Address', 'Location', 'LocationType', 'Value']),
+        ('DocumentSubmissionMethods[0].Value', ['DocumentSubmissionMethods', '0', 'Value']),
+        ('Contacts[0].FirstName.Value', ['Contacts', '0', 'FirstName', 'Value'])
+    ]
+)
+def test_split_flattened_dict_keys(key, expected_value):
+    assert split_flattened_dict_keys(key) == expected_value
+
+
+@pytest.mark.parametrize(
+    'key, expected_value, obj', [
+        ('AHJName.Value', 'name', {'AHJName': {'Value': 'name'}}),
+        ('Address.Location.LocationType.Value', 'DeviceSpecific', {'Address': {'Location': {'LocationType': {'Value': 'DeviceSpecific'}}}}),
+        ('DocumentSubmissionMethods[0].Value', 'SolarApp', {'DocumentSubmissionMethods': [{'Value': 'SolarApp'}]}),
+        ('Contacts[0].FirstName.Value', 'name', {'Contacts': [{'FirstName': {'Value': 'name'}}]})
+    ]
+)
+def test_index_dict_flattened_dict_key(key, expected_value, obj):
+    assert index_dict_flattened_dict_key(obj, key) == expected_value
+
+
+def test_index_dict_flattened_dict_key_key_error():
+    assert index_dict_flattened_dict_key({'AHJName': {'Value': 'name'}}, 'Description.Value', no_exception=True, key_error_default='') == ''
+
+
+@pytest.mark.parametrize(
+    'obj, expected_value', [
+        ({'Value': 'name'}, [{'Value': 'name'}]),
+        ({'AHJName': {'Value': 'name'}}, [{'AHJName.Value': 'name'}]),
+        ({'Address': {'Location': {'LocationType': {'Value': 'DeviceSpecific'}}}}, [{'Address.Location.LocationType.Value': 'DeviceSpecific'}]),
+        ({'DocumentSubmissionMethods': [{'Value': 'SolarApp'}]}, [{'DocumentSubmissionMethods[0].Value': 'SolarApp'}]),
+        ({'Contacts': [{'FirstName': {'Value': 'name'}}]}, [{'Contacts[0].FirstName.Value': 'name'}]),
+        ([{'AHJName': {'Value': 'name'}}], [{'AHJName.Value': 'name'}]),
+        ([{'AHJName': {'Value': 'name'}}, {'AHJName': {'Value': 'name'}, 'Description': {'Value': 'second'}}], [{'AHJName.Value': 'name', 'Description.Value': ''}, {'AHJName.Value': 'name', 'Description.Value': 'second'}]),
+        ([{'AHJName': {'Value': 'name'}}, {'Description': {'Value': 'desc'}}], [{'AHJName.Value': 'name', 'Description.Value': ''}, {'AHJName.Value': '', 'Description.Value': 'desc'}]),
+        ([{'Address': {'Location': {'LocationType': {'Value': 'DeviceSpecific'}}}}, {'Address': {'Description': {'Value': 'desc'}}}], [{'Address.Location.LocationType.Value': 'DeviceSpecific', 'Address.Description.Value': ''}, {'Address.Location.LocationType.Value': '', 'Address.Description.Value': 'desc'}]),
+        ([{'Address': {'Location': OrderedDict({'LocationType': {'Value': 'DeviceSpecific'}})}}, {'Address': OrderedDict({'Description': {'Value': 'desc'}})}], [{'Address.Location.LocationType.Value': 'DeviceSpecific', 'Address.Description.Value': ''}, {'Address.Location.LocationType.Value': '', 'Address.Description.Value': 'desc'}])
+    ]
+)
+def test_dict_to_csv_dict_row(obj, expected_value):
+    assert dict_to_csv_dict_rows(obj) == expected_value

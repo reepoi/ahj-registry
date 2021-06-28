@@ -3,6 +3,7 @@ import re
 
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.utils.serializer_helpers import ReturnDict
 
 from .serializers import *
 import googlemaps
@@ -48,10 +49,10 @@ def get_ob_value_primitive(ob_json, field_name, throw_exception=True, exception_
             return values
         return ob_json[field_name]['Value']
     except (TypeError, KeyError):
-        if throw_exception and field_name in ob_json: # Throws exception if the json had the key but it was not in correct OB format 
+        if throw_exception and field_name in ob_json: # Throws exception if the json had the key but it was not in correct OB format
             raise ValueError(f'Missing \'Value\' key for Orange Button field \'{field_name}\'')
         return exception_return_value # returns empty string if the json didn't have the field name as a key
-    
+
 def check_address_empty(address):
     return re.search('[a-zA-Z0-9]', address) # If number or letter exists, then at least one address field has been provided
 
@@ -91,7 +92,7 @@ def get_location_gecode_address_str(address):
         }
     }
     geo_res = []
-    if bool(address): # Check if address is non-falsey 
+    if bool(address): # Check if address is non-falsey
         geo_res = gmaps.geocode(address)
     if len(geo_res) != 0:
         latitude = geo_res[0]['geometry']['location']['lat']
@@ -378,3 +379,70 @@ def get_model_field_names(model):
 
 def filter_dict_model_fields(dict_to_filter, model):
     return filter_dict_keys(dict_to_filter, get_model_field_names(model))
+
+
+def flatten_dict(obj):
+    result = {}
+
+    def recurse(cur, prop):
+        if type(cur) is dict or type(cur) is OrderedDict or type(cur) is ReturnDict:
+            is_empty = True
+            for p in cur.keys():
+                is_empty = False
+                recurse(cur[p], f'{prop}.{p}' if prop != '' else p)
+            if is_empty and prop != '':
+                result[prop] = {}
+        elif type(cur) is list:
+            cur_len = len(cur)
+            for x in range(cur_len):
+                recurse(cur[x], f'{prop}[{x}]')
+            if cur_len == 0:
+                result[prop] = []
+        else:
+            result[prop] = cur
+
+    recurse(obj, '')
+    return result
+
+
+def split_flattened_dict_keys(key):
+    """
+    Splits flattened json keys into the individual dict keys.
+    For example, Contacts[0].FirstName.Value -> [Contacts, 0, FirstName, Value]
+    """
+    return [k for k in re.split(r'[.[\]]', key) if k != '']
+
+
+def index_dict_flattened_dict_key(obj, key, no_exception=False, key_error_default=''):
+    try:
+        result = obj
+        keys = split_flattened_dict_keys(key)
+        for k in keys:
+            result = result[k if not k.isnumeric() else int(k)]
+        return result
+    except KeyError as e:
+        if no_exception:
+            return key_error_default
+        raise e
+
+
+def dict_to_csv_dict_rows(obj):
+    flattened_obj = flatten_dict(obj)
+    # Keep only Orange Button primitive values
+    obj_keys = flattened_obj.keys()
+    csv_rows = []
+    if type(obj) is list:
+        # Remove '[#].' prefix of keys
+        obj_keys = {k[k.index('.') + 1:] for k in obj_keys}
+        for o in obj:
+            row = {k: index_dict_flattened_dict_key(o, k, no_exception=True) for k in obj_keys}
+            csv_rows.append(row)
+    else:
+        row = {k: index_dict_flattened_dict_key(obj, k) for k in obj_keys}
+        csv_rows.append(row)
+    return csv_rows
+
+
+def filter_dict_keys_orange_button_primitives(obj):
+    return {k: v for k, v in obj.items() if k.endswith(('Value', 'Decimals', 'Precision',
+                                                        'StartTime', 'EndTime', 'Unit'))}
