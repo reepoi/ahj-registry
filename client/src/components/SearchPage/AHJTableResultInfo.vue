@@ -3,8 +3,7 @@
     <b-dropdown text="Download Results" class="m-md-2" :disabled="Boolean($store.state.apiErrorInfo.status) || ahjCount === 0">
       <template #button-content>
         <span v-if="resultsDownloading">
-          Downloading... (<b-spinner small class="text-center" />
-          {{ downloadCompletionPercent }}%)
+          Downloading... This may take a while. (<b-spinner small class="text-center" />)
         </span>
         <span v-else-if="!performedSearch">
           Loading...
@@ -14,7 +13,7 @@
         </span>
       </template>
       <b-dropdown-item :disabled="resultsDownloading" @click="exportSearchResultsJSONCSV('application/json')">JSON (.json)</b-dropdown-item>
-<!--      <b-dropdown-item :disabled="resultsDownloading" @click="exportSearchResultsJSONCSV('text/csv')">CSV (.csv)</b-dropdown-item>-->
+      <b-dropdown-item :disabled="resultsDownloading" @click="exportSearchResultsJSONCSV('text/csv')">CSV (.csv)</b-dropdown-item>
     </b-dropdown>
   </div>
 </template>
@@ -34,7 +33,10 @@ export default {
      * @param fileType the file extension requested
      */
     exportSearchResultsJSONCSV(fileType) {
-      this.$store.commit("exportSearchResultsJSONCSV", fileType);
+      let currentQuery = Object(this.$store.state.searchedQuery);
+      currentQuery['return_attachment'] = true;
+      currentQuery['file_type'] = fileType
+      this.$store.commit("exportSearchResultsJSONCSV", currentQuery);
     }
   },
   computed: {
@@ -51,13 +53,6 @@ export default {
      */
     resultsDownloading() {
       return this.$store.state.resultsDownloading;
-    },
-    /**
-     * The current precentage of completion of loading the download
-     * @returns {number}
-     */
-    downloadCompletionPercent() {
-      return this.$store.state.downloadCompletionPercent;
     }
   },
   watch: {

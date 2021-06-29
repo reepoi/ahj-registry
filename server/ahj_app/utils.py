@@ -3,7 +3,7 @@ import re
 
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.utils.serializer_helpers import ReturnDict
+from rest_framework.utils.serializer_helpers import ReturnDict, ReturnList
 
 from .serializers import *
 import googlemaps
@@ -382,6 +382,11 @@ def filter_dict_model_fields(dict_to_filter, model):
 
 
 def flatten_dict(obj):
+    """
+    Creates a new flattened dict from the original by whose keys
+    are dotted-path keys to the values of the original dict.
+    For example, {'Contacts[0].FirstName.Value': 'FirstName'}.
+    """
     result = {}
 
     def recurse(cur, prop):
@@ -392,7 +397,7 @@ def flatten_dict(obj):
                 recurse(cur[p], f'{prop}.{p}' if prop != '' else p)
             if is_empty and prop != '':
                 result[prop] = {}
-        elif type(cur) is list:
+        elif type(cur) is list or type(cur) is ReturnList:
             cur_len = len(cur)
             for x in range(cur_len):
                 recurse(cur[x], f'{prop}[{x}]')
@@ -414,35 +419,44 @@ def split_flattened_dict_keys(key):
 
 
 def index_dict_flattened_dict_key(obj, key, no_exception=False, key_error_default=''):
+    """
+    Indexes a nested dict using dotted-paths created by flatten_dict.
+    """
     try:
         result = obj
         keys = split_flattened_dict_keys(key)
         for k in keys:
             result = result[k if not k.isnumeric() else int(k)]
-        return result
-    except KeyError as e:
+        return result if result is not None else ''
+    except (KeyError, IndexError) as e:
         if no_exception:
             return key_error_default
         raise e
 
 
-def dict_to_csv_dict_rows(obj):
+def filter_dict_remove_nested_dict_list(obj):
+    """
+    Removes key-value pairs where the value is a dict or a list.
+    """
+    return {k: v for k, v in obj.items() if type(v) is not dict and type(v) is not list}
+
+
+def dict_to_flattened_dict_rows(obj):
+    """
+    Takes a dict or list or dicts and returns
+    a list of flat dicts that all have the same keys.
+    """
     flattened_obj = flatten_dict(obj)
     # Keep only Orange Button primitive values
-    obj_keys = flattened_obj.keys()
-    csv_rows = []
-    if type(obj) is list:
+    obj_keys = filter_dict_remove_nested_dict_list(flattened_obj).keys()
+    rows = []
+    if type(obj) is list or type(obj) is ReturnList:
         # Remove '[#].' prefix of keys
-        obj_keys = {k[k.index('.') + 1:] for k in obj_keys}
+        obj_keys = [k[k.index('.') + 1:] for k in obj_keys]
         for o in obj:
             row = {k: index_dict_flattened_dict_key(o, k, no_exception=True) for k in obj_keys}
-            csv_rows.append(row)
+            rows.append(row)
     else:
         row = {k: index_dict_flattened_dict_key(obj, k) for k in obj_keys}
-        csv_rows.append(row)
-    return csv_rows
-
-
-def filter_dict_keys_orange_button_primitives(obj):
-    return {k: v for k, v in obj.items() if k.endswith(('Value', 'Decimals', 'Precision',
-                                                        'StartTime', 'EndTime', 'Unit'))}
+        rows.append(row)
+    return rows

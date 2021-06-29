@@ -19,7 +19,6 @@ import axios from "axios";
 import FileSaver from "file-saver";
 import createPersistedState from 'vuex-persistedstate';
 import constants from "./constants";
-import * as utils from "./utils.js"
 
 
 Vue.use(Vuex);
@@ -45,7 +44,6 @@ state: {
 
     // Controls interface for downloading results
     resultsDownloading: false, // Enables or disables download results button
-    downloadCompletionPercent: 0, // Updates downloading progress of results
 },
     getters: {
         apiData: state => state.apiData,
@@ -132,57 +130,36 @@ state: {
         setShowTable(state, payload) {
             state.showTable = payload;
         },
-        exportSearchResultsJSONCSV(state, fileType) {
+        exportSearchResultsJSONCSV(state, query) {
           // Don't try to download if already downloading or no results yet
           if (state.resultsDownloading || state.selectedAHJ === null) {
             return;
           }
           state.resultsDownloading = true;
-          let gatherAllObjects = function(url, headers, searchPayload, ahjJSONObjs, offset) {
-            if (url === null) {
-              let filename = "results";
-              let fileToExport = null;
-              if (fileType === "application/json") {
-                fileToExport = JSON.stringify(ahjJSONObjs, null, 2);
-                filename += ".json";
-              } else if (fileType === "text/csv") {
-                fileToExport = utils.jsonToCSV(ahjJSONObjs);
-                filename += ".csv";
-              }
-              FileSaver.saveAs(new Blob([fileToExport], { type: fileType }), filename);
-              state.resultsDownloading = false;
-              state.downloadCompletionPercent = 0;
-            } else {
-              axios
-                .post(url,
-                      searchPayload,
-                    { headers: headers })
-                .then(response => {
-                  ahjJSONObjs = ahjJSONObjs.concat(response.data.results.ahjlist);
-                  offset += 20; // the django rest framework pagination configuration
-                  state.downloadCompletionPercent = (offset / response.data.count * 100).toFixed();
-                  gatherAllObjects(response.data.next, headers, searchPayload, ahjJSONObjs, offset);
-                })
-                .catch(err => {
-                    state.apiErrorInfo = { status: err.response.status,
-                                           msg: err.response.statusText };
-                    state.resultsDownloading = false;
-                    state.downloadCompletionPercent = 0;
-                });
-            }
-          };
-          let url = `${constants.API_ENDPOINT}ahj-private/`;
           let headers = {};
           if (this.getters.loggedIn) {
-            headers.Authorization = this.getters.authToken;
+              headers.Authorization = this.getters.authToken;
           }
-          let searchPayload = state.searchedQuery;
-          if (state.searchedGeoJSON) {
-            searchPayload['FeatureCollection'] = state.searchedGeoJSON;
-          }
-          // Tell endpoint to send JSON for user consumption.
-          searchPayload['use_public_view'] = true;
-          gatherAllObjects(url, headers, searchPayload, [], 0);
+          axios
+              .post(`${constants.API_ENDPOINT}ahj-private/`,
+                  query,
+                  { headers: headers })
+              .then(response => {
+                  console.log(response)
+                  let ct = response.headers['content-type'];
+                  let data = response.data;
+                  let fileExt = ct.split('/')[1];
+                  if (ct === 'application/json') {
+                      data = JSON.stringify(data, null, 4);
+                  }
+                  FileSaver.saveAs(new Blob([data], { type: ct }), `${new Date().toISOString()}_results.${fileExt}`);
+                  state.resultsDownloading = false;
+              })
+              .catch(err => {
+                  state.apiErrorInfo = { status: err.response.status,
+                                         msg: err.response.statusText };
+                  state.resultsDownloading = false;
+                });
         },
         changeAuthToken(state, authToken) {
             state.authToken = authToken;

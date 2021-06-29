@@ -1,3 +1,8 @@
+import csv
+import json
+
+from django.http import HttpResponse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.pagination import LimitOffsetPagination
@@ -7,7 +12,7 @@ from rest_framework.throttling import AnonRateThrottle
 from .models import AHJ
 from .serializers import AHJSerializer
 from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
-    filter_ahjs, order_ahj_list_AHJLevelCode_PolygonLandArea, get_location_gecode_address_str
+    filter_ahjs, order_ahj_list_AHJLevelCode_PolygonLandArea, get_location_gecode_address_str, dict_to_flattened_dict_rows
 
 
 @api_view(['POST'])
@@ -61,10 +66,13 @@ def webpage_ahj_list(request):
 
     payload = serializer(page, many=True, context=context).data
 
-    return paginator.get_paginated_response({
-        'Location': json_location,
-        'ahjlist': payload
-    })
+    if request.data.get('return_attachment', False):
+        return get_file_response(serializer(ahjs, many=True, context={'is_public_view': True}).data, content_type=request.data.get('file_type', 'application/json'))
+    else:
+        return paginator.get_paginated_response({
+            'Location': json_location,
+            'ahjlist': payload
+        })
 
 
 @api_view(['GET'])
@@ -77,3 +85,44 @@ def get_single_ahj(request):
         return Response(AHJSerializer(ahj).data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+def write_response_csv_dict_writer(obj_list):
+    """
+    Creates an HTTP response with CSV data written by csv.DictWriter.
+    """
+    column_names = obj_list[0].keys()
+    column_dict = {k: k for k in obj_list[0].keys()}
+    response = HttpResponse(content_type='text/csv')
+    writer = csv.DictWriter(response, fieldnames=column_names)
+    writer.writerow(column_dict)
+    for o in obj_list:
+        writer.writerow(o)
+    return response
+
+
+def write_response_json(obj):
+    """
+    Creates an HTTP response with JSON data written.
+    """
+    return HttpResponse(json.dumps(obj), content_type='application/json')
+
+
+def make_file_response(http_response, filename=f'ahj_registry_download', file_ext='.txt'):
+    """
+    Takes an HTTP response and sets it as a file attachment.
+    """
+    http_response['Content-Disposition'] = f'attachment; filename={filename}{file_ext}'
+    return http_response
+
+
+def get_file_response(data, content_type=''):
+    """
+    Returns an HTTP response of a file attachment with the given data written to it.
+    """
+    if content_type == 'text/csv':
+        return make_file_response(write_response_csv_dict_writer(dict_to_flattened_dict_rows(data)), file_ext='.csv')
+    elif content_type == 'application/json':
+        return make_file_response(write_response_json(data), file_ext='.json')
+    else:
+        return Response('Unknown file type', status=status.HTTP_400_BAD_REQUEST)

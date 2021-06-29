@@ -385,8 +385,11 @@ def test_index_dict_flattened_dict_key(key, expected_value, obj):
     assert index_dict_flattened_dict_key(obj, key) == expected_value
 
 
-def test_index_dict_flattened_dict_key_key_error():
+def test_index_dict_flattened_dict_key_errors():
+    # Key Error
     assert index_dict_flattened_dict_key({'AHJName': {'Value': 'name'}}, 'Description.Value', no_exception=True, key_error_default='') == ''
+    # Index Error
+    assert index_dict_flattened_dict_key({'Contacts': [{'FirstName': {'Value': 'name'}}]}, 'Contacts[1].FirstName.Value', no_exception=True, key_error_default='') == ''
 
 
 @pytest.mark.parametrize(
@@ -400,8 +403,16 @@ def test_index_dict_flattened_dict_key_key_error():
         ([{'AHJName': {'Value': 'name'}}, {'AHJName': {'Value': 'name'}, 'Description': {'Value': 'second'}}], [{'AHJName.Value': 'name', 'Description.Value': ''}, {'AHJName.Value': 'name', 'Description.Value': 'second'}]),
         ([{'AHJName': {'Value': 'name'}}, {'Description': {'Value': 'desc'}}], [{'AHJName.Value': 'name', 'Description.Value': ''}, {'AHJName.Value': '', 'Description.Value': 'desc'}]),
         ([{'Address': {'Location': {'LocationType': {'Value': 'DeviceSpecific'}}}}, {'Address': {'Description': {'Value': 'desc'}}}], [{'Address.Location.LocationType.Value': 'DeviceSpecific', 'Address.Description.Value': ''}, {'Address.Location.LocationType.Value': '', 'Address.Description.Value': 'desc'}]),
-        ([{'Address': {'Location': OrderedDict({'LocationType': {'Value': 'DeviceSpecific'}})}}, {'Address': OrderedDict({'Description': {'Value': 'desc'}})}], [{'Address.Location.LocationType.Value': 'DeviceSpecific', 'Address.Description.Value': ''}, {'Address.Location.LocationType.Value': '', 'Address.Description.Value': 'desc'}])
+        ([{'Address': {'Location': OrderedDict({'LocationType': {'Value': 'DeviceSpecific'}})}}, {'Address': OrderedDict({'Description': {'Value': 'desc'}})}], [{'Address.Location.LocationType.Value': 'DeviceSpecific', 'Address.Description.Value': ''}, {'Address.Location.LocationType.Value': '', 'Address.Description.Value': 'desc'}]),
+        ({'Address': {}}, [{}]),
+        ({'DocumentSubmissionMethods': []}, [{}]),
+        ({'Contacts': []}, [{}])
     ]
 )
-def test_dict_to_csv_dict_row(obj, expected_value):
-    assert dict_to_csv_dict_rows(obj) == expected_value
+def test_dict_to_flattened_dict_row(obj, expected_value):
+    assert dict_to_flattened_dict_rows(obj) == expected_value
+
+
+def test_filter_dict_nested_dict_list():
+    assert filter_dict_remove_nested_dict_list({'AHJName.Value': 'name', 'Address': {}, 'Contacts': []}) == {'AHJName.Value': 'name'}
+    assert filter_dict_remove_nested_dict_list({'AHJName': 'name', 'Address': {'Description': {'Value': 'desc'}}, 'Contacts': [{'FirstName': {'Value': 'name'}}]}) == {'AHJName': 'name'}
