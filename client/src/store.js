@@ -140,7 +140,7 @@ state: {
           state.resultsDownloading = true;
           let gatherAllObjects = function(url, headers, searchPayload, ahjJSONObjs, offset) {
             if (url === null) {
-              let filename = "results";
+              let filename = `${new Date().toISOString()}_results`;
               let fileToExport = null;
               if (fileType === "application/json") {
                 fileToExport = JSON.stringify(ahjJSONObjs, null, 2);
