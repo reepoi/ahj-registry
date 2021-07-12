@@ -140,27 +140,9 @@ export default {
     // Create window resize listener
     this.$nextTick(() => {
       window.addEventListener('resize', this.onResize);
-    })
-    // Check if a search was given in the query params; if so, search by it (run tutorial when tutorial is non null and 1, else )
-    if (this.$route.query.tutorial != 1 && Object.keys(this.$route.query).length !== 0) {
-      Object.keys(this.parameters)
-          .filter(a => a !== 'callerID') // this should not be changed by the user
-          .forEach(key => {
-            let paramValue = this.$route.query[key];
-            if (paramValue) {
-              if (Array.isArray(this.parameters[key])) {
-                let choices = this.choiceFields.AHJ[key].map(a => a.value);
-                this.parameters[key] = paramValue
-                    .split(',')
-                    .filter(v => choices.includes(v));
-              } else {
-                this.parameters[key] = paramValue; // set the search values
-              }
-            }
-          });
-      if (this.$route.query['Location']) {
-        this.parameters['Address'] = this.$route.query['Location']; // send location queries through address field
-      }
+    });
+    // Check if a search was given in the query params
+    if (this.setQueryFromObject(this.$route.query)) {
       this.updateQuery();
     }
   },
@@ -204,7 +186,6 @@ export default {
      */
     clearFilters() {
       this.parameters = {
-        view: "latest",
         AHJName: "",
         AHJCode: "",
         AHJLevelCode: "",
@@ -215,8 +196,7 @@ export default {
         FireCode: [],
         ResidentialCode: [],
         WindCode: [],
-        StateProvince: "",
-        callerID: 'searchpagefilter'
+        StateProvince: ""
       };
       this.$store.commit('setSearchGeoJSON', null);
     },
@@ -224,30 +204,60 @@ export default {
      * Create a parameterized url for containing all filled search parameters
      */
     getParameterizedURL() {
-      let currentURL = window.location.href;
-      if (currentURL.indexOf("?") > 0) {
-        currentURL = currentURL.substring(0, currentURL.indexOf("?"));
+      let parameters = this.parameters;
+      let geojson = this.$store.state.searchedGeoJSON;
+      if (geojson) {
+        parameters['GeoJSON'] = encodeURIComponent(JSON.stringify(geojson));
       }
-      let queryString = "";
-      Object.keys(this.parameters)
-          .filter(a => a !== 'callerID') // this should not be set by users
-          .forEach(key => {
-            if(this.parameters[key] !== ""){
-              if(Array.isArray(this.parameters[key])){
-                if(this.parameters[key].length > 0 && this.parameters[key][0] !== ""){
-                  queryString += key + "=" + this.parameters[key].join(',');
-                  queryString += "&";
-                }
-              } else {
-                queryString += key + "=" + this.parameters[key] + "&";
-              }
-            }
-          });
-      if (queryString) {
-        currentURL += '?' + queryString;
+      let currentURL = window.location.href.split('?')[0];
+      let queryString = Object.keys(this.parameters)
+          .filter(k => {
+            let v = this.parameters[k];
+            return v !== '' && (Array.isArray(v) ? v.filter(x => x !== '').length !== 0 : true)
+          })
+          .map(k => {
+            let v = this.parameters[k];
+            v = Array.isArray(v) ? v : [v];
+            return `${k}=${v.join(',')}`;
+          })
+          .join('&');
+      return `${currentURL}?${queryString}`;
+    },
+    /**
+     * Sets the parameters of the search using the values
+     * of the keys in the object that match the parameter names.
+     * @returns boolean if any parameters were set.
+     */
+    setQueryFromObject(obj) {
+      let parameters = Object.keys(this.parameters)
+          .concat('GeoJSON')
+          .filter(k => Object.prototype.hasOwnProperty.call(obj, k));
+      let setParameters = parameters.length > 0;
+      if (setParameters) {
+        parameters.forEach(k => {
+          let v = obj[k];
+          if (Array.isArray(this.parameters[k])) {
+            let choices = this.choiceFields.AHJ[k].map(a => a.value);
+            this.parameters[k] = v
+                .split(',')
+                .filter(v => choices.includes(v));
+          } else {
+            this.parameters[k] = v; // set the search values
+          }
+        });
+        if (obj['Location']) {
+          this.parameters['Address'] = obj['Location']; // send location queries through address field
+        }
+        if (obj['GeoJSON']) {
+          try {
+            let geojson = JSON.parse(decodeURIComponent(obj['GeoJSON']));
+            this.$store.commit('setSearchGeoJSON', geojson);
+          } catch (err) {
+            console.log('Invalid JSON in GeoJSON query parameter');
+          }
+        }
       }
-      currentURL = currentURL.slice(0,-1);
-      return currentURL;
+      return setParameters;
     },
     /**
      * Helper to write parameterized url to user's clipboard
