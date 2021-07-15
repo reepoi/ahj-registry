@@ -80,7 +80,7 @@ def get_str_address(address):
 def get_location_gecode_address_str(address):
     """
     Returns the latlng of an address given in the request Address parameter
-    The format is an Orange Button Location object: https://obeditor.sunspec.org/#/?views=Location
+    The format is an `Orange Button Location object <https://obeditor.sunspec.org/#/?views=Location>`_:
     """
     location = {
         'Latitude': {
@@ -128,73 +128,67 @@ def get_enum_value_row_else_null(enum_field, enum_value):
         return None
 
 
-def simple_sanitize(s: str):
-    """
-    Sanitize SQL string inputs simply by dropping ';' and '''
-    """
-    if s is not None:
-        return s.replace(';', '').replace('\'', '')
-    return None
-
-
-def get_name_query_cond(type: str, val: str, query_params: dict):
+def get_name_query_cond(column: str, val: str, query_params: dict):
     """
     Returns the entered string as part of an SQL
     condition on the AHJ table of the form:
-            AHJ.`type` = 'val' AND
-    if val is not None, otherwise it returns the
-    empty string to represent no condition on type.
+
+    .. code-block:: sql
+
+        AHJ.`column` = 'val' AND
+
+    If val is not None, otherwise it returns the
+    empty string to represent no condition on the column.
     """
-    if val is not None and type is not None:
-        query_params[type] = '%' + val + '%'
-        return 'AHJ.' + type + ' LIKE %(' + type + ')s AND '
+    if val is not None and column is not None:
+        query_params[column] = '%' + val + '%'
+        return 'AHJ.' + column + ' LIKE %(' + column + ')s AND '
     return ''
 
 
-def get_list_query_cond(type: str, val: list, query_params: dict):
+def get_list_query_cond(column: str, val: list, query_params: dict):
     """
     Returns the entered list of strings as part of
     an SQL condition on the AHJ table of the form:
-            (AHJ.`type` = 'val1' OR AHJ.`type` = 'val2' OR ... ) AND
+
+    .. code-block:: sql
+
+        (AHJ.`column` = 'val1' OR AHJ.`column` = 'val2' OR ...) AND
+
     """
     if val is not None and len(val) != 0:
         or_list = []
         for i in range(len(val)):
-            param_name = f'{type}{i}'
+            param_name = f'{column}{i}'
             query_params[param_name] = val[i]
-            or_list.append('AHJ.' + type + '=%(' + param_name + ')s')
+            or_list.append('AHJ.' + column + '=%(' + param_name + ')s')
         ret_str = '(' + ' OR '.join(or_list) + ') AND '
         return ret_str
     return ''
 
 
-def get_basic_user_query_cond(type: str, val: str, query_params: dict):
-    if val is not None:
-        query_params[type] = val
-        return 'Address.' + type + '=%(' + type + ')s AND '
-    return ''
-
-
-def get_basic_query_cond(type: str, val: str, query_params: dict):
+def get_basic_query_cond(column: str, val: str, query_params: dict):
     """
     Returns the entered string as part of an SQL
     condition on the AHJ table of the form:
-            AHJ.`type` = 'val' AND
-    if val is not None, otherwise it returns the
-    empty string to represent no condition on type.
+
+    .. code-block:: sql
+
+        AHJ.`column` = 'val' AND
+
+    If val is not None, otherwise it returns the
+    empty string to represent no condition on the column.
     """
     if val is not None:
-        query_params[type] = val
-        return 'AHJ.' + type + '=%(' + type + ')s AND '
+        query_params[column] = val
+        return 'AHJ.' + column + '=%(' + column + ')s AND '
     return ''
 
 
 def point_to_polygon_geojson(g):
     """
-    Takes a GeoJSON point and converts it
-    into a GeoJSON polygon
-    GeoJSON polygons must have 0 or >= 4 points
-    so the GeoJSON point coordinates are duplicated 4 times
+    Takes a GeoJSON point and converts it into a GeoJSON polygon.
+    GeoJSON polygons must have 0 or >= 4 points so the GeoJSON point coordinates are duplicated 4 times.
     """
     point_coordinates = g['geometry']['coordinates']
     polygon_geojson = {
