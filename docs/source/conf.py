@@ -25,7 +25,7 @@ copyright = '2021, SunSpec Alliance'
 author = 'SunSpec Alliance'
 
 # The full version, including alpha/beta/rc tags
-release = '2.0.0'
+release = '2.1.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -34,7 +34,8 @@ release = '2.0.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc'
+    'sphinx.ext.autodoc',
+    'sphinxcontrib_django'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,5 +62,5 @@ html_static_path = ['_static']
 # -- Options for code-block syntax highlighting ------------------------------
 
 # Set to none to allow for plain text literal blocks with '::'
-# For code syntax highlighting, use '.. code-block:: <language>'
+# For code syntax highlighting, use '.. code-block:: <language; (default is python)>'
 highlight_language = 'none'

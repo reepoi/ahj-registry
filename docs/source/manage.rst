@@ -1,4 +1,4 @@
-manage module
+manage.py
 =============
 
 .. automodule:: manage

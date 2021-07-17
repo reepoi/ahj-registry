@@ -80,7 +80,9 @@ def get_str_address(address):
 def get_location_gecode_address_str(address):
     """
     Returns the latlng of an address given in the request Address parameter
-    The format is an `Orange Button Location object <https://obeditor.sunspec.org/#/?views=Location>`_:
+    The format is an `Orange Button Location`_ object:
+
+    .. _Orange Button Location: https://obeditor.sunspec.org/#/?views=Location
     """
     location = {
         'Latitude': {

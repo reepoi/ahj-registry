@@ -1,4 +1,4 @@
-ahj\_app package
+ahj\_app
 ================
 
 Subpackages
@@ -7,12 +7,14 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   ahj_app.admin
+   ahj_app.middleware
    ahj_app.migrations
 
 Submodules
 ----------
 
-ahj\_app.apps module
+apps.py
 --------------------
 
 .. automodule:: ahj_app.apps
@@ -20,7 +22,7 @@ ahj\_app.apps module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.authentication module
+authentication.py
 ------------------------------
 
 .. automodule:: ahj_app.authentication
@@ -28,23 +30,21 @@ ahj\_app.authentication module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.models module
+models.py
 ----------------------
 
 .. automodule:: ahj_app.models
    :members:
-   :undoc-members:
    :show-inheritance:
 
-ahj\_app.models\_field\_enums module
+models\_field\_enums.py
 ------------------------------------
 
 .. automodule:: ahj_app.models_field_enums
    :members:
-   :undoc-members:
    :show-inheritance:
 
-ahj\_app.permissions module
+permissions.py
 ---------------------------
 
 .. automodule:: ahj_app.permissions
@@ -52,7 +52,7 @@ ahj\_app.permissions module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.serializers module
+serializers.py
 ---------------------------
 
 .. automodule:: ahj_app.serializers
@@ -60,7 +60,7 @@ ahj\_app.serializers module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.tests module
+tests.py
 ---------------------
 
 .. automodule:: ahj_app.tests
@@ -68,7 +68,7 @@ ahj\_app.tests module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.urls module
+urls.py
 --------------------
 
 .. automodule:: ahj_app.urls
@@ -76,7 +76,7 @@ ahj\_app.urls module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.usf module
+usf.py
 -------------------
 
 .. automodule:: ahj_app.usf
@@ -84,7 +84,7 @@ ahj\_app.usf module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.utils module
+utils.py
 ---------------------
 
 .. automodule:: ahj_app.utils
@@ -92,7 +92,7 @@ ahj\_app.utils module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.views\_ahjsearch module
+views\_ahjsearch.py
 --------------------------------
 
 .. automodule:: ahj_app.views_ahjsearch
@@ -100,7 +100,7 @@ ahj\_app.views\_ahjsearch module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.views\_ahjsearch\_api module
+views\_ahjsearch\_api.py
 -------------------------------------
 
 .. automodule:: ahj_app.views_ahjsearch_api
@@ -108,7 +108,7 @@ ahj\_app.views\_ahjsearch\_api module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.views\_datavis module
+views\_datavis.py
 ------------------------------
 
 .. automodule:: ahj_app.views_datavis
@@ -116,7 +116,7 @@ ahj\_app.views\_datavis module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.views\_edits module
+views\_edits.py
 ----------------------------
 
 .. automodule:: ahj_app.views_edits
@@ -124,7 +124,7 @@ ahj\_app.views\_edits module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.views\_misc module
+views\_misc.py
 ---------------------------
 
 .. automodule:: ahj_app.views_misc
@@ -132,7 +132,7 @@ ahj\_app.views\_misc module
    :undoc-members:
    :show-inheritance:
 
-ahj\_app.views\_users module
+views\_users.py
 ----------------------------
 
 .. automodule:: ahj_app.views_users

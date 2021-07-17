@@ -1,10 +1,10 @@
-ScheduledTasks package
+ScheduledTasks
 ======================
 
 Submodules
 ----------
 
-ScheduledTasks.editTasks module
+editTasks.py
 -------------------------------
 
 .. automodule:: ScheduledTasks.editTasks
@@ -12,7 +12,7 @@ ScheduledTasks.editTasks module
    :undoc-members:
    :show-inheritance:
 
-ScheduledTasks.updater module
+updater.py
 -----------------------------
 
 .. automodule:: ScheduledTasks.updater

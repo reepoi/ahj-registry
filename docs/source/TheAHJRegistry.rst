@@ -1,10 +1,10 @@
-TheAHJRegistry package
+TheAHJRegistry
 ======================
 
 Submodules
 ----------
 
-TheAHJRegistry.asgi module
+asgi.py
 --------------------------
 
 .. automodule:: TheAHJRegistry.asgi
@@ -12,7 +12,7 @@ TheAHJRegistry.asgi module
    :undoc-members:
    :show-inheritance:
 
-TheAHJRegistry.settings module
+settings.py
 ------------------------------
 
 .. automodule:: TheAHJRegistry.settings
@@ -20,7 +20,7 @@ TheAHJRegistry.settings module
    :undoc-members:
    :show-inheritance:
 
-TheAHJRegistry.urls module
+urls.py
 --------------------------
 
 .. automodule:: TheAHJRegistry.urls
@@ -28,7 +28,7 @@ TheAHJRegistry.urls module
    :undoc-members:
    :show-inheritance:
 
-TheAHJRegistry.wsgi module
+wsgi.py
 --------------------------
 
 .. automodule:: TheAHJRegistry.wsgi

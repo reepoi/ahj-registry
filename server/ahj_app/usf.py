@@ -4,7 +4,6 @@ The following are the file locations and structure that these functions expect t
 data for upload to be in, and the general order that these functions should be called.
 
 Expected File Tree
-
     ::
 
         ~/AHJRegistryData/:
