@@ -13,8 +13,6 @@ from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
 
 
 @api_view(['POST'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 @throttle_classes([WebpageSearchThrottle])
 def webpage_ahj_list(request):
     """
@@ -71,8 +69,6 @@ def webpage_ahj_list(request):
 
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def get_single_ahj(request):
     """
     Endpoint to get a single ahj given an AHJPK

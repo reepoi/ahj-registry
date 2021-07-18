@@ -31,6 +31,10 @@ def create_user(db, django_user_model):
     return make_user
 
 @pytest.fixture
+def client_without_credentials(db, api_client):
+   yield api_client
+
+@pytest.fixture
 def client_with_credentials(db, create_user, api_client):
    user = create_user()
    api_client.force_authenticate(user=user)

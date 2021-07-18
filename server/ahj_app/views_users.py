@@ -21,19 +21,13 @@ from djoser import utils
 from djoser.compat import get_user_email
 from djoser.conf import settings
 
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 class RegisterUser(UserViewSet):
     pass
 
 
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 class LoginUser(TokenCreateView):
     pass
 
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 class LogoutUser(TokenDestroyView):
     pass
 

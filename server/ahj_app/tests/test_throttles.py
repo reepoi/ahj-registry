@@ -46,7 +46,20 @@ def test_member_rate_throttle__regular_user(urlName, args, generate_client_with_
     WebpageSearchThrottle
 """
 @pytest.mark.django_db
-def test_webpage_search_throttle__regular_user(generate_client_with_webpage_credentials):
+def test_webpage_search_throttle__anon_user(client_without_credentials):
+    url = reverse('ahj-private')
+    iterNum = 3
+    settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']['webpage-search'] = f'{iterNum}/day'
+    for i in range(0, iterNum):
+        response = client_without_credentials.post(url, {}, format='json')
+        # Check second to last run is not throttled
+        if (i == iterNum-1):
+            assert response.status_code == 200
+    response = client_without_credentials.post(url, {}, format='json')
+    assert response.data['detail'][0:22] == 'Request was throttled.'
+
+@pytest.mark.django_db
+def test_webpage_search_throttle__logged_in_user(generate_client_with_webpage_credentials):
     client = generate_client_with_webpage_credentials(Email='f@f.fewbudsj')
     url = reverse('ahj-private')
     iterNum = 3
@@ -55,7 +68,7 @@ def test_webpage_search_throttle__regular_user(generate_client_with_webpage_cred
         response = client.post(url, {}, format='json')
         # Check second to last run is not throttled
         if (i == iterNum-1):
-            assert response.status_code == 200
+            assert response.status_code == 200     
     response = client.post(url, {}, format='json')
     assert response.data['detail'][0:22] == 'Request was throttled.'
 

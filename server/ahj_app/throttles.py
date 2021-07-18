@@ -66,9 +66,8 @@ class WebpageSearchThrottle(UserRateThrottle):
         On success calls `throttle_success`.
         On failure calls `throttle_failure`.
         """
-        if self.user_is_member(request.user):
+        if self.user_is_member(request.user) or request.user.is_staff:
             return True
-
         if self.rate is None:
             return True
 
@@ -78,7 +77,6 @@ class WebpageSearchThrottle(UserRateThrottle):
 
         self.history = self.cache.get(self.key, [])
         self.now = self.timer()
-
         # Drop any requests from the history which have now passed the
         # throttle duration
         while self.history and self.history[-1] <= self.now - self.duration:
@@ -89,6 +87,6 @@ class WebpageSearchThrottle(UserRateThrottle):
     
     def user_is_member(self, user):
         if user.is_authenticated:
-            if user.MemberID:
-                return True
-        return False
+            if user.MemberID or user.get_API_token(): # Allows access if member OR if they have an API token
+                return True                         
+        return False                                

@@ -81,11 +81,13 @@ state: {
             if (queryPayload['callerID'] === 'searchpagefilter' && state.searchedGeoJSON) {
                 queryPayload['FeatureCollection'] = state.searchedGeoJSON;
             }
+            let headers = {};
+            if (this.getters.loggedIn) {
+                headers.Authorization = this.getters.authToken;
+            }
             axios
                 .post(url, queryPayload, {
-                    headers: {
-                        Authorization: `${this.getters.authToken}`,
-                    },
+                    headers: headers,
                     cancelToken: new axios.CancelToken(function executor(c) {
                         state.cancelAPICallToken = c;
                     })

@@ -1,6 +1,4 @@
 webpageTokenUrls= [ 
-    ('ahj-private', {}),
-    ('single_ahj', {}),
     ('ahj-set-maintainer', {}), 
     ('ahj-remove-maintainer', {}), 
     ('edit-list', {}),

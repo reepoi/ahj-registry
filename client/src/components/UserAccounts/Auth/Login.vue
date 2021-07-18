@@ -81,11 +81,7 @@ export default {
                 axios.post(constants.API_ENDPOINT + "auth/token/login/", {
                     "Email": this.Email,
                     "password": this.Password
-                    }, {
-                    headers: {
-                        'Authorization': `${this.$store.getters.authToken}`
-                    }
-                }).then(response => {
+                    }).then(response => {
                     this.SubmitStatus = 'OK';
                     // Update the store's current user info and auth token.
                     this.$store.commit("changeAuthToken", response.data["auth_token"]);
