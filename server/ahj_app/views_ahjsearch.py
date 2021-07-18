@@ -1,11 +1,10 @@
 from rest_framework import status
-from rest_framework.decorators import permission_classes, authentication_classes, throttle_classes, api_view
+from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 
 from .throttles import WebpageSearchThrottle
-from .authentication import WebpageTokenAuth
 from .models import AHJ
 from .serializers import AHJSerializer
 from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
@@ -51,7 +50,7 @@ def webpage_ahj_list(request):
 
     serializer = AHJSerializer
     paginator = LimitOffsetPagination()
-    context = {'fields_to_drop': []}
+    context = {'is_public_view': request.data.get('use_public_view', False)}
     page = paginator.paginate_queryset(ahjs, request)
 
     if str_location is not None or polygon is not None:
@@ -73,7 +72,8 @@ def get_single_ahj(request):
     """
     Endpoint to get a single ahj given an AHJPK
     """
-    AHJPK = request.GET.get('AHJPK')
-    ahj = AHJ.objects.filter(AHJPK=AHJPK)
-    context = {'fields_to_drop': []}
-    return Response(AHJSerializer(ahj, context=context, many=True).data, status=status.HTTP_200_OK)
+    try:
+        ahj = AHJ.objects.get(AHJPK=request.query_params.get('AHJPK'))
+        return Response(AHJSerializer(ahj).data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

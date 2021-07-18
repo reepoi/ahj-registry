@@ -40,15 +40,16 @@
         </template>
         <!-- content displayed in 'show more' section -->
         <template #row-details="row">
+          <b-card>
           <b-row class="mb-2">
             <b-col sm="3" class="text-sm-right"><b>Address:</b></b-col>
-            <b-col v-html="rowGetAHJAddress(row)" />
+            <b-col v-html="rowGetAHJAddress(row)"></b-col>
           </b-row>
           <b-row class="mb-2">
-            <b-col sm="4" class="text-sm-right"><b>Visit this AHJ's Page:</b></b-col>
-            <!-- Push user to the corresponding AHJPage with an AHJID parameter -->
-            <b-col><b-button size="sm" @click="$router.push({ name: 'view-ahj', params: { AHJID: row.item.AHJPK.Value }})" class="mr-2">AHJ Page</b-button></b-col>
+            <b-col sm="4" class="text-sm-right"><b>Learn more about this AHJ:</b></b-col>
+            <b-col><b-button size="sm" @click="openWithTab({ name: 'view-ahj', params: { AHJID: row.item.AHJPK.Value }})" class="mr-2">More Details</b-button></b-col>
           </b-row>
+          </b-card>
         </template>
       </b-table>
     </div>
@@ -134,7 +135,7 @@ export default {
       return this.$store.state.apiLoading;
     },
     apiError() {
-      return this.$store.state.apiError;
+      return this.$store.state.apiErrorInfo.status;
     }
   },
   methods: {
@@ -143,7 +144,7 @@ export default {
       this.$store.state.currentAHJ = ahj;
       this.$router.push('view-ahj');
     },
-    // When a table row is clicked, we change the map's currently selected AHJ and its associate dpolygon.
+    // When a table row is clicked, we change the map's currently selected AHJ and its associated polygon.
     onRowClicked(rowItem) {
       this.$store.commit("setSelectedAHJ", rowItem);
     },
@@ -151,6 +152,8 @@ export default {
       if(value) {
         if (value === "NoSolarRegulations") {
           return "No Solar Regulations";
+        } else if (value === "SpecialWindZone") {
+          return "Special Wind Zone";
         }
         return value.substring(0, 4) + " " + value.substring(4);
       }
@@ -188,6 +191,10 @@ export default {
           }
         }
       }
+    },
+    openWithTab(routeObj){
+      let page = this.$router.resolve(routeObj);
+      window.open(page.href,'_blank');
     }
   },
   watch: {

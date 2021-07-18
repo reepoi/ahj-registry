@@ -161,15 +161,13 @@ export default {
                 axios.post(constants.API_ENDPOINT + "auth/users/", {
                     "Email": this.Email,
                     "password": this.Password,
-                    "Username": this.Username}, {
-                    headers: {
-                        'Authorization': `${this.$store.getters.authToken}`
-                    }
+                    "Username": this.Username,
+                    "FirstName": this.FirstName,
+                    "LastName": this.LastName
                 }).then(() => {
                     this.submitStatus = 'OK';
                     document.getElementById("registration-form").reset();
-                })
-                .catch(error => {
+                }).catch(error => {
                     this.submitStatus = 'ERROR';
                     if (error.response){
                         // If password error, display the password error underneath the password field
@@ -188,38 +186,26 @@ export default {
             }
         },
         async CheckUsernameAvailable(){
-            let params = { 'Username' : this.Username };
-            axios.get(constants.API_ENDPOINT + "auth/form-validator/",
-                {
-                    params,
-                    headers: {
-                        Authorization: `${this.$store.getters.authToken}`
-                    }
-                })
+            axios.get(`${constants.API_ENDPOINT}auth/form-validator/`,
+                { params: { Username: this.Username }})
                 .then(response => {
                     if (this.usernameCheckPending){
                         this.usernameCheckPending = false;
                         this.usernameIsUnique = !response.data.UsernameExists;
                         this.$v.Username.$touch();
-                    }
-                }).catch(() => {return 'BACKEND ERROR'});
+                    }})
+                .catch(() => {return 'BACKEND ERROR'});
         },
         async CheckEmailAvailable(){
-            let params = { 'Email' : this.Email };
             axios.get(constants.API_ENDPOINT + "auth/form-validator/",
-                {
-                    params,
-                    headers: {
-                        Authorization: `${this.$store.getters.authToken}`
-                    }
-                })
-                        .then(response => {
-                            if (this.emailCheckPending){
-                                this.emailCheckPending = false;
-                                this.emailIsUnique = !response.data.EmailExists;
-                                this.$v.Email.$touch();
-                            }
-                        }).catch(() => {return 'BACKEND ERROR'});
+                { params: { Email: this.Email }})
+                .then(response => {
+                    if (this.emailCheckPending){
+                      this.emailCheckPending = false;
+                      this.emailIsUnique = !response.data.EmailExists;
+                      this.$v.Email.$touch();
+                    }})
+                .catch(() => {return 'BACKEND ERROR'});
         },
         CheckUsernameUnique(){
             this.usernameCheckPending = true;

@@ -7,7 +7,7 @@
                 <div class="edit-title">Edits</div>
                 <!-- Diplay all changes made on any field -->
                 <div style="display: flex; align-items:center; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(edit,index) in editObjects" v-bind:key="`EDIT${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(edit,index) in editObjects" v-bind:key="`EDIT${index}`">
                         <h3>You have changed {{edit.OldValue}} to {{edit.NewValue}} for {{edit.SourceColumn}}</h3>
                         <!-- Allow an edit to be deleted before submitting -->
                         <i v-on:click="deleteEdit(index)" class="fas fa-minus"></i>
@@ -16,13 +16,12 @@
                 <div class="edit-title">Additions</div>
                 <!-- Display all additions made -->
                 <div style="display: flex; align-items:center; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in contactAddition.Value" v-bind:key="`CONTADD${index}`">
-                        <!-- Contact Addition -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in contactAddition.Value" v-bind:key="`CONTADD${index}`">
                         <h3>You have added a Contact</h3>
                         <!-- Allow it to be deleted -->
                         <i v-on:click="deleteContactAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPChil${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in $children" v-bind:key="`INSPChil${index}`">
                         <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.AddCont.Value" v-bind:key="`INSPCONT${i}`">
                                 <!-- Contact added to an inspection -->
@@ -32,32 +31,27 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in inspectionAddition.Value" v-bind:key="`INSP${index}`">
-                        <!-- Added an Insepciton -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in inspectionAddition.Value" v-bind:key="`INSP${index}`">
                         <h3>You have added an Inspection</h3>
                         <!-- Delete the added inspection -->
                         <i v-on:click="deleteInspectionAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in AddPIM.Value" v-bind:key="`PIM${index}`">
-                        <!-- Permit issue method -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in AddPIM.Value" v-bind:key="`PIM${index}`">
                         <h3>You have added a Permit Issue Method</h3>
                         <!-- Delete added Permit Issue Method -->
                         <i v-on:click="deletePIMAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in AddDSM.Value" v-bind:key="`DSM-${index}`">
-                        <!-- Added Document Submission Method -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in AddDSM.Value" v-bind:key="`DSM-${index}`">
                         <h3>You have added a Document Submission Method</h3>
                         <!-- Delete Added DSM -->
                         <i v-on:click="deleteDSMAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in ERRAddition.Value" v-bind:key="`ERR-${index}`">
-                        <!-- Added Engineering Review Requirements -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in ERRAddition.Value" v-bind:key="`ERR-${index}`">
                         <h3>You have added an Engineering Review Requirement</h3>
                         <!-- Delete Added ERR -->
                         <i v-on:click="deleteERRAddition(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in FSAddition.Value" v-bind:key="`FS-${index}`">
-                        <!-- Added Fee Structures -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in FSAddition.Value" v-bind:key="`FS-${index}`">
                         <h3>You have added a Fee Structure</h3>
                         <!-- Delete Added Fee Structures -->
                         <i v-on:click="deleteFSAddition(index)" class="fas fa-minus"></i>
@@ -65,19 +59,17 @@
                 </div>
                 <div class="edit-title">Deletions</div>
                 <div style="display: flex; align-items:center; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in contactDeletions.Value" v-bind:key="`CONTD-${index}`">
-                        <!-- Contact Deletion -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in contactDeletions.Value" v-bind:key="`CONTD-${index}`">
                         <h3>You have deleted a Contact</h3>
                         <!-- Remove Contact Deletion -->
                         <i v-on:click="deleteContactDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in inspectionDeletions.Value" v-bind:key="`INSPD-${index}`">
-                        <!-- Deleted Inspection -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in inspectionDeletions.Value" v-bind:key="`INSPD-${index}`">
                         <h3>You have deleted an Inspection</h3>
                         <!-- Remove Inspection Deletion -->
                         <i v-on:click="deleteInspectionDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(add,index) in $children" v-bind:key="`INSPCD-${index}`">
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(add,index) in $children" v-bind:key="`INSPCD-${index}`">
                         <div v-if="add.Type==='AHJInspection'">
                             <div v-for="(a,i) in add.Deleted.Value" v-bind:key="`INPSCDC-${i}`">
                                 <!-- Delete Inspection Contact -->
@@ -87,26 +79,22 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in ERRDeletions.Value" v-bind:key="`ERRD-${index}`">
-                        <!-- Delete Engineering Review Requirement -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in ERRDeletions.Value" v-bind:key="`ERRD-${index}`">
                         <h3>You have deleted an Engineering Review Requirement</h3>
                         <!-- Remove ERR deletion -->
                         <i v-on:click="deleteERRDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in FSDeletions.Value" v-bind:key="`FSD-${index}`">
-                        <!-- Delete a Fee Structure -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in FSDeletions.Value" v-bind:key="`FSD-${index}`">
                         <h3>You have deleted a Fee Structure</h3>
                         <!-- Remove Fee Structure Deletion -->
                         <i v-on:click="deleteFSDeletion(index)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in DSMDeletion.Value" v-bind:key="`DSMD-${index}`">
-                        <!-- Delete Document Submission Method -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in DSMDeletion.Value" v-bind:key="`DSMD-${index}`">
                         <h3>You have deleted a Document Submission Method</h3>
                         <!-- Remove DSM Deletion -->
                         <i v-on:click="DSMDeletion.Value.splice(index,1)" class="fas fa-minus"></i>
                     </div>
-                    <div style="display:flex; justify-content:space-between;background-color: white; width:900px;" v-for="(del,index) in PIMDeletion.Value" v-bind:key="`PIMD-${index}`">
-                        <!-- Delete Permit Issue Method -->
+                    <div style="display:flex; justify-content:space-between;background-color: white; width:81%;" v-for="(del,index) in PIMDeletion.Value" v-bind:key="`PIMD-${index}`">
                         <h3>You have deleted a Permit Issue Method</h3>
                         <!-- Remove PIM Deletion -->
                         <i v-on:click="PIMDeletion.Value.splice(index,1)" class="fas fa-minus"></i>
@@ -153,7 +141,7 @@
                         <input type="text" v-model="AddCont.Description" class="form-control" id="Description" placeholder="Description">
                         </div>
                         <div class="add-breakup">
-                        <label for="Title">Time Zone</label>
+                        <label for="Title">Title</label>
                         <input type="text" id="Title" v-model="AddCont.Title" class="form-control" placeholder="Title"/>
                         <label for="TimeZone">Time Zone</label>
                         <input type="text" v-model="AddCont.ContactTimezone" class="form-control" id="TimeZone" placeholder="Time Zone">
@@ -188,6 +176,14 @@
                          <b-form-select size="sm" id="addrtype" :options="consts.CHOICE_FIELDS.Address.AddressType" v-model="Address.AddressType" />
                         <label for="Description">Description</label>
                         <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
                         </div>
                 </div>
                 
@@ -313,6 +309,14 @@
                          <b-form-select size="sm" id="addrtype" :options="consts.CHOICE_FIELDS.Address.AddressType" v-model="Address.AddressType" />
                         <label for="Description">Description</label>
                         <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
                         </div>
                         <div style="flex-basis:100%;margin-top:25px;"/>
                         <div class="edit-buttons">
@@ -502,10 +506,75 @@
             </div>
             </div>
         </div>
+        <div id="addressLoc" class="edits hide">
+            <div style="width:15px;height:15px;top:0px;float:right;position:sticky;color:red;" v-on:click="showBigDiv('addressLoc')" class="fas fa-times"></div>
+            <div class="big-div">
+                <div class="edit-title">Edit Address</div>
+                <div class="add-cont" style="flex-basis:100%;">
+                <div style="flex-basis: 100%;margin-bottom:50px;"/>
+                        <div class="add-breakup">
+                        <label for="Line1">Address Line 1</label>
+                        <input type="text" v-model="Address.AddrLine1" class="form-control" id="Line1" placeholder="Line 1">
+                        <label for="Line2">Address Line 2</label>
+                        <input type="text" v-model="Address.AddrLine2" class="form-control" id="Line2" placeholder="Line 2">
+                        <label for="Line3">Address Line 3</label>
+                        <input type="text" v-model="Address.AddrLine3" class="form-control" id="Line3" placeholder="Line 3">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="city">City</label>
+                        <input type="text" v-model="Address.City" class="form-control" id="city" placeholder="City">
+                        <label for="county">County</label>
+                        <input type="text" v-model="Address.County" class="form-control" id="county" placeholder="County">
+                        <label for="s/p">State/Province</label>
+                        <input type="text" v-model="Address.StateProvince" class="form-control" id="s/p" placeholder="State/Province">
+                        <label for="country">Country</label>
+                        <input type="text" v-model="Address.Country" class="form-control" id="country" placeholder="Country">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="zip">ZIP Code</label>
+                        <input type="text" v-model="Address.ZipPostalCode" class="form-control" id="zip" placeholder="ZIP Code">
+                        <label for="addrtype">Address Type</label>
+                         <b-form-select size="sm" id="addrtype" :options="consts.CHOICE_FIELDS.Address.AddressType" v-model="Address.AddressType" />
+                        <label for="Description">Description</label>
+                        <input type="text" v-model="Address.Description" class="form-control" id="Description" placeholder="Description">
+                        </div>
+                        <div class="add-breakup">
+                        <label for="locdesc">Location Description</label>
+                        <input type="text" v-model="Location.Description" class="form-control" id="locdesc" placeholder="Location Description" />
+                        <label for="detmeth">Location Determination Method</label>
+                         <b-form-select size="sm" id="detmeth" :options="consts.CHOICE_FIELDS.Location.LocationDeterminationMethod" v-model="Location.LocationDeterminationMethod" />
+                         <label for="loctype">Location Type</label>
+                         <b-form-select size="sm" id="loctype" :options="consts.CHOICE_FIELDS.Location.LocationType" v-model="Location.LocationType" />
+                        </div>
+                        </div>
+                        <div class="edit-buttons">
+                            <!-- Adds contact to list of current contacts -->
+                            <a style="margin:0;padding:0;text-decoration: underline;margin-right:10px;" v-on:click="editAddress()">{{(this.editingCont == -1) ?  "Add" : "Save"}}</a>
+                            <!-- Closes the window without adding contact to list -->
+                            <a style="margin:0;padding:0;text-decoration: underline;" v-on:click="clearAddrAndLocation();showBigDiv('addressLoc');editingCont = -1">Cancel</a>
+                        </div>
+            </div>
+        </div>
         <!-- Window to display edits that were already submitted, i.e. Coming from the backend (see EditObject.vue) -->
         <div id="edits" class='edits hide'>
             <div style="width:15px;height:15px;top:0px;float:right;position:sticky;color:red;" v-on:click="showBigDiv('edits')" class="fas fa-times"></div>
             <div id="mid-edits" class='big-div'>
+                <div class="edit-title">AHJ</div>
+                <div id="Address-edits" class="edit-body">
+                    <div v-for="(e,index) in editList" v-bind:key="`ahjedit${index}`">
+                        <div v-if="baseFields.has(e.SourceColumn)">
+                            <edit-object v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-title">Address</div>
+                <div id="Address-edits" class="edit-body">
+                    <div v-for="(e,index) in editList" v-bind:key="`addredit${index}`">
+                        <div v-if="AHJInfo && (e.SourceTable==='Address' && e.SourceRow==AHJInfo.Address.AddressID.Value) || (e.SourceTable==='Location' && e.SourceRow == AHJInfo.Address.Location.LocationID)">
+                            <edit-object v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                        </div>
+                    </div>
+                </div>
                 <!-- Loop through building Code edits and display -->
                 <div class="edit-title">Building Codes</div>
                 <div id="BuildingCode-edits" class="edit-body">
@@ -607,6 +676,8 @@
                             <!-- Loop through the edits made on this AHJ and find the ones that were made on this contact, i.e. edit.ContactID and contact.ContactID match -->
                         <div v-for="(e,index) in editList" v-bind:key="`c-e-${index}`">
                             <edit-object v-if="e.SourceTable==='Contact' && e.SourceRow===c.ContactID.Value && e.EditType==='U'" v-bind:data="e" v-on:official="handleOfficial($event)"/>
+                            <edit-object v-if="(e.SourceTable==='Address' && e.SourceRow==c.Address.AddressID.Value) || (e.SourceTable==='Location' && e.SourceRow==c.Address.Location.LocationID.Value)"
+                            v-bind:data="e" v-on:official="handleOfficial($event)"/>
                         </div>
                         </div>
                     </div>
@@ -881,7 +952,7 @@
             </div>
         </div>
         <!-- Header to page -->
-        <div id='titleCard'>
+        <div id='titleCard'  ref="titleInfo">
             <div id='mapDiv' ref="map">
 
             </div>
@@ -891,16 +962,52 @@
                 <h1 id='code'> {{ this.AHJInfo ? this.AHJInfo.AHJCode.Value : 'Loading' }} </h1>
                 <div class="break">
                 </div>
-                <div id="addr">
+                <div v-if="!isEditing" id="addr">
                     <h3> {{this.AddressString}}</h3>
+                </div>
+                <div style="height:18px" v-else>
+                    <a style="margin:0px;padding:0px;text-decoration: underline; cursor:pointer;" v-on:click="setAddrAndLocation();showBigDiv('addressLoc')">Edit this address</a>
                 </div>
                 <div>
                     <h3>AHJID: {{ this.AHJInfo ? this.AHJInfo.AHJID.Value : 'Loading' }}</h3>
                 </div>
-                                
                 <div class="break"/>
-                <div style="width:10px;"/>
-                <div id="edit-buttons">
+                <div style="height:10px;"/>
+                <div class="break"/>
+                <div style="position:absolute;right:50%;top:93%;">
+                    <h3 v-on:click="toggleMoreInfo()"> <i id="moreInfoChev" class="fa fa-chevron-down"/> More Info</h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Description: {{ this.AHJInfo ? this.AHJInfo.Description.Value : 'Loading' }}</h3>
+                    <h3 v-else> Description: <input type="text" v-model="Edits.Description" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3> AHJ Level Code: {{ this.AHJInfo ? this.AHJInfo.AHJLevelCode.Value : 'Loading' }} </h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Document Submission Method Notes: {{ this.AHJInfo ? this.AHJInfo.DocumentSubmissionMethodNotes.Value : 'Loading' }}</h3>
+                    <h3 v-else> Document Submission Method Notes: <input type="text" v-model="Edits.DocumentSubmissionMethodNotes" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Permit Issue Method Notes: {{ this.AHJInfo ? this.AHJInfo.PermitIssueMethodNotes.Value : 'Loading' }}</h3>
+                    <h3 v-else> Permit Issue Method Notes: <input type="text" v-model="Edits.PermitIssueMethodNotes" /></h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">URL: {{ this.AHJInfo ? this.AHJInfo.URL.Value : 'Loading' }}</h3>
+                    <h3 v-else> URL: <input type="text" v-model="Edits.URL" /></h3>
+                </div>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">File Folder URL: {{ this.AHJInfo ? this.AHJInfo.FileFolderURL.Value : 'Loading' }}</h3>
+                    <h3 v-else> File Folder URL: <input type="text" v-model="Edits.FileFolderURL" /></h3>
+                </div>
+                <div class="break"/>
+                <div v-if="showMore">
+                    <h3 v-if="!isEditing">Estimated Turnaround Days: {{ this.AHJInfo ? this.AHJInfo.EstimatedTurnaroundDays.Value : 'Loading' }}</h3>
+                    <h3 v-else> Estimated Turnaround Days: <input type="text" v-model="Edits.EstimatedTurnaroundDays" /></h3>
+                </div>
+                <div style="position:absolute;right:1%;top:92%;" id="edit-buttons">
                     <!-- OPen window to display edits on this page -->
                     <a v-if="!isEditing" style="margin:0;padding:0;margin-right:10px;text-decoration: underline; cursor:pointer;" v-on:click="showBigDiv('edits')">Show Edits</a>
                     <!-- Allow user to edit this AHJ -->
@@ -1158,7 +1265,13 @@ export default {
                 ResidentialCode: "",
                 ResidentialCodeNotes: "",
                 WindCode: "",
-                WindCodeNotes: ""
+                WindCodeNotes: "",
+                Description: "",
+                DocumentSubmissionMethodNotes: "",
+                PermitIssueMethodNotes: "",
+                EstimatedTurnaroundDays: "",
+                FileFolderURL: "",
+                URL: ""
             },
             //constants file
             consts: constants,
@@ -1329,6 +1442,11 @@ export default {
                 SourceTable: "PermitIssueMethod",
                 Value: []
             },
+            Location: {
+                Description: "",
+                LocationDeterminationMethod: "",
+                LocationType: ""
+            },
             //String for PIM v-model
             PIM: "",
             //these represent indeces within arrays when someone wants to edit an addition before submitting edits
@@ -1339,6 +1457,7 @@ export default {
             replacingFS: -1,
             AdditionOnInsp: [],
             inspEditing: -1,
+            editingCont: -1,
             //list of all edits
             editList: [],
             //these represent the combined confirmed and unconfirmed entities
@@ -1350,19 +1469,15 @@ export default {
             allPIM: [],
             //if current user is an AHJOfficial
             isManaged: false,
-            //Application upload file and status
-            uploadedApplication: null,
-            applicationStatus: null,
+            contactAdditionBackup: null,
+            showMore: false,
+            baseFields: new Set(["URL","Description","DocumentSubmissionMethodNotes","PermitIssueMethodNotes", "EstimatedTurnaroundDays","FileFolderURL"])
         }
     },
     computed: {
-        canSubmitApplication(){
-            //Check if user is logged in and not an official of this AHJ
-            return this.$store.state.currentUserInfo && !this.$store.state.currentUserInfo.MaintainedAHJs.includes(parseInt(this.$route.params.AHJID));
-        },
         isAHJOfficial(){
             //check if user is logged in and an official of this AHJ
-            return this.$store.state.currentUserInfo && this.$store.state.currentUserInfo.MaintainedAHJs.includes(parseInt(this.$route.params.AHJID));
+            return this.$store.getters.loggedIn && this.$store.state.currentUserInfo.MaintainedAHJs.includes(parseInt(this.$route.params.AHJID));
         },
         AHJID(){
             //get AHJID from URL
@@ -1385,47 +1500,14 @@ export default {
         }
         //fires after mount
         this.$nextTick(() => {
-            //latest API view (no unconfirmed edits)
-            var queryPayload = {
-              view: 'latest',
-              AHJPK: `${this.$route.params.AHJID}`
-            }
             //Get info for this AHJ
-            this.$store.commit("callAPI", queryPayload);
+            this.$store.commit("callAPISingleAHJ", this.$route.params.AHJID);
             let queryString = 'AHJPK=' + this.$route.params.AHJID;
             //Get edits on this AHJ (this may be slow so we do it asynchronously)
             this.$store.commit("getEdits",queryString);
-            //this.$store.commit('changeUserLoginStatus', {...JSON.parse(window.localStorage.vuex).loginStatus});
         })
     },
     methods: {
-        //for submiting applications
-        async SubmitApplication(){
-            this.applicationStatus = "PENDING";
-            let that = this;
-            let fd = new FormData();
-            //find file, username and AHJ
-            fd.append('File', that.uploadedApplication);
-            fd.append('Username', that.$store.state.currentUserInfo.Username);
-            fd.append('AHJPK', that.$route.params.AHJID);
-            //send above info to backend to be stored
-            axios.post(constants.API_ENDPOINT + "app/upload/", fd, {
-                    headers: {
-                      'Content-Type': 'multipart/form-data',
-                    }
-                }).then(() => {that.applicationStatus = "SUBMITTED";})
-                .catch(() => {that.applicationStatus = "ERROR";})
-        },
-        //Hides modal after submitting or cancelling an application
-        HideApplicationModal(){
-            this.$bvModal.hide('submit-application-modal');
-            this.ResetApplicationModal();
-        },
-        //reset all fields on modal
-        ResetApplicationModal(){
-            this.uploadedApplication = null;
-            this.applicationStatus = null;
-        },
         //set up map view for page header
         setupLeaflet() {
             //info leaflet needs about map (we want it not to move)
@@ -1473,7 +1555,9 @@ export default {
         ahjCodeFormatter(value) {
             if(value) {
                 if (value === "NoSolarRegulations") {
-                return "No Solar Regulations";
+                  return "No Solar Regulations";
+                } else if (value === "SpecialWindZone") {
+                  return "Special Wind Zone";
                 }
                 //Add spaces between identifier and code data i.e. 2020IBC -> 2020 IBC
                 return value.substring(0, 4) + " " + value.substring(4);
@@ -1602,7 +1686,7 @@ export default {
         //if user wants to edit
         editing(){
             //if user isn't logged in, alert and return
-            if(this.$store.getters.authToken === ""){
+            if (!this.$store.getters.loggedIn) {
                 alert("You must be logged in to Edit!");
                 return;
             }
@@ -1644,7 +1728,7 @@ export default {
         },
         //create edit object to send to backend
         createEditObjects(){
-            this.editObjects = [];
+            //this.editObjects = [];
             let keys = Object.keys(this.Edits);
             for(var i = 0; i < keys.length; i++){
                 //check if edit is not empty or has been changed
@@ -1836,17 +1920,26 @@ export default {
             }
             //addition endpoint
             url = constants.API_ENDPOINT + 'edit/add/';
+            for(var i = 0; i < this.contactAddition.Value.length;i++){
+                let keys = Object.keys(this.contactAddition.Value[i].Address);
+                for(var j = 0; j < keys.length; j++){
+                    this.contactAddition.Value[i].Address[keys[j]] = this.contactAddition.Value[i].Address[keys[j]];
+                }
+            }
+            this.contactAddition.Value = [...this.contactAddition.Value];
             //submit all addition objects to backend (this order is random)
             axios
-                .post(url,this.contactAddition, {
+                .post(url,JSON.stringify(this.contactAddition), {
                     headers: {
-                        Authorization: this.$store.getters.authToken
+                        Authorization: this.$store.getters.authToken,
+                        'Content-type': 'application/json'
                     }
                 })
             axios
-                .post(url,this.inspectionAddition, {
+                .post(url,JSON.stringify(this.inspectionAddition), {
                     headers: {
-                        Authorization: this.$store.getters.authToken
+                        Authorization: this.$store.getters.authToken,
+                        'Content-type': 'application/json'
                     }
                 })
 
@@ -1985,11 +2078,18 @@ export default {
             this.Edits.FireCodeNotes = this.AHJInfo.FireCodeNotes.Value === 'None' ? '' : this.AHJInfo.FireCodeNotes.Value;
             this.Edits.WindCodeNotes = this.AHJInfo.WindCodeNotes.Value === 'None' ? '' : this.AHJInfo.WindCodeNotes.Value;
             this.Edits.ElectricCodeNotes = this.AHJInfo.ElectricCodeNotes.Value === 'None' ? '' : this.AHJInfo.ElectricCodeNotes.Value;
+            this.Edits.Description = this.AHJInfo.Description.Value === 'None' ? '' : this.AHJInfo.Description.Value;
+            this.Edits.EstimatedTurnaroundDays = this.AHJInfo.EstimatedTurnaroundDays.Value === 'None' ? '' : this.AHJInfo.EstimatedTurnaroundDays.Value;
+            this.Edits.DocumentSubmissionMethodNotes = this.AHJInfo.DocumentSubmissionMethodNotes.Value === 'None' ? '' : this.AHJInfo.DocumentSubmissionMethodNotes.Value;
+            this.Edits.PermitIssueMethodNotes = this.AHJInfo.PermitIssueMethodNotes.Value === 'None' ? '' : this.AHJInfo.PermitIssueMethodNotes.Value;
+            this.Edits.URL = this.AHJInfo.URL.Value === 'None' ? '' : this.AHJInfo.URL.Value;
+            this.Edits.FileFolderURL = this.AHJInfo.FileFolderURL.Value === 'None' ? '' : this.AHJInfo.FileFolderURL.Value;
         },
         //user creates a contact addition edit
         addContact(){
             //deep copy address into contact object
-            this.AddCont.Address = { ...this.Address };
+            this.$set(this.AddCont, 'Address',{ ...this.Address });
+            this.AddCont.Address.Location = {...this.Location};
             //if we are not replacing a contact
             if(this.replacingCont < 0){
                 //if we are not adding to an inspection, push to contact addition object
@@ -2070,6 +2170,7 @@ export default {
         addInspectionCont(){
             //deep copy address
             this.AddCont.Address = { ...this.Address };
+            this.AddCont.Address.Location = {...this.Location};
             //if not replacing an already made edit, push to addition object
             if(this.replacingInspCont < 0){
                 this.AddInsp.Contacts.push({ ...this.AddCont});
@@ -2252,8 +2353,12 @@ export default {
         },
         //see if this AHJ is managed by the current user
         assertIsManaged(){
-            if (!this.$store.loggedIn){
-                this.isManaged = false;
+            if (!this.$store.getters.loggedIn) {
+              this.isManaged = false;
+              return;
+            }
+            if(this.$store.state.currentUserInfo.is_superuser){
+                this.isManaged = true;
                 return;
             }
             let MA =  this.$store.state.currentUserInfo.MaintainedAHJs;
@@ -2294,6 +2399,97 @@ export default {
             if(type==="R"){
                 this.$refs[ref][0].style.backgroundColor = '#FFBEBE';
             }
+        },
+        clearAddrAndLocation(){
+            let keys = Object.keys(this.Address);
+            for(let i = 0; i < keys.length; i++){
+                this.Address[keys[i]] = '';
+            }
+            keys = Object.keys(this.Location);
+            for(let i = 0; i < keys.length; i++){
+                this.Location[keys[i]] = '';
+            }
+        },
+        editAddress(){
+            this.editObjects = [];
+            var contAddr = null;
+            if(this.editingCont > -1){
+                for(var i = 0; i  < this.$children.length; i++){
+                    if(this.$children[i].Type === 'Contact' && this.$children[i].data.ContactID.Value == this.editingCont){
+                        contAddr = {...this.$children[i].data.Address};
+                    }
+                }
+            }
+            else{
+                contAddr = {...this.AHJInfo.Address};
+            }
+            var keys = Object.keys(this.Address);
+            for(i = 0; i < keys.length; i++){
+                if(keys[i] !== 'Location'){
+                    if(contAddr[keys[i]].Value !== this.Address[keys[i]] && this.Address[keys[i]]){
+                        var obj = {};
+                        obj['AHJPK'] = this.AHJInfo.AHJPK.Value;
+                        obj['SourceTable'] = 'Address'
+                        obj['SourceColumn'] = keys[i]
+                        obj['SourceRow'] = contAddr.AddressID.Value
+                        obj['OldValue'] = contAddr[keys[i]].Value
+                        obj['NewValue'] = this.Address[keys[i]] 
+                        this.editObjects.push(obj);
+                    }
+                }
+            }
+            keys = Object.keys(this.Location);
+            for(var j = 0; j < keys.length; j++){
+                        if(contAddr.Location[keys[j]].Value !== this.Location[keys[j]] && this.Location[keys[j]]){
+                            var obj2 = {};
+                            obj2['AHJPK'] = this.AHJInfo.AHJPK.Value;
+                            obj2['SourceTable'] = 'Location'
+                            obj2['SourceColumn'] = keys[j]
+                            obj2['SourceRow'] = contAddr.Location.LocationID.Value
+                            obj2['OldValue'] = contAddr.Location[keys[j]].Value
+                            obj2['NewValue'] = this.Location[keys[j]] 
+                            this.editObjects.push(obj2);
+                        }
+                    }
+            this.clearAddrAndLocation();
+            this.showBigDiv('addressLoc');
+            this.editingCont = -1;
+            return;
+        },
+        changeCont(index){
+            this.editingCont = index;
+        },
+        setAddrAndLocation(){
+            var contAddr = null;
+            if(this.editingCont > -1){
+                for(var i = 0; i  < this.$children.length; i++){
+                    if(this.$children[i].Type === 'Contact' && this.$children[i].data.ContactID.Value == this.editingCont){
+                        contAddr = {...this.$children[i].data.Address};
+                    }
+                }
+            }
+            else{
+                contAddr = {...this.AHJInfo.Address};
+            }
+            let keys = Object.keys(this.Address);
+            for(let i = 0; i < keys.length; i++){
+                this.Address[keys[i]] = contAddr[keys[i]].Value;
+            }
+            keys = Object.keys(this.Location);
+            for(let i = 0; i < keys.length; i++){
+                this.Location[keys[i]] = contAddr.Location[keys[i]].Value;
+            }
+        },
+        toggleMoreInfo(){
+            document.getElementById("moreInfoChev").classList.toggle('fa-chevron-down');
+            document.getElementById("moreInfoChev").classList.toggle('fa-chevron-up');
+            this.showMore = !this.showMore;
+            if(this.showMore){
+                this.$refs.titleInfo.style.height = "350px"
+            }
+            else{
+                this.$refs.titleInfo.style.height = "275px";
+            }
         }
     },
     watch: {
@@ -2316,6 +2512,7 @@ export default {
             this.reset();
             this.inspectionAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.inspectionAddition.ParentID = this.AHJInfo.AHJPK.Value;
+            this.inspectionContactAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.contactAddition.ParentID = this.AHJInfo.AHJPK.Value;
             this.contactAddition.AHJPK = this.AHJInfo.AHJPK.Value;
             this.contactDeletions.AHJPK = this.AHJInfo.AHJPK.Value;
@@ -2349,7 +2546,6 @@ export default {
         '$store.state.editList': function(){
             var list = this.$store.state.editList;
             this.editList = [...list];
-            console.log(this.editList);
         }
     }
 }
@@ -2554,5 +2750,8 @@ tr{
     border-bottom: 1px solid black;
     text-align: center;
     font-size: 25px;;
+}
+.tall{
+    height: 350px;
 }
 </style>

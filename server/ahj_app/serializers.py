@@ -214,14 +214,28 @@ class UserSerializer(serializers.Serializer):
     PersonalBio = serializers.CharField()
     CompanyAffiliation = serializers.CharField()
     Photo = serializers.CharField()
-    IsPeerReviewer = serializers.IntegerField()
-    NumReviewsDone = serializers.IntegerField()
     AcceptedEdits = serializers.IntegerField()
     SubmittedEdits = serializers.IntegerField()
     CommunityScore = serializers.IntegerField()
     SignUpDate = serializers.DateField()
     MaintainedAHJs = serializers.ListField(source='get_maintained_ahjs')
     APIToken = serializers.CharField(source='get_API_token')
+    is_superuser = serializers.BooleanField()
+
+    def to_representation(self, user):
+        """
+        Returns an OrderedDict representing an User object
+        Note not every AHJ has every child object.
+        If 'is_public_view' is True, will not serialize fields
+        that are not meant for public api users. Unlike other
+        serializers, the default is True to passively prevent
+        sensitive data being serialized when it's not needed.
+        """
+        if self.context.get('is_public_view', True):
+            for field in User.SERIALIZER_EXCLUDED_FIELDS:
+                if field in self.fields:
+                    self.fields.pop(field)
+        return super().to_representation(user)
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -229,9 +243,36 @@ class UserCreateSerializer(UserCreateSerializer):
     Serializes User to Ordered Dict.
     Used when a new user is created.
     """
+    FirstName = serializers.CharField()
+    LastName = serializers.CharField()
+    
+    def validate(self, attrs):
+        contact_fields = {field.name for field in Contact._meta.get_fields()}
+        user_dict = OrderedDict({k: v for k, v in attrs.items() if k not in contact_fields})
+        super().validate(user_dict)
+        return attrs
+
+    def to_representation(self, user):
+        return UserSerializer(user).data
+
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = ('UserID', 'ContactID', 'Username', 'password', 'Email', 'is_staff', 'is_active', 'SignUpDate', 'PersonalBio', 'URL', 'CompanyAffiliation', 'Photo', 'IsPeerReviewer', 'NumReviewsDone', 'CommunityScore', 'SecurityLevel')
+        fields = ('UserID',
+                  'ContactID',
+                  'Username',
+                  'password',
+                  'Email',
+                  'is_staff',
+                  'is_active',
+                  'SignUpDate',
+                  'PersonalBio',
+                  'URL',
+                  'CompanyAffiliation',
+                  'Photo',
+                  'CommunityScore',
+                  'SecurityLevel',
+                  'FirstName',
+                  'LastName')
 
 
 class CommentSerializer(serializers.Serializer):
@@ -405,8 +446,8 @@ class EditSerializer(serializers.Serializer):
     ReviewStatus = serializers.CharField()
     OldValue = serializers.CharField(read_only=True)
     NewValue = serializers.CharField()
-    DateRequested = serializers.DateField(read_only=True)
-    DateEffective = serializers.DateField(read_only=True)
+    DateRequested = serializers.DateTimeField(read_only=True)
+    DateEffective = serializers.DateTimeField(read_only=True)
     EditType = serializers.CharField()
     DataSourceComment = serializers.CharField()
 
@@ -437,56 +478,6 @@ class WebpageTokenSerializer(serializers.Serializer):
     auth_token = serializers.CharField(source='key')
     User = UserSerializer(source='get_user')
 
-
-def dictfetchone(cursor):
-    """Return all rows from a cursor as a dict"""
-    columns = [col[0] for col in cursor.description]
-    row = cursor.fetchone()
-    if row is None:
-        return dict(zip(columns, [0] * len(columns)))
-    return dict(zip(columns, row))
-
-
-def get_polygons_in_state(statepolygonid):
-    with connection.cursor() as cursor:
-        cursor.execute('SELECT COUNT(*) as numAHJs,' + \
-                       'SUM(BuildingCode IS NOT NULL) as numBuildingCodes,' + \
-                       'SUM(ElectricCode IS NOT NULL) as numElectricCodes,' + \
-                       'SUM(FireCode IS NOT NULL) as numFireCodes,' + \
-                       'SUM(ResidentialCode IS NOT NULL) as numResidentialCodes,' + \
-                       'SUM(WindCode IS NOT NULL) as numWindCodes' + \
-                       ' FROM Polygon JOIN (SELECT PolygonID FROM CountyPolygon WHERE StatePolygonID=' \
-                       + '%(statepolygonid)s' + \
-                       ' UNION SELECT PolygonID FROM CityPolygon WHERE StatePolygonID=' \
-                       + '%(statepolygonid)s' + \
-                       ' UNION SELECT PolygonID FROM CountySubdivisionPolygon WHERE StatePolygonID=' \
-                       + '%(statepolygonid)s' + \
-                       ') as polygons_of_state ON Polygon.PolygonID=polygons_of_state.PolygonID LEFT JOIN AHJ ON Polygon.PolygonID=AHJ.PolygonID;', {
-            'statepolygonid': statepolygonid
-        })
-        return dictfetchone(cursor)
-
-
-
-class DataVisAHJPolygonInfoSerializer(serializers.Serializer):
-    """
-    Serializes statistics about each state around their permit requirements.
-    """
-    PolygonID = serializers.IntegerField()
-    InternalPLatitude = serializers.DecimalField(max_digits=9, decimal_places=7)
-    InternalPLongitude = serializers.DecimalField(max_digits=10, decimal_places=7)
-    Name = serializers.CharField()
-    AHJPK = serializers.IntegerField()
-
-    def to_representation(self, instance):
-        """
-        Returns a list of states plus all their permit requirement
-        coverage stats across all administrative areas in the state.
-        """
-        r = OrderedDict(instance)
-        if self.context.get('is_state', False) is True:
-            r.update(get_polygons_in_state(str(r['PolygonID'])))
-        return r
 
 # Serializer used in Djoser's password reset endpoint. 
 class UserFunctionsMixin:

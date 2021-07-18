@@ -1,17 +1,12 @@
-/*
- * Constants used throughout the application
- */
-const API_ENDPOINT = "http://localhost:8000/api/v1/"; // Base Django API endpoint
-const AUTH_TOKEN = ""; // Webpage's Django webpage API token
-const AUTH_TOKEN_PUBLIC_API = ""; // Webpage's Django public API token
-const IP_GEOLOCATION_ENDPOINT = ""; // API endpoint for finding user's lat-lon by their ip; only 20,000 requests per month
+const API_ENDPOINT = "http://localhost:8000/api/v1/";
+const SUPPORT_EMAIL = "support@sunspec.org";
+const MEMBERSHIP_EMAIL = "membership@sunspec.org";
 
 export default {
   API_ENDPOINT: API_ENDPOINT,
-  TOKEN_AUTH: AUTH_TOKEN,
-  TOKEN_AUTH_PUBLIC_API: AUTH_TOKEN_PUBLIC_API,
-  IP_GEOLOCATION_ENDPOINT: IP_GEOLOCATION_ENDPOINT,
-  AHJ_FIELDS: { // Template for Orange Button AHJ object
+  SUPPORT_EMAIL: SUPPORT_EMAIL,
+  MEMBERSHIP_EMAIL: MEMBERSHIP_EMAIL,
+  AHJ_FIELDS: {
     AHJCode: "",
     AHJName: "",
     BuildingCode: "",
@@ -118,6 +113,7 @@ export default {
         { value: "", text: "AHJ Level Code" },
         { value: "040", text: "State (040)" },
         { value: "050", text: "County (050)" },
+        { value: "061", text: "MCD (061)" },
         { value: "162", text: "Place (162)" }
       ],
       BuildingCode: [
@@ -135,6 +131,7 @@ export default {
         { value: "2017NEC", text: "2017 NEC" },
         { value: "2014NEC", text: "2014 NEC" },
         { value: "2011NEC", text: "2011 NEC" },
+        { value: "2008NEC", text: "2008 NEC" },
         { value: "NoSolarRegulations", text: "No Solar Regulations" }
       ],
       FireCode: [
@@ -318,4 +315,6 @@ export default {
   API_USAGE_BADGE_BOUNDARIES: [50, 200, 500],
   COMMUNITY_SCORE_BADGE_BOUNDARIES: [30, 150, 400],
   ACCEPTED_EDITS_BADGE_BOUNDARIES: [3, 8, 15],
+  // Message and notification text
+  API_THROTTLE_MSG: `Thank you for using this service. Please consider becoming a member by contacting <a href="mailto:${MEMBERSHIP_EMAIL}">${MEMBERSHIP_EMAIL}</a> to continue searching.`
 };

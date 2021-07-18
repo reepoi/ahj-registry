@@ -37,7 +37,7 @@ GDAL_LIBRARY_PATH = '/usr/local/lib/libgdal.so'
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'ahj_app.apps.AhjAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'django_filters',
     'ahj_app.apps.AhjConfig',
     'djoser',
-    'corsheaders'
+    'corsheaders',
+    'simple_history'
 ]
 
 MIDDLEWARE = [
@@ -62,7 +63,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'ahj_app.middleware.LoggingMiddleware.SkipRequestLoggingMiddleware'
+    'ahj_app.middleware.LoggingMiddleware.SkipRequestLoggingMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True # If this is used then `CORS_ORIGIN_WHITELIST` will not have any effect
@@ -76,7 +78,7 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 
 ROOT_URLCONF = 'TheAHJRegistry.urls'
 
-# Throttle rates are per day
+# Throttle rates
 SUNSPEC_MEMBER_API_THROTTLE_RATE = '100000000/month'
 WEBPAGE_SEARCH_THROTTLE_RATE = '3/day'
 
@@ -103,7 +105,7 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -148,7 +150,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
             'verbose': {
-                'format': '{levelname} {request.user} {request.auth} {asctime} {message}',
+                'format': '{levelname} {request.user} {request.auth} {request.META[REMOTE_ADDR]} {asctime} {message}',
                 'style': '{',
             },
             'simple': {
@@ -250,5 +252,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATIC_ROOT = 'static'
 
 GOOGLE_MAPS_KEY = ''

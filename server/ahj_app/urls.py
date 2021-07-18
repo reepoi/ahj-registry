@@ -16,7 +16,7 @@ urlpatterns = [
     path('edit/update/',                         views_edits.edit_update,                                 name='edit-update'),
     path('edit/add/',                            views_edits.edit_addition,                               name='edit-addition'),
     path('edit/delete/',                         views_edits.edit_deletion,                               name='edit-deletion'),
-    path('user/update/<str:username>/',          views_users.user_update,                                 name='user-update'),
+    path('user/update/',                         views_users.user_update,                                 name='user-update'),
     path('user/edits/',                          views_misc.user_edits,                                   name='user-edits'),
     path('user/comments/',                       views_misc.user_comments,                                name='user-comments'),
     path('user/active/',                         views_users.get_active_user,                             name='active-user-info'),
@@ -26,11 +26,8 @@ urlpatterns = [
     path('data-vis/data-map/polygon/',           views_datavis.data_map_get_polygon,                      name='data-map-polygon'),
     path('contact/',                             views_misc.send_support_email,                           name='send-support-email'),
     path('auth/form-validator/',                 views_misc.form_validator,                               name='form-validator'),
-    path('auth/users/',                          views_users.RegisterUser.as_view({'post': 'create'}),    name='user-create'),
-    path('auth/token/login/',                    views_users.LoginUser.as_view(),                         name='user-login'),
-    path('auth/token/logout/',                   views_users.LogoutUser.as_view(),                        name='user-logout'),
     path('auth/users/activation/',               views_users.ActivateUser.as_view({'post': 'activation'}),                        name='user-activate'),
     path('auth/users/reset_password_confirm/',   views_users.ConfirmPasswordReset.as_view({'post': 'reset_password_confirm'}),    name='confirm-reset-password'),
-    path('auth/',                                include('djoser.urls')),
-    path('auth/',                                include('djoser.urls.authtoken'))
+    path('auth/',                                include(('djoser.urls', 'djoser'), namespace='djoser')),
+    path('auth/',                                include(('djoser.urls.authtoken', 'djoser'), namespace='djoser-authtoken'))
 ]

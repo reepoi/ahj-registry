@@ -14,6 +14,7 @@ from django.conf import settings
 
 from .authentication import WebpageTokenAuth
 from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, WebpageToken, PreferredContactMethod, SunspecAllianceMemberDomain, AHJOfficeDomain
+from .permissions import IsSuperuser
 from .serializers import UserSerializer, ContactSerializer
 from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
 from djoser import signals
@@ -21,18 +22,8 @@ from djoser import utils
 from djoser.compat import get_user_email
 from djoser.conf import settings
 
-class RegisterUser(UserViewSet):
-    pass
+from .utils import get_enum_value_row, filter_dict_keys, ENUM_FIELDS
 
-
-class LoginUser(TokenCreateView):
-    pass
-
-class LogoutUser(TokenDestroyView):
-    pass
-
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 class ActivateUser(UserViewSet):
 
     @action(["post"], detail=False)
@@ -68,8 +59,6 @@ class ActivateUser(UserViewSet):
         domain = AHJOfficeDomain.objects.filter(Domain=email[email.index('@') + 1 : ]).first()
         return AHJ.objects.filter(AHJID=domain.AHJID.AHJID).first() if domain else None
 
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 class ConfirmPasswordReset(UserViewSet):
 
     @action(["post"], detail=False)
@@ -97,25 +86,20 @@ def get_active_user(request):
     Endpoint for getting the active user
     through the authtoken
     """
-    # Get authtoken from request header
-    authtoken = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
-    token = WebpageToken.objects.get(key=authtoken)
-    user = User.objects.get(UserID=token.user_id)
-    payload = UserSerializer(user, context={'fields_to_drop': []})
-    return Response(payload.data, status=status.HTTP_200_OK)
+    return Response(UserSerializer(request.user, context={'is_public_view': False}).data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def get_single_user(request, username):
     """
     Function view for getting a single user with the specified Username = username
     """
+    context = {'is_public_view': True}
+    if request.auth is not None and request.user.Username == username:
+        context['is_public_view'] = False
     try:
-        queryset = User.objects.get(Username=username)
-        payload = UserSerializer(queryset, context={'fields_to_drop': []})
-        return Response(payload.data, status=status.HTTP_200_OK)
+        user = User.objects.get(Username=username)
+        return Response(UserSerializer(user, context=context).data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -123,42 +107,25 @@ def get_single_user(request, username):
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated])
-def user_update(request, username):
+def user_update(request):
     """
-    Update the user profile associated with `username` with all of the
-    { Key : Value } pairs send in the POST data.
+    Update the user profile associated with the requesting user.
     """
-    changeableFields = ['Username', 'FirstName', 'LastName', 'PersonalBio', 'URL', 'CompanyAffiliation', 'WorkPhone', 'PreferredContactMethod', 'Title']
-    try:
-        user = User.objects.get(Username=username)
-        token = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
-        receivedToken = WebpageToken.objects.get(key=token)
-        # Check if the user requesting the user update is updating their own account
-        if (receivedToken.user.UserID != user.UserID):
-            raise Exception("Provided token credentials do not match user being updated.")
-        contact = user.ContactID
-        # request.data is an immutable QueryDict, so we must make a copy
-        data = request.data.copy()
-        with transaction.atomic():
-            for (key, value) in data.items():
-                if key in changeableFields:
-                    if key == 'PreferredContactMethod': # We must update enum fields seperately
-                        contactMethodID = PreferredContactMethod.objects.get(Value=value) # Find the matching preferredContactMethodID
-                        setattr(contact, 'PreferredContactMethod', contactMethodID)
-                    else:
-                        setattr(user, key, value)
-                        setattr(contact, key, value)
-                else:
-                    raise Exception("The "+ key +" field cannot be changed.")
-            user.save()
-            contact.save()
-        return Response('Success', status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+    changeable_user_fields = {'Username', 'PersonalBio', 'URL', 'CompanyAffiliation'}
+    changeable_contact_fields = {'FirstName', 'LastName', 'URL', 'WorkPhone', 'PreferredContactMethod', 'Title'}
+    user_data = filter_dict_keys(request.data, changeable_user_fields)
+    contact_data = filter_dict_keys(request.data, changeable_contact_fields)
+    for field in ENUM_FIELDS.intersection(contact_data.keys()):
+        contact_data[field] = get_enum_value_row(field, contact_data[field])
+    user = request.user
+    User.objects.filter(UserID=user.UserID).update(**user_data)
+    Contact.objects.filter(ContactID=user.ContactID.ContactID).update(**contact_data)
+    return Response('Success', status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsSuperuser])
 def create_api_token(request):
     try:
         user = request.user
@@ -172,7 +139,7 @@ def create_api_token(request):
 
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsSuperuser])
 def set_ahj_maintainer(request):
     """
     View to assign a user as a data maintainer of an AHJ
@@ -195,7 +162,7 @@ def set_ahj_maintainer(request):
 
 @api_view(['POST'])
 @authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsSuperuser])
 def remove_ahj_maintainer(request):
     """
     View to revoke a user as a data maintainer of an AHJ

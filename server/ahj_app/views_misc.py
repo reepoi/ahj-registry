@@ -7,14 +7,10 @@ from django.conf import settings
 
 from .authentication import WebpageTokenAuth
 from .models import User, Comment, Edit
-from .utils import UserSerializer, CommentSerializer, EditSerializer
-
-import datetime
+from .utils import CommentSerializer, EditSerializer
 
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def form_validator(request):
     """
     API call to validate the form information when a new user signs up
@@ -27,15 +23,15 @@ def form_validator(request):
 
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def user_comments(request):
     """
     Endpoint to get all the comments made by a specific user.
     """
-    UserID = request.query_params.get('UserID', None)
-    comments = Comment.objects.filter(UserID=int(UserID))
-    return Response(CommentSerializer(comments, many=True).data, status=status.HTTP_200_OK)
+    try:
+        comments = Comment.objects.filter(UserID=request.query_params.get('UserID'))
+        return Response(CommentSerializer(comments, many=True).data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -58,19 +54,18 @@ def comment_submit(request):
 
 
 @api_view(['GET'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def user_edits(request):
     """
-    Endpoint to get all edits made by the user with `UserID`.
+    Endpoint returning all edits made a user specified by UserID.
     """
-    UserID = request.query_params.get('UserID', None)
-    edits = Edit.objects.filter(ChangedBy=UserID)
-    return Response(EditSerializer(edits, many=True).data, status=status.HTTP_200_OK)
+    try:
+        edits = Edit.objects.filter(ChangedBy=request.query_params.get('UserID'))
+        return Response(EditSerializer(edits, many=True).data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
 def send_support_email(request):
     """
     Endpoint to send mail to SunSpec's support email address.
@@ -80,7 +75,7 @@ def send_support_email(request):
         subject = request.data.get('Subject')
         message = request.data.get('Message')
         full_message = f'Sender: {email}\nMessage: {message}'
-        send_mail( subject, full_message, settings.EMAIL_HOST_USER, [settings.SUNSPEC_SUPPORT_EMAIL], fail_silently=False)
+        send_mail(subject, full_message, settings.EMAIL_HOST_USER, [settings.SUNSPEC_SUPPORT_EMAIL], fail_silently=False)
         return Response(status=status.HTTP_200_OK)
     except Exception as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

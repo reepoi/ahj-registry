@@ -5,15 +5,16 @@
         <h3>Changed "{{this.data.OldValue == null || this.data.OldValue == "" ? "None" : this.data.OldValue}}" to "{{this.data.NewValue}}"</h3>
         <h3>Comments: "{{this.data.Comments == "" || this.data.Comments == null ? "No Comments" : this.data.Comments}}"</h3>
         <h3>{{this.data.ChangedBy ? this.data.ChangedBy : "Anonymous"}}</h3>
-        <div>
-            <!-- if user manages this AHJ, allow acceptance and rejections -->
+        <div style="margin-right:10px;">
             <i style="margin-right:10px" v-if="$parent.isManaged && this.data.ReviewStatus==='P'" v-on:click="$emit('official',{Type:'Accept',eID: data.EditID});data.ReviewStatus='A';changeStatus();" class="fa fa-check"></i>
-            <i v-if="$parent.isManaged && this.data.ReviewStatus==='P'" v-on:click="$emit('official', {Type:'Reject',eID: data.EditID});data.ReviewStatus='R';changeStatus()" class="fa fa-thumbs-down"></i>
+            <i v-if="$parent.isManaged && this.data.ReviewStatus==='P'" v-on:click="$emit('official', {Type:'Reject',eID: data.EditID});data.ReviewStatus='R';changeStatus()" class="fa fa-times"></i>
         </div>
     </div>
 </template>
 
 <script>
+import moment from "moment";
+
 export default {
     props: {
         data: {
@@ -22,6 +23,7 @@ export default {
     },
     mounted: function(){
         this.changeStatus();
+        this.data.DateRequested = moment(this.data.DateRequested).format('MMMM Do YYYY, h:mm:ss a');
     },
     methods: {
         //change edit status on acceptance / rejection

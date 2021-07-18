@@ -15,6 +15,10 @@ class BuildingCode(models.Model):
     BuildingCodeID = models.AutoField(db_column='BuildingCodeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=BUILDING_CODE_CHOICES, max_length=18)
 
+    class Meta:
+        verbose_name = 'Building Code'
+        verbose_name_plural = 'Building Codes'
+
 
 ELECTRIC_CODE_CHOICES = [
     ('2020NEC', '2020 NEC'),
@@ -29,6 +33,10 @@ ELECTRIC_CODE_CHOICES = [
 class ElectricCode(models.Model):
     ElectricCodeID = models.AutoField(db_column='ElectricCodeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=ELECTRIC_CODE_CHOICES, max_length=18)
+
+    class Meta:
+        verbose_name = 'Electric Code'
+        verbose_name_plural = 'Electric Codes'
 
 
 FIRE_CODE_CHOICES = [
@@ -45,6 +53,10 @@ class FireCode(models.Model):
     FireCodeID = models.AutoField(db_column='FireCodeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=FIRE_CODE_CHOICES, max_length=18)
 
+    class Meta:
+        verbose_name = 'Fire Code'
+        verbose_name_plural = 'Fire Codes'
+
 
 RESIDENTIAL_CODE_CHOICES = [
     ('2021IRC', '2021 IRC'),
@@ -60,6 +72,10 @@ class ResidentialCode(models.Model):
     ResidentialCodeID = models.AutoField(db_column='ResidentialCodeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=RESIDENTIAL_CODE_CHOICES, max_length=18)
 
+    class Meta:
+        verbose_name = 'Residential Code'
+        verbose_name_plural = 'Residential Codes'
+
 
 WIND_CODE_CHOICES = [
     ('ASCE716', 'ASCE7-16'),
@@ -73,6 +89,10 @@ class WindCode(models.Model):
     WindCodeID = models.AutoField(db_column='WindCodeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=WIND_CODE_CHOICES, max_length=15)
 
+    class Meta:
+        verbose_name = 'Wind Code'
+        verbose_name_plural = 'Wind Codes'
+
 
 AHJ_LEVEL_CODE_CHOICES = [
     ('040', 'State'),
@@ -85,6 +105,10 @@ AHJ_LEVEL_CODE_CHOICES = [
 class AHJLevelCode(models.Model):
     AHJLevelCodeID = models.AutoField(db_column='AHJLevelCodeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=AHJ_LEVEL_CODE_CHOICES, max_length=3)
+
+    class Meta:
+        verbose_name = 'AHJ Level Code'
+        verbose_name_plural = 'AHJ Level Codes'
 
 
 # DocumentSubmissionMethod model is in models.py
@@ -117,6 +141,10 @@ class AddressType(models.Model):
     AddressTypeID = models.AutoField(db_column='AddressTypeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=ADDRESS_TYPE_CHOICES, max_length=12)
 
+    class Meta:
+        verbose_name = 'Address Type'
+        verbose_name_plural = 'Address Types'
+
 
 LOCATION_DETERMINATION_METHOD_CHOICES = [
     ('GPS', 'GPS'),
@@ -132,6 +160,10 @@ class LocationDeterminationMethod(models.Model):
     LocationDeterminationMethodID = models.AutoField(db_column='LocationDeterminationMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=LOCATION_DETERMINATION_METHOD_CHOICES, max_length=17)
 
+    class Meta:
+        verbose_name = 'Location Determination Method'
+        verbose_name_plural = 'Location Determination Methods'
+
 
 LOCATION_TYPE_CHOICES = [
     ('DeviceSpecific', 'Device Specific'),
@@ -144,6 +176,10 @@ LOCATION_TYPE_CHOICES = [
 class LocationType(models.Model):
     LocationTypeID = models.AutoField(db_column='LocationTypeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=LOCATION_TYPE_CHOICES, max_length=16)
+
+    class Meta:
+        verbose_name = 'Location Type'
+        verbose_name_plural = 'Location Types'
 
 
 CONTACT_TYPE_CHOICES = [
@@ -165,6 +201,10 @@ class ContactType(models.Model):
     ContactTypeID = models.AutoField(db_column='ContactTypeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=CONTACT_TYPE_CHOICES, max_length=18)
 
+    class Meta:
+        verbose_name = 'Contact Type'
+        verbose_name_plural = 'Contact Types'
+
 
 PREFERRED_CONTACT_METHOD_CHOICES = [
     ('Email', 'Email'),
@@ -178,6 +218,10 @@ PREFERRED_CONTACT_METHOD_CHOICES = [
 class PreferredContactMethod(models.Model):
     PreferredContactMethodID = models.AutoField(db_column='PreferredContactMethodID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=PREFERRED_CONTACT_METHOD_CHOICES, max_length=15)
+
+    class Meta:
+        verbose_name = 'Preferred Contact Method'
+        verbose_name_plural = 'Preferred Contact Methods'
 
 
 ENGINEERING_REVIEW_TYPE_CHOICES = [
@@ -194,6 +238,10 @@ class EngineeringReviewType(models.Model):
     EngineeringReviewTypeID = models.AutoField(db_column='EngineeringReviewTypeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=ENGINEERING_REVIEW_TYPE_CHOICES, max_length=21)
 
+    class Meta:
+        verbose_name = 'Engineering Review Type'
+        verbose_name_plural = 'Engineering Review Types'
+
 
 REQUIREMENT_LEVEL_CHOICES = [
     ('Required', 'Required'),
@@ -205,6 +253,10 @@ REQUIREMENT_LEVEL_CHOICES = [
 class RequirementLevel(models.Model):
     RequirementLevelID = models.AutoField(db_column='RequirementLevelID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=REQUIREMENT_LEVEL_CHOICES, max_length=21)
+
+    class Meta:
+        verbose_name = 'Requirement Level'
+        verbose_name_plural = 'Requirement Levels'
 
 
 STAMP_TYPE_CHOICES = [
@@ -219,6 +271,10 @@ class StampType(models.Model):
     StampTypeID = models.AutoField(db_column='StampTypeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=STAMP_TYPE_CHOICES, max_length=7)
 
+    class Meta:
+        verbose_name = 'Stamp Type'
+        verbose_name_plural = 'Stamp Types'
+
 
 FEE_STRUCTURE_TYPE_CHOICES = [
     ('Flat', 'Flat'),
@@ -229,6 +285,10 @@ FEE_STRUCTURE_TYPE_CHOICES = [
 class FeeStructureType(models.Model):
     FeeStructureTypeID = models.AutoField(db_column='FeeStructureTypeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=FEE_STRUCTURE_TYPE_CHOICES, max_length=10)
+
+    class Meta:
+        verbose_name = 'Fee Structure Type'
+        verbose_name_plural = 'Fee Structure Types'
 
 
 INSPECTION_TYPE_CHOICES = [
@@ -243,3 +303,7 @@ INSPECTION_TYPE_CHOICES = [
 class InspectionType(models.Model):
     InspectionTypeID = models.AutoField(db_column='InspectionTypeID', primary_key=True)
     Value = models.CharField(db_column='Value', unique=True, choices=INSPECTION_TYPE_CHOICES, max_length=10)
+
+    class Meta:
+        verbose_name = 'Inspection Type'
+        verbose_name_plural = 'Inspection Types'
