@@ -15,11 +15,11 @@
     </div>
     <b-modal id="webpage-throttle-modal">
         <template #modal-title>
-            <h1 class='modal-title'>{{`Daily Search Limit Reached`}}</h1>
+            <h1 class='modal-title'>{{`Search Limit Reached`}}</h1>
         </template>
         <template v-if='!showMemberSupportText'>
           <p class='modal-text modal-primary-text'>Please become a SunSpec Alliance member to unlock unlimited webpage searches.</p>
-          <p class='modal-text modal-primary-text'>Learn more at <a href="https://sunspec.org" target="_blank">sunspec.org</a></p>
+          <p class='modal-text modal-help-text'>Contact <a href="mailto:membership@sunspec.org">membership@sunspec.org</a> to set up a membership.</p>
           <hr>
           <p class='modal-text modal-secondary-text' @click='showMemberSupportText = true'>I am a member</p>
         </template>
@@ -194,7 +194,7 @@ export default {
         document.querySelector('.introjs-nextbutton').style.display = '';
       }
     },
-    '$store.state.apiErrorStatusCode': function(newVal) {
+    '$store.state.apiErrorInfo.status': function(newVal) {
       if (newVal === 429){
         this.$bvModal.show('webpage-throttle-modal')
       }
