@@ -14,8 +14,7 @@ from .models import AHJ, Edit, Location, AHJUserMaintains
 from .serializers import AHJSerializer, EditSerializer, ContactSerializer, \
     EngineeringReviewRequirementSerializer, PermitIssueMethodUseSerializer, DocumentSubmissionMethodUseSerializer, \
     FeeStructureSerializer, AHJInspectionSerializer
-from .usf import ENUM_FIELDS, get_enum_value_row
-from .utils import get_elevation, get_enum_value_row_else_null
+from .utils import get_elevation, get_enum_value_row, get_enum_value_row_else_null, ENUM_FIELDS
 
 
 def add_edit(edit_dict: dict, ReviewStatus='P', ApprovedBy=None, DateEffective=None):
@@ -144,6 +143,9 @@ def apply_edits(ready_edits=None):
         edit_value = edit_get_old_new_value(edit, 'NewValue')
         setattr(row, edit.SourceColumn, edit_value)
         row.save()
+        edit.IsApplied = True
+        edit.save()
+        edit_update_old_value_all_awaiting_apply_or_review(edit)
         if edit.SourceTable == "Address":
             """
             Geocode Address objects to set Location fields.
@@ -173,14 +175,14 @@ def revert_edit(user, edit):
     The OldValue of the created edit is the current value of the edited field.
     """
     if edit.ReviewStatus == 'P':
-        return
+        return False
     current_value = edit_get_source_column_value(edit)
     if edit.EditType in {'A', 'D'}:
         next_value = not edit.NewValue
     else:
         next_value = edit.OldValue
     if current_value == next_value:
-        return
+        return False
     revert_edit_dict = {'User': user,
                         'AHJPK': edit.AHJPK,
                         'SourceTable': edit.SourceTable,
@@ -191,17 +193,7 @@ def revert_edit(user, edit):
                         'EditType': edit.EditType}
     e = add_edit(revert_edit_dict, ReviewStatus='A', ApprovedBy=user, DateEffective=timezone.now())
     apply_edits(ready_edits=[e])
-
-
-def edit_is_applied(edit):
-    """
-    Determines if an edit has been approved and applied.
-    Edits are applied if their ReviewStatus is 'A' for approved,
-    and if their DateEffective has passed.
-    """
-    edit_is_approved = edit.ReviewStatus == 'A'
-    date_effective_passed = edit.DateEffective is not None and edit.DateEffective.date() <= timezone.now().date()
-    return edit_is_approved and date_effective_passed
+    return True
 
 
 def edit_is_resettable(edit):
@@ -212,21 +204,33 @@ def edit_is_resettable(edit):
      - Approved and applied, but no other edits have been applied after it.
     """
     is_rejected = edit.ReviewStatus == 'R'
-    is_applied = edit_is_applied(edit)
-    is_approved_not_applied = edit.ReviewStatus == 'A' and not is_applied
-    is_latest_applied = is_applied and not Edit.objects.filter(SourceTable=edit.SourceTable, SourceRow=edit.SourceRow, SourceColumn=edit.SourceColumn,
-                                                               ReviewStatus='A', DateEffective__gt=edit.DateEffective).exists()
+    is_approved_not_applied = edit.ReviewStatus == 'A' and not edit.IsApplied
+    is_latest_applied = edit.IsApplied and not Edit.objects.filter(SourceTable=edit.SourceTable, SourceRow=edit.SourceRow, SourceColumn=edit.SourceColumn,
+                                                                   ReviewStatus='A', IsApplied=True, DateEffective__gt=edit.DateEffective).exists()
     return is_rejected or is_approved_not_applied or is_latest_applied
 
 
 def edit_make_pending(edit):
     """
-    Sets an edit to a pending approval or rejection state.
+    Sets an edit to pending (awaiting approval or rejection).
     """
     edit.ReviewStatus = 'P'
     edit.ApprovedBy = None
     edit.DateEffective = None
+    edit.IsApplied = False
     edit.save()
+
+
+def edit_update_old_value_all_awaiting_apply_or_review(edit):
+    """
+    Updates the OldValue of all pending or approved but not applied edits
+    that modify the same SourceRow and SourceColumn to the SourceColumn's current value.
+
+    :param edit: The reference edit to get the queryset for updating
+    """
+    current_value = edit_get_source_column_value(edit)
+    Edit.objects.filter(SourceTable=edit.SourceTable, SourceRow=edit.SourceRow, SourceColumn=edit.SourceColumn,
+                        IsApplied=False, ReviewStatus__in=['A', 'P']).update(OldValue=current_value)
 
 
 def edit_update_old_value(edit):
@@ -265,7 +269,7 @@ def reset_edit(user, edit, force_resettable=False, skip_undo=False):
     If an edit is not resettable, it is instead reverted.
     """
     if edit_is_resettable(edit) or force_resettable:
-        if (edit_is_applied(edit) or edit_is_rejected_addition(edit)) and not skip_undo:
+        if (edit.IsApplied or edit_is_rejected_addition(edit)) and not skip_undo:
             """
             If an edit was applied, its change must be undone. In addition, rejected edit
             additions set their SourceColumn False, so that must also be undone (see apply_edits).
@@ -274,8 +278,8 @@ def reset_edit(user, edit, force_resettable=False, skip_undo=False):
         else:
             edit_update_old_value(edit)
         edit_make_pending(edit)
-    elif edit.ReviewStatus == 'A':
-        revert_edit(user, edit)
+        return True
+    return False
 
 
 ####################
