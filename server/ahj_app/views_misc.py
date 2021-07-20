@@ -7,7 +7,7 @@ from django.conf import settings
 
 from .authentication import WebpageTokenAuth
 from .models import User, Comment, Edit
-from .utils import CommentSerializer, EditSerializer
+from .serializers import CommentSerializer, EditSerializer
 
 
 @api_view(['GET'])

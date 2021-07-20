@@ -461,9 +461,9 @@ def test_ahj_geo_location__search_array_has_ahj(list_of_ahjs, client_with_creden
 
 
 @pytest.mark.django_db
-def test_deactivate_expired_api_tokens(create_user):
-    token = APIToken.objects.create(user=create_user(),
-                                    expires=timezone.now() - datetime.timedelta(days=1),
-                                    is_active=True)
+def test_deactivate_expired_api_tokens(create_user_with_active_api_token):
+    user = create_user_with_active_api_token()
+    user.api_token.expires = timezone.now() - datetime.timedelta(days=1)
+    user.api_token.save()
     views_ahjsearch_api.deactivate_expired_api_tokens()
-    assert APIToken.objects.get(user=token.user).is_active is False
+    assert APIToken.objects.get(user=user).is_active is False

@@ -1,5 +1,5 @@
 from django.urls import reverse
-from ahj_app.models import User, Contact, AHJUserMaintains, PreferredContactMethod, WebpageToken
+from ahj_app.models import User, Contact, AHJUserMaintains, PreferredContactMethod, WebpageToken, APIToken
 from fixtures import *
 import pytest
 from django.conf import settings
@@ -7,6 +7,55 @@ from django.conf import settings
 """
     User View Endpoints
 """
+
+
+def register_user_dict():
+    return {'FirstName': 'first', 'MiddleName': 'middle', 'LastName': 'last',
+            'Title': 'title', 'Email': 'email@email.email', 'WorkPhone': '123-456-7890',
+            'PreferredContactMethod': 'Email', 'ContactTimezone': 'PST',
+            'Username': 'username', 'password': '#$()asdf!@{}1'}
+
+
+@pytest.mark.parametrize(
+    'fields_to_set, response_code', [
+        ({}, 201),
+        ({'MiddleName': '', 'Title': '', 'WorkPhone': '', 'PreferredContactMethod': '', 'ContactTimezone': ''}, 201),
+        ({'FirstName': ''}, 400),
+        ({'LastName': ''}, 400),
+        ({'Email': ''}, 400),
+        ({'Username': ''}, 400),
+        ({'password': ''}, 400)
+    ]
+)
+@pytest.mark.django_db
+def test_register_user(fields_to_set, response_code, api_client, add_enum_value_rows):
+    user_dict = register_user_dict()
+    for k, v in fields_to_set.items():
+        user_dict[k] = v
+    url = reverse('djoser:user-list')
+    response = api_client.post(url, user_dict, format='json')
+    assert response.status_code == response_code
+    if response_code == 201:
+        result = response.data
+        user_fields_to_match = {*result.keys()}.intersection(user_dict.keys())
+        contact_fields_to_match = {*result['ContactID'].keys()}.intersection(user_dict.keys())
+        assert all(user_dict[field] == result[field] for field in user_fields_to_match)
+        assert all(user_dict[field] == result['ContactID'][field]['Value'] for field in contact_fields_to_match)
+        user = User.objects.get(UserID=result['UserID'])
+        assert user.is_active is False
+        api_token = APIToken.objects.get(user=user)
+        assert api_token.is_active is False
+        assert api_token.expires is None
+
+
+@pytest.mark.django_db
+def test_register_user__missing_fields(api_client, add_enum_value_rows):
+    user_dict = register_user_dict()
+    url = reverse('djoser:user-list')
+    for field in user_dict.keys():
+        response = api_client.post(url, {k: v for k, v in user_dict.items() if k != field}, format='json')
+        assert response.status_code == 400
+
 
 @pytest.mark.django_db
 def test_get_active_user(client_with_webpage_credentials):

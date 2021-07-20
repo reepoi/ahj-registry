@@ -169,7 +169,7 @@ def delete_toggle_api_token(user, toggle=None, delete=False):
     """
     Modifies a user's API token by either deleting it or toggling it on/off.
     """
-    if not hasattr(user, 'api_token'):
+    if not APIToken.objects.filter(user=user):
         return
     if delete:
         user.api_token.delete()

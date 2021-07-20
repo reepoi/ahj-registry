@@ -36,10 +36,11 @@ def create_user(db, django_user_model):
     return make_user
 
 @pytest.fixture
-def create_user_with_api_token(create_user):
+def create_user_with_active_api_token(create_user):
     def make_user(**kwargs):
         user = create_user(**kwargs)
-        APIToken.objects.create(user=user)
+        user.api_token.is_active = True
+        user.api_token.save()
         return user
     return make_user
 
@@ -71,11 +72,9 @@ def generate_client_with_webpage_credentials(db, create_user, api_client):
     return generate_client
 
 @pytest.fixture
-def client_with_api_credentials(db, create_user, api_client):
-   user = create_user()
-   #User.objects.filter(UserID=user.UserID).update(is_active = True)
-   token = APIToken.objects.create(user=user)
-   api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+def client_with_api_credentials(db, create_user_with_active_api_token, api_client):
+   user = create_user_with_active_api_token()
+   api_client.credentials(HTTP_AUTHORIZATION='Token ' + user.api_token.key)
    return api_client
 
 @pytest.fixture
@@ -136,6 +135,39 @@ def create_minimal_obj(db):
                          'FeeStructure': {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}}}
         return create_obj_from_dict(model_name, minimal_dicts[model_name])
     return get_minimal_obj
+
+
+ENUM_FIELDS = {
+    'BuildingCode',
+    'ElectricCode',
+    'FireCode',
+    'ResidentialCode',
+    'WindCode',
+    'AHJLevelCode',
+    'DocumentSubmissionMethod',
+    'PermitIssueMethod',
+    'AddressType',
+    'LocationDeterminationMethod',
+    'LocationType',
+    'ContactType',
+    'PreferredContactMethod',
+    'EngineeringReviewType',
+    'RequirementLevel',
+    'StampType',
+    'FeeStructureType',
+    'InspectionType'
+}
+
+
+@pytest.fixture
+def add_enum_value_rows():
+    """
+    Adds all enum values to their enum tables.
+    """
+    for field in ENUM_FIELDS:
+        model = apps.get_model('ahj_app', field)
+        model.objects.all().delete()
+        model.objects.bulk_create([model(Value=choice[0]) for choice in model._meta.get_field('Value').choices])
 
 
 """
