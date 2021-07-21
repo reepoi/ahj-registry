@@ -4,7 +4,6 @@ from fixtures import *
 import pytest
 import datetime
 
-from ahj_app.models import Contact
 
 
 @pytest.fixture
