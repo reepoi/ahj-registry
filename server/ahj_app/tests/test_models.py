@@ -6,14 +6,6 @@ import datetime
 
 from ahj_app.models import Contact
 
-
-@pytest.fixture
-def mpoly_obj():
-    p1 = geosPolygon( ((0, 0), (0, 1), (1, 1), (0, 0)) )
-    p2 = geosPolygon( ((1, 1), (1, 2), (2, 2), (1, 1)) )
-    mp = MultiPolygon(p1, p2)
-    return mp
-
 def create_ahj(ahjpk, ahjid, mpoly_obj):
     polygon = Polygon.objects.create(Polygon=mpoly_obj, LandArea=1, WaterArea=1, InternalPLatitude=1, InternalPLongitude=1)
     address = Address.objects.create()
