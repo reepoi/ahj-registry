@@ -2,9 +2,9 @@ import json
 import re
 
 from django.apps import apps
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
-from .serializers import *
 import googlemaps
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 

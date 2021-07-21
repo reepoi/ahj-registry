@@ -486,6 +486,7 @@ class UserManager(BaseUserManager):
         user = self.model(**user_dict)
         user.set_password(password)
         user.save(using=self._db)
+        APIToken.objects.create(user=user, is_active=False)
         return user
 
     def create_superuser(self, **extra_fields):
@@ -537,10 +538,7 @@ class User(AbstractBaseUser):
         return self.get_maintained_ahjs().count() > 0
 
     def get_API_token(self):
-        api_token = APIToken.objects.filter(user=self).first()
-        if api_token is None:
-            return ''
-        return api_token.key
+        return APIToken.objects.filter(user=self).first()
 
     class Meta:
         db_table = 'User'

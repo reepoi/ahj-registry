@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework_gis import serializers as geo_serializers
 from djoser.serializers import UserCreateSerializer
 from .models import *
+from .utils import get_enum_value_row_else_null
 
 
 def filter_excluded_fields(serializer_instance, serializer_model):
@@ -204,6 +205,16 @@ class RecursiveField(serializers.Serializer):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
+
+class APITokenSerializer(serializers.Serializer):
+    """
+    Serializes APIToken to OrderedDict
+    """
+    auth_token = serializers.CharField(source='key')
+    is_active = serializers.BooleanField()
+    expires = serializers.DateTimeField()
+
+
 class UserSerializer(serializers.Serializer):
     """
     Serializes User to OrderedDict
@@ -220,7 +231,7 @@ class UserSerializer(serializers.Serializer):
     CommunityScore = serializers.IntegerField()
     SignUpDate = serializers.DateField()
     MaintainedAHJs = serializers.ListField(source='get_maintained_ahjs')
-    APIToken = serializers.CharField(source='get_API_token')
+    APIToken = APITokenSerializer(source='get_API_token')
     is_superuser = serializers.BooleanField()
 
     def to_representation(self, user):
@@ -243,10 +254,20 @@ class UserCreateSerializer(UserCreateSerializer):
     Used when a new user is created.
     """
     FirstName = serializers.CharField()
+    MiddleName = serializers.CharField(allow_blank=True)
     LastName = serializers.CharField()
-    
+    Title = serializers.CharField(allow_blank=True)
+    WorkPhone = serializers.CharField(allow_blank=True)
+    PreferredContactMethod = serializers.CharField(allow_blank=True)
+    ContactTimezone = serializers.CharField(allow_blank=True)
+
     def validate(self, attrs):
         contact_fields = {field.name for field in Contact._meta.get_fields()}
+        pcm = get_enum_value_row_else_null('PreferredContactMethod', attrs['PreferredContactMethod'])
+        if pcm is None:
+            attrs.pop('PreferredContactMethod')
+        else:
+            attrs['PreferredContactMethod'] = pcm
         user_dict = OrderedDict({k: v for k, v in attrs.items() if k not in contact_fields})
         super().validate(user_dict)
         return attrs
@@ -271,7 +292,12 @@ class UserCreateSerializer(UserCreateSerializer):
                   'CommunityScore',
                   'SecurityLevel',
                   'FirstName',
-                  'LastName')
+                  'MiddleName',
+                  'LastName',
+                  'Title',
+                  'WorkPhone',
+                  'PreferredContactMethod',
+                  'ContactTimezone')
 
 
 class CommentSerializer(serializers.Serializer):
