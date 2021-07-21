@@ -151,12 +151,11 @@ def apply_edits(ready_edits=None):
             addr_string = create_addr_string(row)
             if addr_string != '':
                 loc = get_elevation(create_addr_string(row))
-                location = Location.objects.get(LocationID=row.LocationID.LocationID)
+                location = row.LocationID
                 location.Elevation = loc['Elevation']['Value']
                 location.Longitude = loc['Longitude']['Value']
                 location.Latitude = loc['Latitude']['Value']
                 location.save()
-
     # If an addition edit is rejected, set its status false
     rejected_addition_edits = Edit.objects.filter(ReviewStatus='R',
                                                   EditType='A',
