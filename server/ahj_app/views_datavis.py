@@ -12,6 +12,9 @@ from .utils import dictfetchall
 
 @api_view(['GET'])
 def data_map(request):
+    """
+    Provides data for the data coverage visualization in the client app.
+    """
     try:
         state_pk = request.query_params.get('StatePK', None)
         polygon_columns = 'Polygon.PolygonID, InternalPLatitude, InternalPLongitude, Name'
@@ -61,6 +64,7 @@ def data_map(request):
 def data_map_get_polygon(request):
     """
     Returns a polygon in GeoJSON given its ID
+    from the request's PolygonID query parameter.
     """
     try:
         return Response(PolygonSerializer(Polygon.objects.get(PolygonID=request.query_params.get('PolygonID', None))).data, status=status.HTTP_200_OK)

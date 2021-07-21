@@ -40,20 +40,26 @@ class PolygonSerializer(geo_serializers.GeoFeatureModelSerializer):
 
 class OrangeButtonSerializer(serializers.Field):
     """
-    Custom serializer to add the Orange Button
-    primitives to each field.
-    "<field_name>": {
-        "Value": "<value>,
-        ...
-    }
+    Custom serializer to add the Orange Button primitives to each field.
+    Below is example JSON:
+    
+    .. code-block:: json
+
+        {
+            "<field_name>": {
+                "Value": "<value>"
+            }
+        }
+
+    Currently, only Orange Button's **Value** primitive is added.
     """
     def get_attribute(self, instance):
         """
         Overridden method for correctly adding
         Orange Button primitives even when the
-        field's value is null
+        field's value is null.
         Otherwise, this class' to_representation
-        will not be called by the caller serializer
+        will not be called by the calling serializer.
         """
         attribute = super().get_attribute(instance)
         if attribute is None:
