@@ -47,44 +47,43 @@ class AHJ(models.Model):
 
 
     def get_contacts(self):
-        return [contact for contact in Contact.objects.filter(ParentTable='AHJ', ParentID=self.AHJPK) if contact.ContactStatus is True]
+        return Contact.objects.filter(ParentTable='AHJ', ParentID=self.AHJPK, ContactStatus=True)
 
     def get_unconfirmed(self):
-        return [contact for contact in Contact.objects.filter(ParentTable='AHJ', ParentID=self.AHJPK) if contact.ContactStatus is None]
+        return Contact.objects.filter(ParentTable='AHJ', ParentID=self.AHJPK, ContactStatus=None)
 
     def get_comments(self):
-        return [comment for comment in Comment.objects.filter(AHJPK=self.AHJPK).order_by('-Date')]
+        return Comment.objects.filter(AHJPK=self.AHJPK).order_by('-Date')
 
     def get_inspections(self):
-        return [ins for ins in AHJInspection.objects.filter(AHJPK=self.AHJPK) if ins.InspectionStatus is True]
+        return AHJInspection.objects.filter(AHJPK=self.AHJPK, InspectionStatus=True)
 
     def get_unconfirmed_inspections(self):
-        return [ins for ins in AHJInspection.objects.filter(AHJPK=self.AHJPK) if ins.InspectionStatus is None]
-
+        return AHJInspection.objects.filter(AHJPK=self.AHJPK, InspectionStatus=None)
 
     def get_document_submission_methods(self):
-        return [dsm for dsm in AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK) if dsm.MethodStatus is True]
+        return AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK, MethodStatus=True)
 
     def get_uncon_dsm(self):
-        return [dsm for dsm in AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK) if dsm.MethodStatus is None]
+        return AHJDocumentSubmissionMethodUse.objects.filter(AHJPK=self.AHJPK, MethodStatus=None)
 
     def get_permit_submission_methods(self):
-        return [pim for pim in AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK) if pim.MethodStatus is True]
+        return AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK, MethodStatus=True)
 
     def get_uncon_pim(self):
-        return [pim for pim in AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK) if pim.MethodStatus is None]
+        return AHJPermitIssueMethodUse.objects.filter(AHJPK=self.AHJPK, MethodStatus=None)
 
     def get_err(self):
-        return[err for err in EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK) if err.EngineeringReviewRequirementStatus is True]
+        return EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK, EngineeringReviewRequirementStatus=True)
 
     def get_uncon_err(self):
-        return[err for err in EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK) if err.EngineeringReviewRequirementStatus is None]
+        return EngineeringReviewRequirement.objects.filter(AHJPK=self.AHJPK, EngineeringReviewRequirementStatus=None)
 
     def get_fee_structures(self):
-        return [fs for fs in FeeStructure.objects.filter(AHJPK=self.AHJPK) if fs.FeeStructureStatus is True]
+        return FeeStructure.objects.filter(AHJPK=self.AHJPK, FeeStructureStatus=True)
 
     def get_uncon_fs(self):
-        return [fs for fs in FeeStructure.objects.filter(AHJPK=self.AHJPK) if fs.FeeStructureStatus is None]
+        return FeeStructure.objects.filter(AHJPK=self.AHJPK, FeeStructureStatus=None)
 
     SERIALIZER_EXCLUDED_FIELDS = ['Polygon', 'AHJPK', 'Comments', 'UnconfirmedContacts', 'UnconfirmedEngineeringReviewRequirements', 'UnconfirmedDocumentSubmissionMethods', 'UnconfirmedPermitIssueMethods', 'UnconfirmedInspections', 'UnconfirmedFeeStructures']
 
@@ -98,7 +97,7 @@ class Comment(models.Model):
     history = HistoricalRecords()
 
     def get_replies(self):
-        return [comment for comment in Comment.objects.filter(ReplyingTo=self.CommentID).order_by('-Date')]
+        return Comment.objects.filter(ReplyingTo=self.CommentID).order_by('-Date')
 
     class Meta:
         managed = True
@@ -182,11 +181,12 @@ class AHJInspection(models.Model):
     TechnicianRequired = models.BooleanField(db_column='TechnicianRequired', null=True)
     InspectionStatus = models.BooleanField(db_column='InspectionStatus', null=True)
     history = HistoricalRecords()
+
     def get_contacts(self):
-        return [contact for contact in Contact.objects.filter(ParentTable='AHJInspection', ParentID=self.InspectionID) if contact.ContactStatus is True]
+        return Contact.objects.filter(ParentTable='AHJInspection', ParentID=self.InspectionID, ContactStatus=True)
 
     def get_uncon_con(self):
-        return [contact for contact in Contact.objects.filter(ParentTable='AHJInspection', ParentID=self.InspectionID) if contact.ContactStatus is None]
+        return Contact.objects.filter(ParentTable='AHJInspection', ParentID=self.InspectionID, ContactStatus=None)
 
     def create_relation_to(self, to):
         if to.__class__.__name__ == 'AHJ':
@@ -248,9 +248,10 @@ class Edit(models.Model):
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1, default='P')
     OldValue = models.CharField(db_column='OldValue', max_length=255, blank=True, null=True)
     NewValue = models.CharField(db_column='NewValue', max_length=255, blank=True, null=True)
-    DateRequested = models.DateTimeField(db_column='DateRequested')
-    DateEffective = models.DateTimeField(db_column='DateEffective', blank=True, null=True)
-    #Edit type: A = addition, D = deletion, U = update
+    DateRequested = models.DateTimeField(db_column='DateRequested', db_index=True)
+    DateEffective = models.DateTimeField(db_column='DateEffective', blank=True, null=True, db_index=True)
+    IsApplied = models.BooleanField(db_column='IsApplied', default=False)
+    # Edit type: A = addition, D = deletion, U = update
     EditType = models.CharField(db_column='EditType', max_length=1, default='U')
     DataSourceComment = models.CharField(db_column='DataSourceComment', max_length=255, blank=True)
     history = HistoricalRecords()
@@ -531,10 +532,10 @@ class User(AbstractBaseUser):
         return "Email"
 
     def get_maintained_ahjs(self):
-        return [ahjpk.AHJPK.AHJPK for ahjpk in AHJUserMaintains.objects.filter(UserID=self).filter(MaintainerStatus=True)]
+        return AHJUserMaintains.objects.filter(UserID=self, MaintainerStatus=True).values_list('AHJPK__AHJPK')
 
     def is_ahj_official(self):
-        return len(self.get_maintained_ahjs()) > 0
+        return self.get_maintained_ahjs().count() > 0
 
     def get_API_token(self):
         return APIToken.objects.filter(user=self).first()
