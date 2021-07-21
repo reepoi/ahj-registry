@@ -77,8 +77,8 @@ state: {
                 url += queryPayload['Pagination'];
             }
 
-            // if ahj search api was called by AHJSearchFilter, check if there was a regioin searched too
-            if (queryPayload['callerID'] === 'searchpagefilter' && state.searchedGeoJSON) {
+            // check if there was a region searched
+            if (state.searchedGeoJSON) {
                 queryPayload['FeatureCollection'] = state.searchedGeoJSON;
             }
             let headers = {};
@@ -140,7 +140,7 @@ state: {
           state.resultsDownloading = true;
           let gatherAllObjects = function(url, headers, searchPayload, ahjJSONObjs, offset) {
             if (url === null) {
-              let filename = "results";
+              let filename = `${new Date().toUTCString()}_results`;
               let fileToExport = null;
               if (fileType === "application/json") {
                 fileToExport = JSON.stringify(ahjJSONObjs, null, 2);

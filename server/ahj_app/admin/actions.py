@@ -10,7 +10,7 @@ from django.utils import timezone
 from .form import UserResetPasswordForm, UserDeleteToggleAPITokenForm, EditApproveForm, UserGenerateAPITokenForm
 from ..models import User, APIToken, Edit, AHJUserMaintains, Comment
 from ..usf import dict_filter_keys_start_with, ENUM_FIELDS
-from ..views_edits import apply_edits, reset_edit, edit_is_resettable
+from ..views_edits import apply_edits, reset_edit, edit_is_resettable, revert_edit
 
 
 def get_value_or_primary_key(obj, field):
@@ -176,7 +176,7 @@ def delete_toggle_api_token(user, toggle=None, delete=False):
     """
     Modifies a user's API token by either deleting it or toggling it on/off.
     """
-    if not hasattr(user, 'api_token'):
+    if not APIToken.objects.filter(user=user):
         return
     if delete:
         user.api_token.delete()
@@ -463,7 +463,7 @@ def edit_roll_back_edits(self, request, queryset):
         The form has been filled out and submitted.
         """
         for edit in non_resettable_edits:
-            reset_edit(request.user, edit)
+            revert_edit(request.user, edit)
         for edit in resettable_edits:
             revert_occurred = not edit_is_resettable(edit)
             reset_edit(request.user, edit, force_resettable=revert_occurred, skip_undo=revert_occurred)
