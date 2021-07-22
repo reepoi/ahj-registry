@@ -1,27 +1,27 @@
 admin
-======================
+=====
 
 Submodules
 ----------
 
-actions
------------------------------
+actions.py
+----------
 
 .. automodule:: ahj_app.admin.actions
    :members:
    :undoc-members:
    :show-inheritance:
 
-admin
----------------------------
+admin.py
+--------
 
 .. automodule:: ahj_app.admin.admin
    :members:
    :undoc-members:
    :show-inheritance:
 
-form
---------------------------
+form.py
+-------
 
 .. automodule:: ahj_app.admin.form
    :members:

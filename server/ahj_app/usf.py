@@ -298,7 +298,7 @@ def add_enum_values():
 def is_zero_depth_field(name):
     """
     Checks if a field name has one dot in it.
-    For example, the string :code:`'BuildingCode.Value'` has one dot.
+    For example, the string ``'BuildingCode.Value'`` has one dot.
     """
     if name.find('.') != -1 and name.find('.') == name.rfind('.'):
         return True
@@ -371,7 +371,7 @@ def create_contact(contact_dict):
 def enum_values_to_primary_key(ahj_dict):
     """
     Replace enum values in a dict with the row of the value in its enum model.
-    For example, :code:`'2021IBC'` is translated to the object :code:`BuildingCode.objects.get(Value='2021IBC')`.
+    For example, ``'2021IBC'`` is translated to the object ``BuildingCode.objects.get(Value='2021IBC')``.
     """
     for field in ahj_dict:
         if type(ahj_dict[field]) is dict:

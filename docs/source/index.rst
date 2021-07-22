@@ -10,7 +10,8 @@ Welcome to AHJ Registry's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   user/modules
+   developer/modules
 
 
 

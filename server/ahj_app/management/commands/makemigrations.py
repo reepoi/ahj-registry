@@ -1,5 +1,5 @@
 """
-Have :code:`python3 manage.py makemigrations` ignore additions and changes
+Have ``python3 manage.py makemigrations`` ignore additions and changes
 for certain attributes of the fields of Django models.
 
 Taken from the comment of this GitHub `gist`_.

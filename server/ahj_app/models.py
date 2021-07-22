@@ -103,6 +103,9 @@ class AHJ(models.Model):
     SERIALIZER_EXCLUDED_FIELDS = ['Polygon', 'AHJPK', 'Comments', 'UnconfirmedContacts', 'UnconfirmedEngineeringReviewRequirements', 'UnconfirmedDocumentSubmissionMethods', 'UnconfirmedPermitIssueMethods', 'UnconfirmedInspections', 'UnconfirmedFeeStructures']
 
 class Comment(models.Model):
+    """
+    Stores comments made by users on the AHJPage.
+    """
     CommentID = models.AutoField(db_column='CommentID', primary_key=True)
     UserID = models.ForeignKey('User', on_delete=models.DO_NOTHING, db_column='UserID')
     CommentText = models.TextField(db_column='CommentText', null=True, blank=True)
@@ -432,8 +435,8 @@ class Polygon(models.Model):
     Name = models.CharField(db_column='Name', max_length=100,
                             help_text="""Name of the jurisdiction the polygon represents. Census name: NAME.""")
     GEOID = models.CharField(db_column='GEOID', max_length=10,
-                             help_text="""Geographic identifier for County, City, CountySubdivision, and State."""
-                                       """ :code:`max_length=10` to accommodate all different lengths of GEOID. Census name: GEOID.""")
+                             help_text="""Geographic identifier for County, City, CountySubdivision, and State. """
+                                       """``max_length=10`` to accommodate all different lengths of GEOID. Census name: GEOID.""")
     Polygon = models.MultiPolygonField(db_column='Polygon', help_text="""MySQL MultiPolygon of the jurisdiction. Census name: MULTIPOLYGON.""")
     LandArea = models.BigIntegerField(db_column='LandArea', help_text="""Land area of the jurisdiction. Census name: ALAND.""")
     WaterArea = models.BigIntegerField(db_column='WaterArea', help_text="""Water area of the jurisdiction. Census name: AWATER.""")
@@ -464,7 +467,8 @@ class CountyPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
     StatePolygonID = models.ForeignKey('StatePolygon', models.DO_NOTHING, db_column='StatePolygonID')
     LSAreaCodeName = models.CharField(db_column='LSAreaCodeName', max_length=100,
-                                      help_text="""NAMELSAD: Name concatenated with the Legal/Statistical Area Description (LSAD) Description.""")
+                                      help_text="""NAMELSAD: Name concatenated with the Legal/Statistical Area Description (LSAD) Description. """
+                                                """This field is matched to the original AHJNames from NREL to pair CityPolygons to their AHJs.""")
     history = HistoricalRecords()
 
     class Meta:
@@ -477,7 +481,8 @@ class CityPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
     StatePolygonID = models.ForeignKey('StatePolygon', models.DO_NOTHING, db_column='StatePolygonID')
     LSAreaCodeName = models.CharField(db_column='LSAreaCodeName', max_length=100,
-                                      help_text="""Name concatenated with the Legal/Statistical Area Description (LSAD) Description. Census name: NAMELSAD.""")
+                                      help_text="""Name concatenated with the Legal/Statistical Area Description (LSAD) Description. Census name: NAMELSAD. """
+                                                """This field is matched to the original AHJNames from NREL to pair CityPolygons to their AHJs.""")
     history = HistoricalRecords()
 
     class Meta:
@@ -490,7 +495,8 @@ class CountySubdivisionPolygon(models.Model):
     PolygonID = models.OneToOneField('Polygon', models.DO_NOTHING, db_column='PolygonID', primary_key=True)
     StatePolygonID = models.ForeignKey('StatePolygon', models.DO_NOTHING, db_column='StatePolygonID')
     LSAreaCodeName = models.CharField(db_column='LSAreaCodeName', max_length=100,
-                                      help_text="""Name concatenated with the Legal/Statistical Area Description (LSAD) Description. Census name: NAMELSAD.""")
+                                      help_text="""Name concatenated with the Legal/Statistical Area Description (LSAD) Description. Census name: NAMELSAD. """
+                                                """This field is matched to the original AHJNames from NREL to pair CityPolygons to their AHJs.""")
     history = HistoricalRecords()
 
     class Meta:

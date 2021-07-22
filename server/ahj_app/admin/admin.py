@@ -111,7 +111,7 @@ def get_queryset(self, request):
 
         <field>=<value>,...,<value> (i.e. 'UserID=1,2,3')
 
-    These parameter pairs are removed from the GET data before calling :code:`super().get_queryset` so
+    These parameter pairs are removed from the GET data before calling ``super().get_queryset`` so
     that the queryset it returns is not filtered.
     """
     field_names = {field.name for field in self.model._meta.fields}
@@ -141,7 +141,7 @@ def get_default_model_admin_class(model, geo=False):
 
     .. _get_queryset: https://docs.djangoproject.com/en/3.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_queryset
 
-    If **geo** = :code:`True`, then creates a OSMGeoAdmin for a nicer view of the GIS features.
+    If **geo** = ``True``, then creates a OSMGeoAdmin for a nicer view of the GIS features.
     """
     model_fields = [field for field in model._meta.fields]
     if geo:
@@ -183,7 +183,7 @@ def create_admin_get_attr_function(name, dotted_path, admin_order_field, short_d
 
 def get_attr_info_dict(name, dotted_path, admin_order_field, short_description):
     """
-    Returns a dict with keys :code:`name, dotted_path, admin_order_field, short_description`
+    Returns a dict with keys ``name, dotted_path, admin_order_field, short_description``
     whose values are the corresponding parameters.
     """
     return {

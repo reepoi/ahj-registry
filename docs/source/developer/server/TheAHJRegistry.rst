@@ -1,11 +1,11 @@
 TheAHJRegistry
-======================
+==============
 
 Submodules
 ----------
 
 asgi.py
---------------------------
+-------
 
 .. automodule:: TheAHJRegistry.asgi
    :members:
@@ -13,7 +13,7 @@ asgi.py
    :show-inheritance:
 
 settings.py
-------------------------------
+-----------
 
 .. automodule:: TheAHJRegistry.settings
    :members:
@@ -21,7 +21,7 @@ settings.py
    :show-inheritance:
 
 urls.py
---------------------------
+-------
 
 .. automodule:: TheAHJRegistry.urls
    :members:
@@ -29,7 +29,7 @@ urls.py
    :show-inheritance:
 
 wsgi.py
---------------------------
+-------
 
 .. automodule:: TheAHJRegistry.wsgi
    :members:

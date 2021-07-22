@@ -105,7 +105,7 @@ def partition_by_field(queryset, field, value):
 
 def set_date_from_str(date_str):
     """
-    Returns a date object from a string formatted in :code:`%Y-%m-%d`.
+    Returns a date object from a string formatted in ``%Y-%m-%d``.
     """
     try:
         return timezone.make_aware(datetime.datetime.strptime(date_str, '%Y-%m-%d'))
@@ -115,7 +115,7 @@ def set_date_from_str(date_str):
 
 def process_generate_api_token_data(post_data):
     """
-    This expects the post_data to contain an array called :code:`user_to_form`.
+    This expects the post_data to contain an array called ``user_to_form``.
     Each item in this array is of the form:
 
     .. code-block:: python
@@ -188,8 +188,7 @@ def delete_toggle_api_token(user, toggle=None, delete=False):
 
 def set_toggle(form_value):
     """
-    Converts the input values on an HTML dropdown with values :code:`On, Off, DoNothing`
-    to boolean values.
+    Converts the input values on an HTML dropdown with values ``On, Off, DoNothing`` to boolean values.
     """
     if form_value == 'On':
         return True
@@ -202,7 +201,7 @@ def set_toggle(form_value):
 def set_delete(form_value):
     """
     Used with an HTML checkbox input.
-    Return :code:`True` if **form_value** is :code:`on`.
+    Return ``True`` if **form_value** is ``on``.
     """
     if form_value == 'on':
         return True
@@ -211,7 +210,7 @@ def set_delete(form_value):
 
 def process_delete_toggle_api_token_data(post_data):
     """
-    This expects the post_data to contain an array called :code:`user_to_form`.
+    This expects the post_data to contain an array called ``user_to_form``.
     Each item in this array is of the form:
 
     .. code-block:: python
@@ -370,7 +369,7 @@ user_query_submitted_comments.short_description = 'Query Submitted Comments'
 
 def process_approve_edits_data(post_data, requesting_user):
     """
-    This expects the post_data to contain an array called :code:`edit_to_form`.
+    This expects the post_data to contain an array called ``edit_to_form``.
     Each item in this array is of the form:
 
     .. code-block:: python

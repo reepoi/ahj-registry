@@ -20,7 +20,7 @@ from .utils import order_ahj_list_AHJLevelCode_PolygonLandArea, filter_ahjs, get
 
 def deactivate_expired_api_tokens():
     """
-    Sets the :code:`is_active` field to :code:`False` for APIToken rows whose :code:`expires` date has passed.
+    Sets the ``is_active`` field to ``False`` for APIToken rows whose ``expires`` date has passed.
     """
     APIToken.objects.filter(is_active=True, expires__lte=timezone.now()).update(is_active=False)
 

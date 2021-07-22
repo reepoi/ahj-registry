@@ -34,6 +34,7 @@ release = '2.1.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.extlinks',
     'sphinx.ext.autodoc',
     'sphinxcontrib_django'
 ]
@@ -54,13 +55,33 @@ exclude_patterns = []
 #
 html_theme = 'sphinx_rtd_theme'
 
+html_context = {
+    'display_github': True,
+    'github_user': 'SunSpecOrangeButton',
+    'github_repo': 'ahj-registry',
+    'github_version': 'HEAD',
+    'conf_py_path': '/docs/source/',
+    'source_suffix': '.rst'
+}
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_favicon = f'{html_static_path[0]}/favicon.ico'
 
 # -- Options for code-block syntax highlighting ------------------------------
 
 # Set to none to allow for plain text literal blocks with '::'
 # For code syntax highlighting, use '.. code-block:: <language; (default is python)>'
 highlight_language = 'none'
+
+# -- External link aliases ---------------------------------------------------
+
+# Note the key names must be all lowercase
+extlinks = {'orangebuttonio': ('https://orangebutton.io/', None),
+            'obeditor': ('https://obeditor.sunspec.org/', None),
+            'obeditorview': ('https://obeditor.sunspec.org/#/?views=%s', '%s'),
+            'ahjregistry': ('https://ahjregistry.sunspec.org/', None),
+            'censusshapefiles': ('https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html', None)}

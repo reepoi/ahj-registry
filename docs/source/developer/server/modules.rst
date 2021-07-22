@@ -2,7 +2,8 @@ server
 ======
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
+   :caption: Apps and Modules:
 
    ahj_app
    TheAHJRegistry

@@ -1,11 +1,11 @@
 ahj\_app
-================
+========
 
 Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    ahj_app.admin
    ahj_app.middleware
@@ -15,7 +15,7 @@ Submodules
 ----------
 
 apps.py
---------------------
+-------
 
 .. automodule:: ahj_app.apps
    :members:
@@ -23,7 +23,7 @@ apps.py
    :show-inheritance:
 
 authentication.py
-------------------------------
+-----------------
 
 .. automodule:: ahj_app.authentication
    :members:
@@ -31,21 +31,21 @@ authentication.py
    :show-inheritance:
 
 models.py
-----------------------
+---------
 
 .. automodule:: ahj_app.models
    :members:
    :show-inheritance:
 
 models\_field\_enums.py
-------------------------------------
+-----------------------
 
 .. automodule:: ahj_app.models_field_enums
    :members:
    :show-inheritance:
 
 permissions.py
----------------------------
+--------------
 
 .. automodule:: ahj_app.permissions
    :members:
@@ -53,7 +53,7 @@ permissions.py
    :show-inheritance:
 
 serializers.py
----------------------------
+--------------
 
 .. automodule:: ahj_app.serializers
    :members:
@@ -61,7 +61,7 @@ serializers.py
    :show-inheritance:
 
 tests.py
----------------------
+--------
 
 .. automodule:: ahj_app.tests
    :members:
@@ -69,7 +69,7 @@ tests.py
    :show-inheritance:
 
 urls.py
---------------------
+-------
 
 .. automodule:: ahj_app.urls
    :members:
@@ -77,7 +77,7 @@ urls.py
    :show-inheritance:
 
 usf.py
--------------------
+------
 
 .. automodule:: ahj_app.usf
    :members:
@@ -85,7 +85,7 @@ usf.py
    :show-inheritance:
 
 utils.py
----------------------
+--------
 
 .. automodule:: ahj_app.utils
    :members:
@@ -93,7 +93,7 @@ utils.py
    :show-inheritance:
 
 views\_ahjsearch.py
---------------------------------
+-------------------
 
 .. automodule:: ahj_app.views_ahjsearch
    :members:
@@ -101,7 +101,7 @@ views\_ahjsearch.py
    :show-inheritance:
 
 views\_ahjsearch\_api.py
--------------------------------------
+------------------------
 
 .. automodule:: ahj_app.views_ahjsearch_api
    :members:
@@ -109,7 +109,7 @@ views\_ahjsearch\_api.py
    :show-inheritance:
 
 views\_datavis.py
-------------------------------
+-----------------
 
 .. automodule:: ahj_app.views_datavis
    :members:
@@ -117,7 +117,7 @@ views\_datavis.py
    :show-inheritance:
 
 views\_edits.py
-----------------------------
+---------------
 
 .. automodule:: ahj_app.views_edits
    :members:
@@ -125,7 +125,7 @@ views\_edits.py
    :show-inheritance:
 
 views\_misc.py
----------------------------
+--------------
 
 .. automodule:: ahj_app.views_misc
    :members:
@@ -133,7 +133,7 @@ views\_misc.py
    :show-inheritance:
 
 views\_users.py
-----------------------------
+---------------
 
 .. automodule:: ahj_app.views_users
    :members:

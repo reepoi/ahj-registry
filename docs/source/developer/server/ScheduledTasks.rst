@@ -1,11 +1,11 @@
 ScheduledTasks
-======================
+==============
 
 Submodules
 ----------
 
 editTasks.py
--------------------------------
+------------
 
 .. automodule:: ScheduledTasks.editTasks
    :members:
@@ -13,7 +13,7 @@ editTasks.py
    :show-inheritance:
 
 updater.py
------------------------------
+----------
 
 .. automodule:: ScheduledTasks.updater
    :members:

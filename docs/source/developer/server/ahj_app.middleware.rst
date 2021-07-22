@@ -4,11 +4,12 @@ middleware
 Submodules
 ----------
 
-LoggingMiddleware
---------------------------------------------
+LoggingMiddleware.py
+--------------------
 
 .. automodule:: ahj_app.middleware.LoggingMiddleware
    :members:
+   :special-members: __call__
    :undoc-members:
    :show-inheritance:
 
