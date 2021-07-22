@@ -1,8 +1,9 @@
 from django.db import connection
 from django.urls import reverse
 from django.http import HttpRequest
-from ahj_app.models import User, Edit, Comment, APIToken
-from ahj_app.models_field_enums import *
+from ahj_app.models import AHJ, Polygon, Address, User, Edit, Comment, APIToken, StatePolygon
+from ahj_app.models_field_enums import AHJLevelCode, AHJ_LEVEL_CODE_CHOICES, BuildingCode, BUILDING_CODE_CHOICES, \
+    ElectricCode, ELECTRIC_CODE_CHOICES
 from django.utils import timezone
 
 from fixtures import *

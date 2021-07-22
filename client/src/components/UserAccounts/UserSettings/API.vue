@@ -35,7 +35,7 @@
 
 <script>
 import moment from "moment";
-import constants from "@/constants";
+import constants from "../../../constants";
 
 export default {
     mounted() {

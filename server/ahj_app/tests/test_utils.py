@@ -1,7 +1,7 @@
 from django.db import connection
 from django.urls import reverse
 from django.http import HttpRequest
-from ahj_app.models import User, Edit, Comment
+from ahj_app.models import User, Edit, Comment, StatePolygon, AHJ, Address, Polygon
 from ahj_app.models_field_enums import *
 from fixtures import *
 from ahj_app.utils import *

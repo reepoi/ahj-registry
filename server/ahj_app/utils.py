@@ -8,6 +8,8 @@ from django.core.exceptions import ObjectDoesNotExist
 import googlemaps
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 
+from .models import AHJ
+
 
 ENUM_FIELDS = {
     'BuildingCode',

@@ -4,7 +4,6 @@ from fixtures import *
 import pytest
 import datetime
 
-from ahj_app.models import Contact
 
 def create_ahj(ahjpk, ahjid, mpoly_obj):
     polygon = Polygon.objects.create(Polygon=mpoly_obj, LandArea=1, WaterArea=1, InternalPLatitude=1, InternalPLongitude=1)
