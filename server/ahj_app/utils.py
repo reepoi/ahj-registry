@@ -40,6 +40,14 @@ gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_KEY)
 
 
 def get_ob_value_primitive(ob_json, field_name, throw_exception=True, exception_return_value=None):
+    """
+    Returns the ``'Value'`` primitive value from an Orange Button dict.
+
+    :param ob_json: The Orange Button dict.
+    :param field_name: The field to get the Value primitive from.
+    :param throw_exception: Boolean whether to throw an error if the field_name or Value primitive in the dict.
+    :param exception_return_value: What value to return if an error is thrown and caught.
+    """
     try:
         if isinstance(ob_json[field_name], list):
             values = []
@@ -53,10 +61,16 @@ def get_ob_value_primitive(ob_json, field_name, throw_exception=True, exception_
         return exception_return_value # returns empty string if the json didn't have the field name as a key
     
 def check_address_empty(address):
+    """
+    Checks whether a string has numbers or letters.
+    """
     return re.search('[a-zA-Z0-9]', address) # If number or letter exists, then at least one address field has been provided
 
 
 def get_str_location(location):
+    """
+    Returns a GEOS Point representation of an Orange Button Location.
+    """
     lng, lat = get_ob_value_primitive(location, 'Longitude'), get_ob_value_primitive(location, 'Latitude')
     try:
         if lat is not None and lng is not None:
@@ -67,6 +81,9 @@ def get_str_location(location):
 
 
 def get_str_address(address):
+    """
+    Returns a string representation of an Orange Button Address dict.
+    """
     return \
         get_ob_value_primitive(address, 'AddrLine1', exception_return_value='') + ' ' + \
         get_ob_value_primitive(address, 'AddrLine2', exception_return_value='') + ' ' + \
@@ -103,6 +120,11 @@ def get_location_gecode_address_str(address):
     return location
 
 def get_elevation(Address):
+    """
+    Returns a Location object with Latitude, Longitude and Elevation of an Address.
+
+    :param Address: a string representation of an Address.
+    """
     loc = get_location_gecode_address_str(Address)
     lat, lng = loc['Latitude']['Value'], loc['Longitude']['Value']
     loc['Elevation'] = {'Value': None}
@@ -121,6 +143,10 @@ def get_enum_value_row(enum_field, enum_value):
 
 
 def get_enum_value_row_else_null(enum_field, enum_value):
+    """
+    Finds the row of the enum table given the field name and its enum value using ``get_enum_value_row``.
+    If ``get_enum_value_row`` throws an error, this catches it and returns ``null``.
+    """
     try:
         if enum_value is None:
             return None

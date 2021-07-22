@@ -133,7 +133,8 @@ def edit_get_source_column_value(edit):
 
 def edit_get_old_new_value(edit, old_new_field):
     """
-    Gets the edit's OldValue or NewValue (specified by old_new_field).
+    Gets the edit's OldValue or NewValue specified by **old_new_field**.
+    **old_new_field** should be the string ``'NewValue'`` or ``'OldValue'``.
     """
     edit_value = getattr(edit, old_new_field)
     if edit.SourceColumn in ENUM_FIELDS:
@@ -609,7 +610,8 @@ def edit_update(request):
 @api_view(['GET'])
 def edit_list(request):
     """
-    Endpoint returning all edits made to an AHJ specified by AHJPK.
+    Endpoint returning all edits made to an AHJ.
+    This expects an ``AHJPK`` in the query parameters.
     """
     try:
         edits = Edit.objects.filter(AHJPK=request.query_params.get('AHJPK'))
@@ -622,6 +624,8 @@ def edit_list(request):
 def user_edits(request):
     """
     Endpoint returning all edits made a user specified by UserID.
+    Only the Usernames of the ``ChangedBy`` and ``ApprovedBy`` users are serialized.
+    This expects a ``UserID`` in the query parameters.
     """
     try:
         edits = Edit.objects.filter(ChangedBy=request.query_params.get('UserID'))

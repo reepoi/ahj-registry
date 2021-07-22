@@ -30,12 +30,8 @@ def deactivate_expired_api_tokens():
 @permission_classes([IsAuthenticated])
 def ahj_list(request):
     """
-    Functional view for the AHJList
+    Public API endpoint for AHJ Search. See the API documentation for more information.
     """
-    # By default select all the AHJs
-    # filter by the latitude, longitude
-
-    # Process sent Location object
     str_location = None
     try:
         ob_location = request.data.get('Location', None)
@@ -89,6 +85,10 @@ def ahj_list(request):
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
 def ahj_geo_location(request):
+    """
+    Public API endpoint for searching AHJs by Location.
+    This endpoint is from AHJ Registry 1.0, and the AHJ Registry 2.0 ``ahj_list`` endpoint should be used instead.
+    """
     ahjs_to_search = request.data.get('ahjs_to_search', None)
 
     # If sent an Orange Button Address containing Location
@@ -119,6 +119,10 @@ def ahj_geo_location(request):
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
 def ahj_geo_address(request):
+    """
+    Public API endpoint for searching AHJs by Address.
+    This endpoint is from AHJ Registry 1.0, and the AHJ Registry 2.0 ``ahj_list`` endpoint should be used instead.
+    """
     ahjs_to_search = request.data.get('ahjs_to_search', None)
 
     ob_address = request.data.get('Address', None)

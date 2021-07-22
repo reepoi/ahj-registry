@@ -27,6 +27,10 @@ class ConfirmPasswordReset(UserViewSet):
 
     @action(["post"], detail=False)
     def reset_password_confirm(self, request, *args, **kwargs):
+        """
+        Overridden Djoser endpoint for sending a rest password confirmation email.
+        This was overridden to let users activate their account by resetting their password.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -47,8 +51,7 @@ class ConfirmPasswordReset(UserViewSet):
 @permission_classes([IsAuthenticated])
 def get_active_user(request):
     """
-    Endpoint for getting the active user
-    through the authtoken
+    Returns the user of the requesting user authenticated by their WebpageToken.
     """
     return Response(UserSerializer(request.user, context={'is_public_view': False}).data, status=status.HTTP_200_OK)
 
@@ -56,7 +59,7 @@ def get_active_user(request):
 @api_view(['GET'])
 def get_single_user(request, username):
     """
-    Function view for getting a single user with the specified Username = username
+    Function view for getting a user with the specified username.
     """
     context = {'is_public_view': True}
     if request.auth is not None and request.user.Username == username:
@@ -73,7 +76,15 @@ def get_single_user(request, username):
 @permission_classes([IsAuthenticated])
 def user_update(request):
     """
-    Update the user profile associated with the requesting user.
+    Update the user profile associated with the requesting user. These are the fields that can be changed:
+
+    ======= ======
+    Table   Fields
+    ======= ======
+    User    Username, PersonalBio, URL, CompanyAffiliation
+    Contact FirstName, LastName, URL, WorkPhone, PreferredContactMethod, Title
+    ======= ======
+
     """
     changeable_user_fields = {'Username', 'PersonalBio', 'URL', 'CompanyAffiliation'}
     changeable_contact_fields = {'FirstName', 'LastName', 'URL', 'WorkPhone', 'PreferredContactMethod', 'Title'}
@@ -91,6 +102,9 @@ def user_update(request):
 @authentication_classes([WebpageTokenAuth])
 @permission_classes([IsAuthenticated, IsSuperuser])
 def create_api_token(request):
+    """
+    Endpoint for Superusers to generate their API token.
+    """
     try:
         user = request.user
         with transaction.atomic():
@@ -106,8 +120,8 @@ def create_api_token(request):
 @permission_classes([IsAuthenticated, IsSuperuser])
 def set_ahj_maintainer(request):
     """
-    View to assign a user as a data maintainer of an AHJ
-    Expects a Username and a the primary key of an AHJ (AHJPK)
+    Endpoint for Superusers to assign a user as a data maintainer of an AHJ.
+    Expects a ``Username`` and ``AHJPK``.
     """
     try:
         username = request.data['Username']
@@ -129,8 +143,8 @@ def set_ahj_maintainer(request):
 @permission_classes([IsAuthenticated, IsSuperuser])
 def remove_ahj_maintainer(request):
     """
-    View to revoke a user as a data maintainer of an AHJ
-    Expects a user's webpage token and a the primary key of an AHJ (AHJPK)
+    Endpoint for Superusers to revoke a user as a data maintainer of an AHJ.
+    Expects a ``Username`` and ``AHJPK``.
     """
     try:
         username = request.data['Username']

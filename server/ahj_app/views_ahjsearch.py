@@ -14,10 +14,18 @@ from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
 @throttle_classes([AnonRateThrottle])
 def webpage_ahj_list(request):
     """
-    Functional view for the WebPageAHJList
+    Endpoint for the client app's AHJ Search.
+
+    It is similar to to the public API endpoint documented in the API Documentation with these differences in filtering:
+        - BuildingCode instead of BuildingCodes
+        - ElectricCode instead of ElectricCodes
+        - FireCode instead of FireCodes
+        - ResidentialCode instead of ResidentialCodes
+        - WindCode instead of WindCodes
+        - Allows filtering with GeoJSON through the ``FeatureCollection`` parameter.
+
+    See the AHJSearchPageFilter.vue and store.js for more information about how this endpoint is used.
     """
-    # By default select all the AHJs
-    # filter by the latitude, longitude
     json_location = get_location_gecode_address_str(request.data.get('Address', None))
 
     polygon = get_multipolygon(request=request, location=json_location)
@@ -70,7 +78,7 @@ def webpage_ahj_list(request):
 @api_view(['GET'])
 def get_single_ahj(request):
     """
-    Endpoint to get a single ahj given an AHJPK
+    Endpoint to get a single AHJ given an ``AHJPK`` query parameter.
     """
     try:
         ahj = AHJ.objects.get(AHJPK=request.query_params.get('AHJPK'))
