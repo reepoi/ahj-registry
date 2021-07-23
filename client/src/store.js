@@ -77,8 +77,8 @@ state: {
                 url += queryPayload['Pagination'];
             }
 
-            // if ahj search api was called by AHJSearchFilter, check if there was a regioin searched too
-            if (queryPayload['callerID'] === 'searchpagefilter' && state.searchedGeoJSON) {
+            // check if there was a region searched
+            if (state.searchedGeoJSON) {
                 queryPayload['FeatureCollection'] = state.searchedGeoJSON;
             }
             let headers = {};
