@@ -34,6 +34,7 @@ state: {
     currentAHJ: null, // Current AHJ in focus on map and AHJ table
     cancelAPICallToken: null, // Field to call .cancel() on to cancel an axios api request
     apiLoading: true,
+    apiError: false,
     apiErrorInfo: { status: null, msg: ''},
     showTable: false, // shows the search results table
     selectedAHJ: null, // Current AHJ in focus on map and AHJ table

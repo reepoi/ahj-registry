@@ -13,16 +13,52 @@ from django.db import transaction
 from django.conf import settings
 
 from .authentication import WebpageTokenAuth
-from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, PreferredContactMethod
+from .models import AHJUserMaintains, AHJ, User, APIToken, Contact, WebpageToken, PreferredContactMethod, SunspecAllianceMemberDomain, AHJOfficeDomain
 from .permissions import IsSuperuser
-from .serializers import UserSerializer
-from djoser.views import UserViewSet
+from .serializers import UserSerializer, ContactSerializer
+from djoser.views import UserViewSet, TokenCreateView, TokenDestroyView
+from djoser import signals
+from djoser import utils
+from djoser.compat import get_user_email
+from djoser.conf import settings
 
 from .utils import get_enum_value_row, filter_dict_keys, ENUM_FIELDS
 
+class ActivateUser(UserViewSet):
 
-@authentication_classes([WebpageTokenAuth])
-@permission_classes([IsAuthenticated])
+    @action(["post"], detail=False)
+    def activation(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+        maintainedAHJ = self.get_maintained_ahj(user.Email)
+        if (maintainedAHJ):
+            AHJUserMaintains.objects.create(AHJPK=maintainedAHJ, UserID=user, MaintainerStatus=1)
+        user.is_active = True
+        user.MemberID = self.get_member_id(user.Email)
+        user.save()
+
+        signals.user_activated.send(
+            sender=self.__class__, user=user, request=self.request
+        )
+
+        if settings.SEND_CONFIRMATION_EMAIL:
+            context = {"user": user}
+            to = [get_user_email(user)]
+            settings.EMAIL.confirmation(self.request, context).send(to)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    # Returns the sunspec alliance member id if domain matches a registered member. Returns None otherwise.
+    def get_member_id(self, email):
+        domain = SunspecAllianceMemberDomain.objects.filter(Domain=email[email.index('@') + 1 : ])
+        return domain[0].MemberID if domain.exists() else None
+    
+    # Returns the AHJ that corresponds to the domain of the user's email. Returns None if no AHJ matches.
+    def get_maintained_ahj(self, email):
+        domain = AHJOfficeDomain.objects.filter(Domain=email[email.index('@') + 1 : ]).first()
+        return AHJ.objects.filter(AHJID=domain.AHJID.AHJID).first() if domain else None
+
 class ConfirmPasswordReset(UserViewSet):
 
     @action(["post"], detail=False)
