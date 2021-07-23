@@ -4,6 +4,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
+from .throttles import WebpageSearchThrottle
 from .models import AHJ
 from .serializers import AHJSerializer
 from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
@@ -11,7 +12,7 @@ from .utils import get_multipolygon, get_multipolygon_wkt, get_str_location, \
 
 
 @api_view(['POST'])
-@throttle_classes([AnonRateThrottle])
+@throttle_classes([WebpageSearchThrottle])
 def webpage_ahj_list(request):
     """
     Endpoint for the client app's AHJ Search.
@@ -33,7 +34,6 @@ def webpage_ahj_list(request):
     if polygon is not None:
         polygon_wkt = get_multipolygon_wkt(multipolygon=polygon)
     str_location = get_str_location(location=json_location)
-
     ahjs = filter_ahjs(
         AHJName=request.data.get('AHJName', None),
         AHJID=request.data.get('AHJID', None),

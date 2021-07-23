@@ -20,6 +20,16 @@ def filter_excluded_fields(serializer_instance, serializer_model):
             serializer_instance.fields.pop(field)
 
 
+def filter_excluded_fields(serializer_instance, serializer_model):
+    """
+    Removes fields to be serialized by a serializer instance
+    that are in the serializer's model's SERIALIZER_EXCLUDED_FIELDS.
+    """
+    for field in serializer_model.SERIALIZER_EXCLUDED_FIELDS:
+        if field in serializer_instance.fields:
+            serializer_instance.fields.pop(field)
+
+
 class PolygonSerializer(geo_serializers.GeoFeatureModelSerializer):
     """
     Class to serialize Polygon objects into GeoJSON format

@@ -6,9 +6,10 @@ from django.apps import apps
 from django.utils import timezone
 
 from rest_framework import status
-from rest_framework.decorators import permission_classes, authentication_classes, api_view
+from rest_framework.decorators import permission_classes, authentication_classes, throttle_classes, api_view
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
+from .throttles import MemberRateThrottle
 from rest_framework.response import Response
 
 from .authentication import APITokenAuth
@@ -28,6 +29,7 @@ def deactivate_expired_api_tokens():
 @api_view(['POST'])
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
+@throttle_classes([MemberRateThrottle])
 def ahj_list(request):
     """
     Public API endpoint for AHJ Search. See the API documentation for more information.
@@ -84,6 +86,7 @@ def ahj_list(request):
 @api_view(['POST'])
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
+@throttle_classes([MemberRateThrottle])
 def ahj_geo_location(request):
     """
     Public API endpoint for searching AHJs by Location.
@@ -118,6 +121,7 @@ def ahj_geo_location(request):
 @api_view(['POST'])
 @authentication_classes([APITokenAuth])
 @permission_classes([IsAuthenticated])
+@throttle_classes([MemberRateThrottle])
 def ahj_geo_address(request):
     """
     Public API endpoint for searching AHJs by Address.
