@@ -248,9 +248,10 @@ class Edit(models.Model):
     ReviewStatus = models.CharField(db_column='ReviewStatus', max_length=1, default='P')
     OldValue = models.CharField(db_column='OldValue', max_length=255, blank=True, null=True)
     NewValue = models.CharField(db_column='NewValue', max_length=255, blank=True, null=True)
-    DateRequested = models.DateTimeField(db_column='DateRequested')
-    DateEffective = models.DateTimeField(db_column='DateEffective', blank=True, null=True)
-    #Edit type: A = addition, D = deletion, U = update
+    DateRequested = models.DateTimeField(db_column='DateRequested', db_index=True)
+    DateEffective = models.DateTimeField(db_column='DateEffective', blank=True, null=True, db_index=True)
+    IsApplied = models.BooleanField(db_column='IsApplied', default=False)
+    # Edit type: A = addition, D = deletion, U = update
     EditType = models.CharField(db_column='EditType', max_length=1, default='U')
     DataSourceComment = models.CharField(db_column='DataSourceComment', max_length=255, blank=True)
     history = HistoricalRecords()

@@ -4,6 +4,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 from django.contrib.gis.geos import Polygon as geosPolygon
 from ahj_app.models import WebpageToken, APIToken, User, Contact, Address, AHJ, AHJUserMaintains, Polygon
+from ahj_app.utils import ENUM_FIELDS, get_enum_value_row
 from rest_framework.test import APIClient
 from constants import webpageTokenUrls, apiTokenUrls
 import datetime
@@ -136,6 +137,32 @@ def create_minimal_obj(db):
                          'FeeStructure': {'AHJPK': {'_model_name': 'AHJ', 'AHJID': uuid.uuid4(), 'AddressID': {'_model_name': 'Address', 'LocationID': {'_model_name': 'Location'}}}}}
         return create_obj_from_dict(model_name, minimal_dicts[model_name])
     return get_minimal_obj
+
+
+def get_value_or_enum_row(field_name, value):
+    return get_enum_value_row(field_name, value) if field_name in ENUM_FIELDS else value
+
+
+def get_obj_field(obj, field_name):
+    return getattr(obj._meta.model.objects.get(**{obj._meta.pk.name: obj.pk}), field_name)
+
+
+def set_obj_field(obj, field_name, value):
+    if field_name in ENUM_FIELDS:
+        if value == '':
+            value = None
+        else:
+            value = get_enum_value_row(field_name, value)
+    setattr(obj, field_name, value)
+    obj.save()
+
+
+@pytest.fixture
+def mpoly_obj():
+    p1 = geosPolygon( ((0, 0), (0, 1), (1, 1), (0, 0)) )
+    p2 = geosPolygon( ((1, 1), (1, 2), (2, 2), (1, 1)) )
+    mp = MultiPolygon(p1, p2)
+    return mp
 
 
 """
